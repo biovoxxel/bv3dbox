@@ -1,0 +1,82 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>de.biovoxxel</groupId>
+	<artifactId>bv3dbox</artifactId>
+	<version>0.0.1</version>
+  
+  
+	<parent>
+		<relativePath />
+		<artifactId>pom-scijava</artifactId>
+		<version>31.1.0</version>
+		<groupId>org.scijava</groupId>
+	</parent>
+	
+	
+  	<developers>
+		<developer>
+			<id>biovoxxel</id>
+			<name>Jan Brocher</name>
+			<email>jan.brocher@biovoxxel.de</email>
+			<organization>BioVoxxel</organization>
+			<roles>
+				<role>developer</role>
+			</roles>
+			<timezone>-6</timezone>
+		</developer>
+	</developers>
+
+	<properties>
+		<package-name>de.biovoxxel.bv3dbox</package-name>
+		<license.licenseName>bsd_3</license.licenseName>
+		<license.copyrightOwners>Jan Brocher, BioVoxxel</license.copyrightOwners>
+		<!--<scijava.app.directory>/home/rhaase/programs/fiji/Fiji.app/</scijava.app.directory>-->
+	</properties>
+
+ 	<mailingLists>
+		<mailingList>
+			<name>ImageSc Forum</name>
+			<archive>http://forum.image.sc/</archive>
+		</mailingList>
+	</mailingLists>
+  
+	<scm>
+
+	<url>none</url>
+	</scm>
+	
+	<ciManagement>
+		<system>None</system>
+	</ciManagement>
+	
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/biovoxxel/bv3dbox/issues</url>
+	</issueManagement>
+	
+  
+  	<repositories>
+		<repository>
+			<id>imagej.public</id>
+			<url>http://maven.imagej.net/content/groups/public</url>
+		</repository>
+	</repositories>
+  
+  <dependencies>
+	<dependency>
+		<groupId>net.haesleinhuepf</groupId>
+		<artifactId>clij2_</artifactId>
+		<version>2.5.1.4</version>
+	</dependency>
+  </dependencies>
+ 
+  
+  <url>https://www.biovoxxel.de</url>
+  <description>The BioVoxxel 3D Box implements well known functions of the BioVoxxel Toolbox for 3D images using the GPU-accelerated image processing via the clij project family (clij/clij2/clijx/).</description>
+  <inceptionYear>2021</inceptionYear>
+  <organization>
+  	<name>BioVoxxel</name>
+  	<url>https://www.biovoxxel.de</url>
+  </organization>
+  <name>BioVoxxel 3D Box</name>
+</project>

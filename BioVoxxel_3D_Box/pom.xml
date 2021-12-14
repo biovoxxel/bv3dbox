@@ -4,7 +4,15 @@
 	<artifactId>bv3dbox</artifactId>
 	<version>0.0.1</version>
   
-  
+	<name>BioVoxxel 3D Box</name>
+	<inceptionYear>2021</inceptionYear>
+	<description>The BioVoxxel 3D Box implements well known functions of the BioVoxxel Toolbox for 3D images using the GPU-accelerated image processing via the clij project family (clij/clij2/clijx/).</description>
+	<url>tbd</url>
+	<organization>
+		<name>BioVoxxel</name>
+	 	<url>https://www.biovoxxel.de</url>
+	 </organization>
+	 
 	<parent>
 		<relativePath />
 		<artifactId>pom-scijava</artifactId>
@@ -13,7 +21,7 @@
 	</parent>
 	
 	
-  	<developers>
+	 <developers>
 		<developer>
 			<id>biovoxxel</id>
 			<name>Jan Brocher</name>
@@ -25,24 +33,35 @@
 			<timezone>-6</timezone>
 		</developer>
 	</developers>
-
+	<contributors>
+		<contributor>
+			<name>none</name>
+		</contributor>
+	</contributors>
+	
+	<licenses>
+		<license>
+			<name>3-Clause BSD License</name>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	
 	<properties>
 		<package-name>de.biovoxxel.bv3dbox</package-name>
 		<license.licenseName>bsd_3</license.licenseName>
 		<license.copyrightOwners>Jan Brocher, BioVoxxel</license.copyrightOwners>
 		<!--<scijava.app.directory>/home/rhaase/programs/fiji/Fiji.app/</scijava.app.directory>-->
 	</properties>
-
- 	<mailingLists>
+	
+		<mailingLists>
 		<mailingList>
 			<name>ImageSc Forum</name>
 			<archive>http://forum.image.sc/</archive>
 		</mailingList>
 	</mailingLists>
-  
+	 
 	<scm>
-
-	<url>none</url>
+		<url>none</url>
 	</scm>
 	
 	<ciManagement>
@@ -54,29 +73,59 @@
 		<url>https://github.com/biovoxxel/bv3dbox/issues</url>
 	</issueManagement>
 	
-  
-  	<repositories>
+	 
+	 	<repositories>
 		<repository>
 			<id>imagej.public</id>
 			<url>http://maven.imagej.net/content/groups/public</url>
 		</repository>
+		<repository>	
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
 	</repositories>
+	 
+	<dependencies>
+		<dependency>
+			<groupId>net.haesleinhuepf</groupId>
+			<artifactId>clij2_</artifactId>
+			<version>2.5.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>ij</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+	       <groupId>org.junit.jupiter</groupId>
+	       <artifactId>junit-jupiter-api</artifactId>
+	       <scope>test</scope>
+	    </dependency>
+	    <dependency>
+	       <groupId>org.junit.jupiter</groupId>
+	       <artifactId>junit-jupiter-engine</artifactId>
+	       <scope>test</scope>
+	    </dependency>
+		<dependency>
+			<groupId>org.framagit.mcib3d</groupId>
+			<artifactId>mcib3d-core</artifactId>
+			<version>4.0.1</version>		
+		</dependency>
+
+
+	 </dependencies>
+	
+	<build>
+	  <plugins>
+	    <plugin>
+	      <groupId>org.apache.maven.plugins</groupId>
+	      <artifactId>maven-jar-plugin</artifactId>
+	      <configuration>
+	        <outputDirectory>C:\Users\broch\Desktop\Fiji.app BVTB 3.0\plugins</outputDirectory>
+	      </configuration>
+	    </plugin>
+	  </plugins>
+	</build>
+	 
   
-  <dependencies>
-	<dependency>
-		<groupId>net.haesleinhuepf</groupId>
-		<artifactId>clij2_</artifactId>
-		<version>2.5.1.4</version>
-	</dependency>
-  </dependencies>
- 
-  
-  <url>https://www.biovoxxel.de</url>
-  <description>The BioVoxxel 3D Box implements well known functions of the BioVoxxel Toolbox for 3D images using the GPU-accelerated image processing via the clij project family (clij/clij2/clijx/).</description>
-  <inceptionYear>2021</inceptionYear>
-  <organization>
-  	<name>BioVoxxel</name>
-  	<url>https://www.biovoxxel.de</url>
-  </organization>
-  <name>BioVoxxel 3D Box</name>
 </project>

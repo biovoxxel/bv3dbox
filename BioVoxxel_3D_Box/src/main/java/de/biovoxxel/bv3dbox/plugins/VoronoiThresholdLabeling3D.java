@@ -356,8 +356,8 @@ public class VoronoiThresholdLabeling3D extends DynamicCommand {
 	private void adaptFilterRadius() {
 		
 		final MutableModuleItem<Float> filterRadius = getInfo().getMutableInput("filterRadius", Float.class);
+		filterRadius.setValue(this, 1f);
 		if (filterMethod.equals("Median")) {
-			filterRadius.setValue(this, 1f);
 			filterRadius.setMaximumValue(15f);
 			
 		} else {
@@ -372,8 +372,8 @@ public class VoronoiThresholdLabeling3D extends DynamicCommand {
 	private void adaptBackgroundRadius() {
 		
 		final MutableModuleItem<Float> backgroundRadius = getInfo().getMutableInput("backgroundRadius", Float.class);
+		backgroundRadius.setValue(this, 1f);
 		if (backgroundSubtractionMethod.equals("DoM")) {
-			backgroundRadius.setValue(this, 1f);
 			backgroundRadius.setMaximumValue(15f);
 		} else {
 			backgroundRadius.setMaximumValue(200f);

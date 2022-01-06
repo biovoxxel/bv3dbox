@@ -2,16 +2,17 @@ package de.biovoxxel.bv3dbox.plugins;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
 
-import org.scijava.Cancelable;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
+import org.scijava.log.LogLevel;
+import org.scijava.log.LogService;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.prefs.PrefService;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -24,8 +25,9 @@ import ij.process.ImageProcessor;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
 import net.haesleinhuepf.clij2.plugins.StatisticsOfLabelledPixels;
+import utilities.BV3DBoxSettings;
 import utilities.BV3DBoxUtilities;
-import utilities.LoggerSetup;
+import utilities.BV3DBoxUtilities.LutNames;
 
 
 /**
@@ -34,10 +36,57 @@ import utilities.LoggerSetup;
  *
  */
 
-@Plugin(type = Command.class, menuPath = "BV3DBox>Speckle Inspector 2D/3D")
-public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
+@Plugin(type = Command.class, menuPath = "BV3DBox>Object Inspector 2D/3D")
+public class ObjectInspector3D extends DynamicCommand {
 
-	Logger logger = LoggerSetup.getLogger();
+	@Parameter
+	PrefService prefs;
+	
+	@Parameter
+	LogService log;
+	
+
+	@Parameter(required = true, label = "Primary objects (labels)", description = "")
+	private ImagePlus labels_1_ImagePlus;
+	
+	@Parameter(required = true, label = "Secondary objects (labels)", description = "")
+	private ImagePlus labels_2_ImagePlus;
+	
+	
+	@Parameter(required = true, persist = true, label = "Primary original image", description = "", initializer = "initializeOriginalImageChoices")
+	private String original_1_title;
+	
+	@Parameter(required = true, persist = true, label = "Secondary original image (gray)", description = "", initializer = "initializeOriginalImageChoices")
+	private String original_2_title;
+	
+	
+	@Parameter(required = true, label = "Primary volume limitation", description = "")
+	private String primary_volume_range = "0-Infinity";
+	
+	@Parameter(required = true, label = "Primary MMDTC ratio", description = "")
+	private String primary_MMDTCR_range = "0.00-1.00";
+	
+	@Parameter(required = true, label = "Secondary volume limitation", description = "")
+	private String secondary_volume_range = "0-Infinity";
+	
+	@Parameter(required = true, label = "Secondary MMDTC ratio", description = "")
+	private String secondary_MMDTCR_range = "0.00-1.00";
+	
+	@Parameter(required = false, label = "Exclude primary edge objects", description = "")
+	private Boolean exclude_primary_objects_on_edges = true;
+	
+	@Parameter(required = false, label = "Pad stack tops", description = "")
+	private Boolean pad_stack_tops = false;
+	
+	@Parameter(required = false, label = "Show analysis label map", description = "")
+	private Boolean display_analyzed_label_map = false;
+	
+	@Parameter(required = false, label = "Show count map", description = "")
+	private Boolean show_count_map = false;
+
+	@Parameter(required = false, label = "Include background measurements", description = "")
+	private Boolean include_background_measurement = false;
+
 	
 	CLIJ2 clij2 = CLIJ2.getInstance();
 	
@@ -50,72 +99,95 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 	String PRIMARY_RESULTS_TABLE_NAME = "Primary_Results";
 	String SECONDARY_RESULTS_TABLE_NAME = "Secondary_Results";
 	
-	
-
-	@Parameter(required = true, persist = true, label = "Primary objects (labels)", description = "")
-	private ImagePlus labels_1_ImagePlus;
-	
-	@Parameter(required = true, persist = true, label = "Secondary objects (labels)", description = "")
-	private ImagePlus labels_2_ImagePlus;
-	
-	
-	@Parameter(required = true, persist = true, label = "Primary original image", description = "", initializer = "initializeOriginalImageChoices")
-	private String original_1_title;
-	
-	@Parameter(required = true, persist = true, label = "Secondary original image (gray)", description = "", initializer = "initializeOriginalImageChoices")
-	private String original_2_title;
-	
-	
-	@Parameter(required = true, label = "", description = "")
-	private String primary_volume_range = "0-Infinity";
-	
-	@Parameter(required = true, label = "", description = "")
-	private String primary_MMDTCR_range = "0.00-1.00";
-	
-	@Parameter(required = true, label = "", description = "")
-	private String secondary_volume_range = "0-Infinity";
-	
-	@Parameter(required = true, label = "", description = "")
-	private String secondary_MMDTCR_range = "0.00-1.00";
-	
-	@Parameter(required = false, label = "", description = "")
-	private Boolean exclude_primary_objects_on_edges = true;
-	
-	@Parameter(required = false, label = "", description = "")
-	private Boolean pad_stack_tops = false;
-	
-	@Parameter(required = false, label = "", description = "")
-	private Boolean display_analyzed_label_maps = false;
-	
-	@Parameter(required = false, label = "", description = "")
-	private Boolean show_count_map = false;
-
-	@Parameter(required = false, label = "", description = "")
-	private Boolean include_background_measurement = false;
-	
-//	@Parameter(required = false, label = "", description = "")
-//	private Boolean create_outlines_on_original = false;	//use callback to switch if original not available
-//	
-
-	
+	String GLASBEY_LUT = "glasbey_on_dark";
+	String GEEN_FIRE_BLUE_LUT = "Green Fire Blue";
+	String FIRE_LUT = "Fire";
+	private ResultsTable edge_analysis_table_1;
+	private ResultsTable edge_analysis_table_2;
 		
 	public void run() {
+				
+		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "debug_level", LogLevel.INFO));
+		log.info("------------------------------------------------------");
+		log.info("labels_1_ImagePlus = " + labels_1_ImagePlus);
+		log.info("labels_2_ImagePlus = " + labels_2_ImagePlus);
+		log.info("original_1_title = " + original_1_title);
+		log.info("original_2_title = " + original_2_title);
+		log.info("primary_volume_range = " + primary_volume_range);
+		log.info("primary_MMDTCR_range = " + primary_MMDTCR_range);
+		log.info("secondary_volume_range = " + secondary_volume_range);
+		log.info("secondary_MMDTCR_range = " + secondary_MMDTCR_range);
+		log.info("exclude_primary_objects_on_edges = " + exclude_primary_objects_on_edges);
+		log.info("pad_stack_tops = " + pad_stack_tops);
+		log.info("display_analyzed_label_maps = " + display_analyzed_label_map);
+		log.info("show_count_map = " + show_count_map);
+		log.info("include_background_measurement = " + include_background_measurement);
+		log.info("------------------------------------------------------");
+		
 		
 		clij2.clear();
 
 		if (labels_1_ImagePlus == labels_2_ImagePlus) {
-			JOptionPane.showMessageDialog(null, "Primary and secondary label image need to be different", "Duplicate image selection", JOptionPane.WARNING_MESSAGE);
+			cancel("Primary and secondary label image need to be different");
 			return;
 		}
 		
+		if (labels_1_ImagePlus.getNDimensions() > 3 || labels_2_ImagePlus.getNDimensions() > 3) {
+			cancel("Does not work on hyperstacks");
+		}
+		
+		int[] dimensions_label_image_1 = labels_1_ImagePlus.getDimensions();
+		int[] dimensions_label_image_2 = labels_2_ImagePlus.getDimensions();
+		
+		for (int dim = 0; dim < dimensions_label_image_1.length; dim++) {
+			if (dimensions_label_image_1[dim] != dimensions_label_image_2[dim]) {
+				cancel("Image dimensions between primary and secondary image do not match");
+			}
+		}
+		
+		if (labels_1_ImagePlus.getNDimensions() > 3 || labels_2_ImagePlus.getNDimensions() > 3) {
+			cancel("Does not work on hyperstacks");
+		}
 		
 		ImagePlus original_1_ImagePlus = WindowManager.getImage(original_1_title);
 		ImagePlus original_2_ImagePlus = WindowManager.getImage(original_2_title);
+
+		if (original_1_ImagePlus != null) {
+			
+			if (original_1_ImagePlus.getNDimensions() > 3) {
+				cancel("Does not work on hyperstacks");
+			}
+			
+			int[] dimensions_original_1 = original_1_ImagePlus.getDimensions();
+			
+			for (int dim = 0; dim < dimensions_label_image_1.length; dim++) {
+				if (dimensions_original_1[dim] != dimensions_label_image_1[dim]) {
+					cancel("Image dimensions of " + original_1_ImagePlus.getTitle() + " do not match");
+				}
+			}
+			
+		}
+		
+		if (original_2_ImagePlus != null) {
+			
+			if (original_2_ImagePlus.getNDimensions() > 3) {
+				cancel("Does not work on hyperstacks");
+			}
+			
+			int[] dimensions_original_2 = original_2_ImagePlus.getDimensions();
+			
+			for (int dim = 0; dim < dimensions_label_image_1.length; dim++) {
+				if (dimensions_original_2[dim] != dimensions_label_image_1[dim]) {
+					cancel("Image dimensions of " + original_2_ImagePlus.getTitle() + " do not match");
+				}
+			}
+			
+		}
 		
 		
 		Calibration voxel_calibration = labels_1_ImagePlus.getCalibration();
 		String calibrated_units = voxel_calibration.getUnit();
-		if (!calibrated_units.matches(".*ixel.*") && !calibrated_units.matches(".*oxel.*")) {
+		if (!calibrated_units.matches(".*ixel.*") && !calibrated_units.matches(".*oxel.*") && original_1_ImagePlus != null) {
 			voxel_calibration = original_1_ImagePlus.getCalibration();
 			calibrated_units = voxel_calibration.getUnit();
 		}
@@ -133,8 +205,6 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 		
 		if (labels_1_ImagePlus.getProcessor().isBinary()) {
 			
-			labels_1_ImagePlus.setProcessor(labels_1_ImagePlus.getProcessor().convertToFloatProcessor());
-			
 			ClearCLBuffer binaryInput_1 = clij2.push(labels_1_ImagePlus);
 			labels_1_gpu = clij2.create(binaryInput_1);
 			clij2.connectedComponentsLabelingBox(binaryInput_1, labels_1_gpu);
@@ -146,17 +216,16 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 			
 		} else {
 			
-			cancel("Wrong input image format\\nNeeds to be of type 32-bit label mask or 8-bit binary");
+			JOptionPane.showMessageDialog(null, "Wrong input image format\nNeeds to be of type 32-bit label mask or 8-bit binary", "Wrong image type", JOptionPane.WARNING_MESSAGE);
+			return;
 			
 		}
 		labels_1_gpu.setName("gpu_" + labels_1_ImagePlus.getTitle());
-		logger.info(labels_1_gpu + " pushed to GPU");			
+		log.debug(labels_1_gpu + " pushed to GPU");			
 		
 		
 				
 		if (labels_2_ImagePlus.getProcessor().isBinary()) {
-			
-			labels_2_ImagePlus.setProcessor(labels_2_ImagePlus.getProcessor().convertToFloatProcessor());
 			
 			ClearCLBuffer binaryInput_2 = clij2.push(labels_2_ImagePlus);
 			labels_2_gpu = clij2.create(binaryInput_2);
@@ -169,11 +238,13 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 			
 		} else {
 			
-			cancel("Wrong input image format\\nNeeds to be of type 32-bit label mask or 8-bit binary");
+			JOptionPane.showMessageDialog(null, "Wrong input image format\nNeeds to be of type 32-bit label mask or 8-bit binary", "Wrong image type", JOptionPane.WARNING_MESSAGE);
+			return;
+			
 		}
 		
 		labels_2_gpu.setName("gpu_" + labels_2_ImagePlus.getTitle());
-		
+		log.debug(labels_2_gpu + " pushed to GPU");	
 		
 		
 		
@@ -181,7 +252,7 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 			original_1_gpu = clij2.push(original_1_ImagePlus);
 			original_1_gpu.setName("gpu_" + original_1_ImagePlus.getTitle());
 			
-			logger.info(original_1_ImagePlus + " pushed to GPU");
+			log.debug(original_1_ImagePlus + " pushed to GPU");
 		}
 	
 		
@@ -190,7 +261,7 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 			original_2_gpu = clij2.push(original_2_ImagePlus);
 			original_2_gpu.setName("gpu_" + original_2_ImagePlus.getTitle());
 			
-			logger.info(original_2_ImagePlus + " pushed to GPU");
+			log.debug(original_2_ImagePlus + " pushed to GPU");
 		}
 		
 		
@@ -222,12 +293,17 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 		
 		
 		
+		
 		//exclude primary labels according to input limiters
 		ClearCLBuffer finalLabels_1 = clij2.create(labels_1_gpu);
-		finalLabels_1.setName("final_" + labels_1_gpu.getName());
+		finalLabels_1.setName("final_" + labels_1_ImagePlus.getTitle());
+
+		edge_analysis_table_1 = getLabelEdgeAnalysisTable(labels_1_gpu);
+		
+		
 		if (!primary_volume_range.equalsIgnoreCase("0-infinity") || !primary_MMDTCR_range.equalsIgnoreCase("0.00-1.00")) {
 						
-			labelExclusion(labels_1_gpu, primary_volume_range, primary_MMDTCR_range, finalLabels_1);
+			labelExclusion(labels_1_gpu, primary_volume_range, primary_MMDTCR_range, edge_analysis_table_1,  finalLabels_1);
 			
 		} else {
 			
@@ -235,39 +311,43 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 			
 		}
 		labels_1_gpu.close();
+		//edge_analysis_table_1.reset();
+		
+		//Masking secondary labels with primary labels
+		ClearCLBuffer tempMaskedLabels_2 = clij2.create(labels_2_gpu);
+		ClearCLBuffer maskedLabels_2 = clij2.create(labels_2_gpu);
+		maskedLabels_2.setName("masked_" + labels_2_gpu.getName());
+		clij2.mask(labels_2_gpu, finalLabels_1, tempMaskedLabels_2);
+		clij2.closeIndexGapsInLabelMap(tempMaskedLabels_2, maskedLabels_2);
+		tempMaskedLabels_2.close();
+		log.debug(labels_2_gpu + "masked with " + finalLabels_1 + " with output as " + maskedLabels_2);
+				
 		
 		
 		//exclude secondary labels according to input limiters
-		ClearCLBuffer finalLabels_2 = clij2.create(labels_2_gpu);
+		ClearCLBuffer finalLabels_2 = clij2.create(maskedLabels_2);
 		finalLabels_2.setName("final_" + labels_2_gpu.getName());
+	
+		labels_2_gpu.close();
+		
+		edge_analysis_table_2 = getLabelEdgeAnalysisTable(maskedLabels_2);
+		
 		if (!secondary_volume_range.equalsIgnoreCase("0-infinity") || !secondary_MMDTCR_range.equalsIgnoreCase("0.00-1.00")) {
 					
-			labelExclusion(labels_2_gpu, secondary_volume_range, secondary_MMDTCR_range, finalLabels_2);
+			labelExclusion(maskedLabels_2, secondary_volume_range, secondary_MMDTCR_range, edge_analysis_table_2, finalLabels_2);
 			
 		} else {
 			
-			clij2.copy(labels_2_gpu, finalLabels_2);
+			clij2.copy(maskedLabels_2, finalLabels_2);
 			
 		}
-		labels_2_gpu.close();
-		
-		
-		
-		//Masking secondary labels with primary labels
-		ClearCLBuffer tempMaskedLabels_2 = clij2.create(finalLabels_2);
-		ClearCLBuffer maskedLabels_2 = clij2.create(finalLabels_2);
-		maskedLabels_2.setName("masked_" + finalLabels_2.getName());
-		clij2.mask(finalLabels_2, finalLabels_1, tempMaskedLabels_2);
-		clij2.closeIndexGapsInLabelMap(tempMaskedLabels_2, maskedLabels_2);
-		tempMaskedLabels_2.close();
-		logger.info(finalLabels_2 + "masked with " + finalLabels_1 + " with output as " + maskedLabels_2);
-		
+		maskedLabels_2.close();
 				
 		//create overlap count mask		
 		ClearCLBuffer overlapCountMap = clij2.create(finalLabels_1);
-		overlapCountMap.setName("overlapCountMask_" + labels_1_ImagePlus.getTitle());
-		boolean label_overlap_count_map_created = clij2.labelOverlapCountMap(finalLabels_1, maskedLabels_2, overlapCountMap);
-		logger.info("LabelOverlapCountMap finished = " + label_overlap_count_map_created);
+		overlapCountMap.setName("CountMap_" + labels_1_ImagePlus.getTitle());
+		boolean label_overlap_count_map_created = clij2.labelOverlapCountMap(finalLabels_1, finalLabels_2, overlapCountMap);
+		log.debug("LabelOverlapCountMap finished = " + label_overlap_count_map_created);
 		
 			
 		ResultsTable final_primary_results_table = new ResultsTable();
@@ -298,7 +378,7 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 		final_primary_results_table.setColumn("SEC_OBJECT_COUNT", secondaryObjectCountArray);
 		
 		if (show_count_map) {
-			pullAndDisplayImageFromGPU(overlapCountMap, true);	//test output			
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, overlapCountMap, true, LutNames.GEEN_FIRE_BLUE_LUT);	//test output			
 		}
 		overlapCountMap.close();
 		
@@ -327,7 +407,7 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 			final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_DISTANCE_TO_MASS_CENTER.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_DISTANCE_TO_MASS_CENTER.name()));
 			final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_MASS_CENTER.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_MASS_CENTER.name()));
 			final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_MASS_CENTER_RATIO.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_MASS_CENTER_RATIO.name()));
-			
+					
 		} else {
 			//skip intensity based measurements if original input image not available
 		}
@@ -337,6 +417,22 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 		final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_DISTANCE_TO_CENTROID.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_DISTANCE_TO_CENTROID.name()));
 		final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_CENTROID.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_CENTROID.name()));
 		final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_CENTROID_RATIO.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_CENTROID_RATIO.name()));
+		
+		Variable[] min_extension_1 = edge_analysis_table_1.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name());
+		Variable[] max_extension_1 = edge_analysis_table_1.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name());
+		Variable[] mean_extension_1 = edge_analysis_table_1.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name());
+		Variable[] std_dev_extension_1 = edge_analysis_table_1.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.STANDARD_DEVIATION_INTENSITY.name());
+		
+		Variable[] min_max_extension_ratio_1 = new Variable[min_extension_1.length];
+		for (int ratioIndex_1 = 0; ratioIndex_1 < min_max_extension_ratio_1.length; ratioIndex_1++) {
+			min_max_extension_ratio_1[ratioIndex_1] = new Variable(min_extension_1[ratioIndex_1].getValue() / max_extension_1[ratioIndex_1].getValue());
+		}
+		
+		final_primary_results_table.setColumn("MIN_MAX_EXTENSION_RATIO", min_max_extension_ratio_1);
+		final_primary_results_table.setColumn("MIN_EXTENSION", min_extension_1);
+		final_primary_results_table.setColumn("MAX_EXTENSION", max_extension_1);
+		final_primary_results_table.setColumn("MEAN_EXTENSION", mean_extension_1);
+		final_primary_results_table.setColumn("STD_DEV_EXTENSION", std_dev_extension_1);
 		
 		final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_WIDTH.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_WIDTH.name()));
 		final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_HEIGHT.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_HEIGHT.name()));
@@ -354,54 +450,56 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 		
 		primary_original_measurements_table = null;
 		
-////TODO: determine how to output single analysis results which do not fit in the primary or secondary table
-//		double total_pixel_count_of_all_primary_objects =  primary_image_volume - primary_volume_in_pixels[0]; //image volume - background volume
-//		double volume_fraction_of_primary_objects = primary_image_volume /  total_pixel_count_of_all_primary_objects;
-		
+		double primary_image_volume = (double) labels_1_gpu.getVolume();
+		double total_pixel_count_of_all_primary_objects =  primary_image_volume - primary_volume_in_pixels[0]; //image volume - background volume
+		log.info("total_pixel_count_of_all_primary_objects = " + total_pixel_count_of_all_primary_objects);
+		double volume_fraction_of_primary_objects = primary_image_volume /  total_pixel_count_of_all_primary_objects;
+		log.info("volume_fraction_of_primary_objects = " + volume_fraction_of_primary_objects);
 	
+		
 		//calculate secondary distances
 		ClearCLBuffer center_distance_map = clij2.create(finalLabels_1);
 		center_distance_map.setName("centroid_dist_" + finalLabels_1.getName());
 		clij2.euclideanDistanceFromLabelCentroidMap(finalLabels_1, center_distance_map);
-		logger.info("EuclideanDistanceFromLabelCentroidMap created");
+		log.debug("EuclideanDistanceFromLabelCentroidMap created");
 		
 		ClearCLBuffer border_distance_map = clij2.create(finalLabels_1);
 		border_distance_map.setName("border_dist_" + finalLabels_1.getName());
 		clij2.distanceMap(finalLabels_1, border_distance_map);
-		logger.info("MaximumExtensionMap created");
+		log.debug("MaximumExtensionMap created");
 
 		
 		double max_primary_label_count = clij2.maximumOfAllPixels(finalLabels_1);
-		logger.info("max_primary_label_count = " + max_primary_label_count);
+		log.debug("max_primary_label_count = " + max_primary_label_count);
 		
 		ResultsTable secondary_original_measurements_table = new ResultsTable();
 		ResultsTable center_distance_table = new ResultsTable();
 		ResultsTable border_distance_table = new ResultsTable();
 		
 		ResultsTable primary_label_origin_of_secondary_label_table = new ResultsTable();
-		clij2.statisticsOfBackgroundAndLabelledPixels(finalLabels_1, maskedLabels_2, primary_label_origin_of_secondary_label_table);
+		clij2.statisticsOfBackgroundAndLabelledPixels(finalLabels_1, finalLabels_2, primary_label_origin_of_secondary_label_table);
 					
 		if (original_2_gpu == null) {
 			
-			clij2.statisticsOfBackgroundAndLabelledPixels(maskedLabels_2, maskedLabels_2, secondary_original_measurements_table);
+			clij2.statisticsOfBackgroundAndLabelledPixels(finalLabels_2, finalLabels_2, secondary_original_measurements_table);
 			
 		} else {
 			
-			clij2.statisticsOfBackgroundAndLabelledPixels(original_2_gpu, maskedLabels_2, secondary_original_measurements_table);
+			clij2.statisticsOfBackgroundAndLabelledPixels(original_2_gpu, finalLabels_2, secondary_original_measurements_table);
 			
 		}
-		clij2.statisticsOfBackgroundAndLabelledPixels(center_distance_map, maskedLabels_2, center_distance_table);
+		clij2.statisticsOfBackgroundAndLabelledPixels(center_distance_map, finalLabels_2, center_distance_table);
 		center_distance_map.close();
-		clij2.statisticsOfBackgroundAndLabelledPixels(border_distance_map, maskedLabels_2, border_distance_table);
+		clij2.statisticsOfBackgroundAndLabelledPixels(border_distance_map, finalLabels_2, border_distance_table);
 		border_distance_map.close();
 		
 		
-		if (display_analyzed_label_maps) {
-			pullAndDisplayImageFromGPU(finalLabels_1, true);
-			pullAndDisplayImageFromGPU(maskedLabels_2, true);
+		if (display_analyzed_label_map) {
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, finalLabels_1, true, LutNames.GLASBEY_LUT);
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, finalLabels_2, true, LutNames.GLASBEY_LUT);
 		}
 		finalLabels_1.close();
-		maskedLabels_2.close();
+		finalLabels_2.close();
 		
 		
 		
@@ -443,6 +541,24 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 			//skip intensity based measurements if original input image not available
 		}
 		
+	
+		Variable[] min_extension_2 = edge_analysis_table_2.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name());
+		Variable[] max_extension_2 = edge_analysis_table_2.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name());
+		Variable[] mean_extension_2 = edge_analysis_table_2.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name());
+		Variable[] std_dev_extension_2 = edge_analysis_table_2.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.STANDARD_DEVIATION_INTENSITY.name());
+		
+		Variable[] min_max_extension_ratio_2 = new Variable[min_extension_2.length];
+		for (int ratioIndex_2 = 0; ratioIndex_2 < min_max_extension_ratio_2.length; ratioIndex_2++) {
+			min_max_extension_ratio_2[ratioIndex_2] = new Variable(min_extension_2[ratioIndex_2].getValue() / max_extension_2[ratioIndex_2].getValue());
+		}
+		
+		final_secondary_results_table.setColumn("MIN_MAX_EXTENSION_RATIO", min_max_extension_ratio_2);
+		final_secondary_results_table.setColumn("MIN_EXTENSION", min_extension_2);
+		final_secondary_results_table.setColumn("MAX_EXTENSION", max_extension_2);
+		final_secondary_results_table.setColumn("MEAN_EXTENSION", mean_extension_2);
+		final_secondary_results_table.setColumn("STD_DEV_EXTENSION", std_dev_extension_2);
+
+	
 		final_secondary_results_table.setColumn("AVER_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name()));
 		final_secondary_results_table.setColumn("SHORT_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name()));
 		final_secondary_results_table.setColumn("LONG_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name()));
@@ -514,56 +630,63 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 	
 	}
 	
-	public void labelExclusion(ClearCLBuffer input, String volumeRange, String MMDTC_Range, ClearCLBuffer output) throws NumberFormatException {
+	public void labelExclusion(ClearCLBuffer input, String volumeRange, String MMDTC_Range, ResultsTable edge_analysis_table, ClearCLBuffer output) throws NumberFormatException {
 		
+		log.debug("Label excludion for " + input.getName());
 		//get minimum volume limiter
-		float minVolume = getMinFromRange(volumeRange);
-		logger.info("Min volume = " + minVolume);
+		float minVolume = BV3DBoxUtilities.getMinFromRange(volumeRange);
+		log.debug("Min volume = " + minVolume);
 		
 		//get maximum volume limiter
-		float maxVolume = getMaxFromRange(volumeRange);
-		logger.info("Max volume = " + maxVolume);
+		float maxVolume = BV3DBoxUtilities.getMaxFromRange(volumeRange);
+		log.debug("Max volume = " + maxVolume);
 
-		//get MAX_MEAN_DISTANCE_TO_CENTROID_RATIO minimum limiter
-		float min_MMDTCR = getMinFromRange(MMDTC_Range);
-		logger.info("Min MMDTCR = " + min_MMDTCR);
+		//get MAX_MIN_DISTANCE_TO_CENTROID_RATIO minimum limiter
+		float min_MMDTCR = BV3DBoxUtilities.getMinFromRange(MMDTC_Range);
+		log.debug("Min MMDTCR = " + min_MMDTCR);
 		
-		//get MAX_MEAN_DISTANCE_TO_CENTROID_RATIO maximum limiter
-		float max_MMDTCR = getMaxFromRange(MMDTC_Range);
-		logger.info("Max MMDTCR = " + max_MMDTCR);
+		//get MAX_MIN_DISTANCE_TO_CENTROID_RATIO maximum limiter
+		float max_MMDTCR = BV3DBoxUtilities.getMaxFromRange(MMDTC_Range);
+		log.debug("Max MMDTCR = " + max_MMDTCR);
 		
-		
-		
+			
 		ResultsTable inputStatisticsTable = new ResultsTable(); 
 		clij2.statisticsOfBackgroundAndLabelledPixels(input, input, inputStatisticsTable);
 		//inputStatisticsTable.show("inputStatisticsTable_" + input.getName());	//test output
+		float[] volumeOfLabel = inputStatisticsTable.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.value);
+		log.debug("volumeOfLabel[] size = " + volumeOfLabel.length);
 		
 		int label_count = inputStatisticsTable.getCounter();
-		logger.info("Object count = " + label_count);
+		log.debug("Object count = " + label_count);
 		
-		float[] volumeOfLabel = inputStatisticsTable.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.value);
-		float[] MMDTCRatioOfLabel = inputStatisticsTable.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_CENTROID_RATIO.value);
 		
-		float[] inverted_MMDTCR = new float[label_count];
-		for (int labelIndex = 0; labelIndex < label_count; labelIndex++) {
-			inverted_MMDTCR[labelIndex] = 1 / MMDTCRatioOfLabel[labelIndex];
+		float[] min_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.value);
+		float[] max_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.value);
+		//float[] mean_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.value);
+		
+		float[] min_max_extension_ratio = new float[min_extension.length];
+		for (int ratioIndex = 0; ratioIndex < min_max_extension_ratio.length; ratioIndex++) {
+			min_max_extension_ratio[ratioIndex] = min_extension[ratioIndex] / max_extension[ratioIndex];
 		}
+		log.debug("min_max_extension_ratio[] size = " + min_max_extension_ratio.length);
+		
 		
 		int[] label_exclusion_vector = new int[label_count];
 		label_exclusion_vector[0] = 0;
 		//create primary label exclusion vector image
-		for (int object = 1; object < label_exclusion_vector.length; object++) {
-			logger.info("Object --> " + object + " Volume = " + volumeOfLabel[object] + "/ MMDTCR = " + inverted_MMDTCR[object]);
-			if (volumeOfLabel[object] >= minVolume && volumeOfLabel[object] <= maxVolume && inverted_MMDTCR[object] >= min_MMDTCR && inverted_MMDTCR[object] <= max_MMDTCR) {
+		for (int object = 1; object < label_count; object++) {
+			log.debug("Object --> " + object + " Volume = " + volumeOfLabel[object] + "/ MMDTCR = " + min_max_extension_ratio[object]);
+			if (volumeOfLabel[object] >= minVolume && volumeOfLabel[object] <= maxVolume && min_max_extension_ratio[object] >= min_MMDTCR && min_max_extension_ratio[object] <= max_MMDTCR) {
 				
 				label_exclusion_vector[object] = 0;	//keep label
 				
 			} else {
 				
 				label_exclusion_vector[object] = 1;	//remove label
+				edge_analysis_table.deleteRow(object);
 				
 			}
-			logger.info("label_exclusion_vector[0]["+object+"] = " + label_exclusion_vector[object]);
+			log.debug("label_exclusion_vector[0]["+object+"] = " + label_exclusion_vector[object]);
 			
 		}
 		ImagePlus exclusion_vector_ImagePlus = IJ.createImage("label_exclusion_vector " + input.getName(), label_count, 1, 1, 8);
@@ -581,45 +704,21 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 		input.close();
 	}
 	
-	public float getMinFromRange(String range) throws NumberFormatException {
-		float min_value = Float.NaN;
-		if (range.contains("-")) {
-			String min_value_string = range.substring(0, range.indexOf("-"));
-			if (min_value_string.equalsIgnoreCase("infinity")) {
-				min_value = Float.POSITIVE_INFINITY;
-			} else {
-				min_value = Float.parseFloat(min_value_string);
-			}
-		}
-		return min_value;
+	
+	public ResultsTable getLabelEdgeAnalysisTable(ClearCLBuffer input) {
 		
-	}
-	
-	public float getMaxFromRange(String range) throws NumberFormatException {
-		float max_value = Float.NaN;
-		if (range.contains("-")) {
-			String max_value_string = range.substring(range.indexOf("-") + 1);
-			if (max_value_string.equalsIgnoreCase("infinity")) {
-				max_value = Float.POSITIVE_INFINITY;
-			} else {
-				max_value = Float.parseFloat(max_value_string);
-			}
-		}
-		return max_value;
-		
+		ClearCLBuffer label_edges = clij2.create(input);
+		ClearCLBuffer distance_map = clij2.create(input);
+		clij2.reduceLabelsToLabelEdges(input, label_edges);
+		clij2.euclideanDistanceFromLabelCentroidMap(input, distance_map);
+		ResultsTable edge_agalysis_table = new ResultsTable();
+		clij2.statisticsOfBackgroundAndLabelledPixels(distance_map, label_edges, edge_agalysis_table);
+		label_edges.close();
+		distance_map.close();
+		return edge_agalysis_table;
 	}
 	
 	
-	public void pullAndDisplayImageFromGPU(ClearCLBuffer imageToShow, boolean addFireLUT) {
-		ImagePlus imagePlusToBePulled = clij2.pull(imageToShow);
-		imagePlusToBePulled.setTitle(imageToShow.getName());
-		imagePlusToBePulled.resetDisplayRange();
-		if (addFireLUT) {
-			IJ.run(imagePlusToBePulled, "Fire", "");
-		}
-		imagePlusToBePulled.show();
-		logger.info("Pulling and displaying = " + imageToShow);
-	}
 	
 	
 	public List<String> imageListWithNoneOption() {
@@ -645,6 +744,8 @@ public class SpeckleInspector3D extends DynamicCommand implements Cancelable {
 	}
 
 
-
+	public void cancel() {
+		return;
+	}
 	
 }

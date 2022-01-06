@@ -47,16 +47,16 @@ public class VoronoiThresholdLabeling3D extends DynamicCommand {
 	@Parameter(label = "Background Subtraction", choices = {"None", "DoG", "DoM", "TopHat", "BottomHat"}, callback = "adaptBackgroundRadius")
 	private String backgroundSubtractionMethod;
 	
-	@Parameter(label = "", min = "0f", max = "100f", callback = "processImage")
+	@Parameter(label = "Background radius", min = "0f", max = "100f", callback = "processImage")
 	private Float backgroundRadius = 1.0f;
 	
-	@Parameter(label = "", initializer = "thresholdMethodList", callback = "processImage")
+	@Parameter(label = "Threshold method", initializer = "thresholdMethodList", callback = "processImage")
 	private String thresholdMethod;
 	
-	@Parameter(label = "", min = "0f", callback = "processImage")
+	@Parameter(label = "Spot sigma", min = "0f", callback = "processImage")
 	private Float spotSigma;
 	
-	@Parameter(label = "", min = "0f", callback = "processImage")
+	@Parameter(label = "Maxima detection radius", min = "0f", callback = "processImage")
 	private Float maximaRadius;
 	
 	@Parameter(label = "Output type", choices = {"Labels", "Binary"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE, callback = "processImage")

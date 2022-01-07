@@ -23,6 +23,7 @@ import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
+import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
 import net.haesleinhuepf.clij2.plugins.StatisticsOfLabelledPixels;
 import utilities.BV3DBoxSettings;
@@ -79,13 +80,13 @@ public class ObjectInspector3D extends DynamicCommand {
 	private Boolean pad_stack_tops = false;
 	
 	@Parameter(required = false, label = "Show analysis label map", description = "")
-	private Boolean display_analyzed_label_map = false;
+	private Boolean display_analyzed_label_maps = false;
 	
 	@Parameter(required = false, label = "Show count map", description = "")
 	private Boolean show_count_map = false;
 
-	@Parameter(required = false, label = "Include background measurements", description = "")
-	private Boolean include_background_measurement = false;
+//	@Parameter(required = false, label = "Include background measurements", description = "")
+//	private Boolean include_background_measurement = false;
 
 	
 	CLIJ2 clij2 = CLIJ2.getInstance();
@@ -102,8 +103,7 @@ public class ObjectInspector3D extends DynamicCommand {
 	String GLASBEY_LUT = "glasbey_on_dark";
 	String GEEN_FIRE_BLUE_LUT = "Green Fire Blue";
 	String FIRE_LUT = "Fire";
-	private ResultsTable edge_analysis_table_1;
-	private ResultsTable edge_analysis_table_2;
+	
 		
 	public void run() {
 				
@@ -119,9 +119,9 @@ public class ObjectInspector3D extends DynamicCommand {
 		log.info("secondary_MMDTCR_range = " + secondary_MMDTCR_range);
 		log.info("exclude_primary_objects_on_edges = " + exclude_primary_objects_on_edges);
 		log.info("pad_stack_tops = " + pad_stack_tops);
-		log.info("display_analyzed_label_maps = " + display_analyzed_label_map);
+		log.info("display_analyzed_label_maps = " + display_analyzed_label_maps);
 		log.info("show_count_map = " + show_count_map);
-		log.info("include_background_measurement = " + include_background_measurement);
+//		log.info("include_background_measurement = " + include_background_measurement);
 		log.info("------------------------------------------------------");
 		
 		
@@ -206,17 +206,18 @@ public class ObjectInspector3D extends DynamicCommand {
 		if (labels_1_ImagePlus.getProcessor().isBinary()) {
 			
 			ClearCLBuffer binaryInput_1 = clij2.push(labels_1_ImagePlus);
-			labels_1_gpu = clij2.create(binaryInput_1);
+			labels_1_gpu = clij2.create(binaryInput_1.getDimensions(), NativeTypeEnum.Float);
 			clij2.connectedComponentsLabelingBox(binaryInput_1, labels_1_gpu);
 			binaryInput_1.close();
+			log.debug("convert " + labels_1_ImagePlus.getTitle() + " to connected components");
 			
-		} else if (labels_1_ImagePlus.getBitDepth() == 32) {
+		} else if (labels_1_ImagePlus.getBitDepth() != 24) {
 			
 			labels_1_gpu = clij2.push(labels_1_ImagePlus);
 			
 		} else {
 			
-			JOptionPane.showMessageDialog(null, "Wrong input image format\nNeeds to be of type 32-bit label mask or 8-bit binary", "Wrong image type", JOptionPane.WARNING_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Wrong input image format\nNeeds to be of type gray-scale label mask or 8-bit binary", "Wrong image type", JOptionPane.WARNING_MESSAGE);
 			return;
 			
 		}
@@ -228,17 +229,18 @@ public class ObjectInspector3D extends DynamicCommand {
 		if (labels_2_ImagePlus.getProcessor().isBinary()) {
 			
 			ClearCLBuffer binaryInput_2 = clij2.push(labels_2_ImagePlus);
-			labels_2_gpu = clij2.create(binaryInput_2);
+			labels_2_gpu = clij2.create(binaryInput_2.getDimensions(), NativeTypeEnum.Float);
 			clij2.connectedComponentsLabelingBox(binaryInput_2, labels_2_gpu);
 			binaryInput_2.close();
+			log.debug("convert " + labels_2_ImagePlus.getTitle() + " to connected components");
 			
-		} else if (labels_2_ImagePlus.getBitDepth() == 32) {
+		} else if (labels_2_ImagePlus.getBitDepth() != 24) {
 			
 			labels_2_gpu = clij2.push(labels_2_ImagePlus);
 			
 		} else {
 			
-			JOptionPane.showMessageDialog(null, "Wrong input image format\nNeeds to be of type 32-bit label mask or 8-bit binary", "Wrong image type", JOptionPane.WARNING_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Wrong input image format\nNeeds to be of type gray-scale label mask or 8-bit binary", "Wrong image type", JOptionPane.WARNING_MESSAGE);
 			return;
 			
 		}
@@ -297,13 +299,13 @@ public class ObjectInspector3D extends DynamicCommand {
 		//exclude primary labels according to input limiters
 		ClearCLBuffer finalLabels_1 = clij2.create(labels_1_gpu);
 		finalLabels_1.setName("final_" + labels_1_ImagePlus.getTitle());
-
-		edge_analysis_table_1 = getLabelEdgeAnalysisTable(labels_1_gpu);
 		
+		
+		ResultsTable final_edge_analysis_table_1 = new ResultsTable();
 		
 		if (!primary_volume_range.equalsIgnoreCase("0-infinity") || !primary_MMDTCR_range.equalsIgnoreCase("0.00-1.00")) {
 						
-			labelExclusion(labels_1_gpu, primary_volume_range, primary_MMDTCR_range, edge_analysis_table_1,  finalLabels_1);
+			labelExclusion(labels_1_gpu, primary_volume_range, primary_MMDTCR_range, final_edge_analysis_table_1, finalLabels_1);
 			
 		} else {
 			
@@ -311,30 +313,33 @@ public class ObjectInspector3D extends DynamicCommand {
 			
 		}
 		labels_1_gpu.close();
-		//edge_analysis_table_1.reset();
 		
 		//Masking secondary labels with primary labels
 		ClearCLBuffer tempMaskedLabels_2 = clij2.create(labels_2_gpu);
+		log.debug("Secondary label number before masking = " + clij2.maximumOfAllPixels(labels_2_gpu));
+		
 		ClearCLBuffer maskedLabels_2 = clij2.create(labels_2_gpu);
 		maskedLabels_2.setName("masked_" + labels_2_gpu.getName());
+		
 		clij2.mask(labels_2_gpu, finalLabels_1, tempMaskedLabels_2);
 		clij2.closeIndexGapsInLabelMap(tempMaskedLabels_2, maskedLabels_2);
+		
 		tempMaskedLabels_2.close();
+		labels_2_gpu.close();
+
 		log.debug(labels_2_gpu + "masked with " + finalLabels_1 + " with output as " + maskedLabels_2);
 				
 		
 		
 		//exclude secondary labels according to input limiters
 		ClearCLBuffer finalLabels_2 = clij2.create(maskedLabels_2);
-		finalLabels_2.setName("final_" + labels_2_gpu.getName());
-	
-		labels_2_gpu.close();
+		finalLabels_2.setName("final_" + labels_2_ImagePlus.getTitle());
 		
-		edge_analysis_table_2 = getLabelEdgeAnalysisTable(maskedLabels_2);
+		ResultsTable final_edge_analysis_table_2 = new ResultsTable();
 		
 		if (!secondary_volume_range.equalsIgnoreCase("0-infinity") || !secondary_MMDTCR_range.equalsIgnoreCase("0.00-1.00")) {
 					
-			labelExclusion(maskedLabels_2, secondary_volume_range, secondary_MMDTCR_range, edge_analysis_table_2, finalLabels_2);
+			labelExclusion(maskedLabels_2, secondary_volume_range, secondary_MMDTCR_range, final_edge_analysis_table_2, finalLabels_2);
 			
 		} else {
 			
@@ -357,11 +362,11 @@ public class ObjectInspector3D extends DynamicCommand {
 						
 		if (original_1_gpu == null) {
 			
-			clij2.statisticsOfBackgroundAndLabelledPixels(finalLabels_1, finalLabels_1, primary_original_measurements_table);
+			clij2.statisticsOfLabelledPixels(finalLabels_1, finalLabels_1, primary_original_measurements_table);
 	
 		} else {
 			
-			clij2.statisticsOfBackgroundAndLabelledPixels(original_1_gpu, finalLabels_1, primary_original_measurements_table);
+			clij2.statisticsOfLabelledPixels(original_1_gpu, finalLabels_1, primary_original_measurements_table);
 
 		}
 		
@@ -372,9 +377,9 @@ public class ObjectInspector3D extends DynamicCommand {
 		
 //		get secondary object count and display count map if desired
 		ResultsTable overlapCountTable = new ResultsTable();
-		clij2.statisticsOfBackgroundAndLabelledPixels(overlapCountMap, finalLabels_1, overlapCountTable);
+		clij2.statisticsOfLabelledPixels(overlapCountMap, finalLabels_1, overlapCountTable);
 		Variable[] secondaryObjectCountArray = overlapCountTable.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name());
-		secondaryObjectCountArray[0] = new Variable("Background");
+//		secondaryObjectCountArray[0] = new Variable("Background");
 		final_primary_results_table.setColumn("SEC_OBJECT_COUNT", secondaryObjectCountArray);
 		
 		if (show_count_map) {
@@ -418,21 +423,14 @@ public class ObjectInspector3D extends DynamicCommand {
 		final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_CENTROID.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_CENTROID.name()));
 		final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_CENTROID_RATIO.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_CENTROID_RATIO.name()));
 		
-		Variable[] min_extension_1 = edge_analysis_table_1.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name());
-		Variable[] max_extension_1 = edge_analysis_table_1.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name());
-		Variable[] mean_extension_1 = edge_analysis_table_1.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name());
-		Variable[] std_dev_extension_1 = edge_analysis_table_1.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.STANDARD_DEVIATION_INTENSITY.name());
-		
-		Variable[] min_max_extension_ratio_1 = new Variable[min_extension_1.length];
-		for (int ratioIndex_1 = 0; ratioIndex_1 < min_max_extension_ratio_1.length; ratioIndex_1++) {
-			min_max_extension_ratio_1[ratioIndex_1] = new Variable(min_extension_1[ratioIndex_1].getValue() / max_extension_1[ratioIndex_1].getValue());
-		}
-		
-		final_primary_results_table.setColumn("MIN_MAX_EXTENSION_RATIO", min_max_extension_ratio_1);
-		final_primary_results_table.setColumn("MIN_EXTENSION", min_extension_1);
-		final_primary_results_table.setColumn("MAX_EXTENSION", max_extension_1);
-		final_primary_results_table.setColumn("MEAN_EXTENSION", mean_extension_1);
-		final_primary_results_table.setColumn("STD_DEV_EXTENSION", std_dev_extension_1);
+		//final_edge_analysis_table_1.show("final_edge_analysis_table_1");
+	
+		final_primary_results_table.setColumn("MIN_MAX_EXTENSION_RATIO", final_edge_analysis_table_1.getColumnAsVariables("MIN_MAX_EXTENSION_RATIO"));
+		final_primary_results_table.setColumn("MEAN_MAX_EXTENSION_RATIO", final_edge_analysis_table_1.getColumnAsVariables("MEAN_MAX_EXTENSION_RATIO"));
+		final_primary_results_table.setColumn("MIN_EXTENSION", final_edge_analysis_table_1.getColumnAsVariables("MIN_EXTENSION"));
+		final_primary_results_table.setColumn("MAX_EXTENSION", final_edge_analysis_table_1.getColumnAsVariables("MAX_EXTENSION"));
+		final_primary_results_table.setColumn("MEAN_EXTENSION", final_edge_analysis_table_1.getColumnAsVariables("MEAN_EXTENSION"));
+		final_primary_results_table.setColumn("STD_DEV_EXTENSION", final_edge_analysis_table_1.getColumnAsVariables("STD_DEV_EXTENSION"));
 		
 		final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_WIDTH.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_WIDTH.name()));
 		final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_HEIGHT.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_HEIGHT.name()));
@@ -450,11 +448,11 @@ public class ObjectInspector3D extends DynamicCommand {
 		
 		primary_original_measurements_table = null;
 		
-		double primary_image_volume = (double) labels_1_gpu.getVolume();
-		double total_pixel_count_of_all_primary_objects =  primary_image_volume - primary_volume_in_pixels[0]; //image volume - background volume
-		log.info("total_pixel_count_of_all_primary_objects = " + total_pixel_count_of_all_primary_objects);
-		double volume_fraction_of_primary_objects = primary_image_volume /  total_pixel_count_of_all_primary_objects;
-		log.info("volume_fraction_of_primary_objects = " + volume_fraction_of_primary_objects);
+//		double primary_image_volume = (double) labels_1_gpu.getVolume();
+//		double total_pixel_count_of_all_primary_objects =  primary_image_volume - primary_volume_in_pixels[0]; //image volume - background volume
+//		log.info("total_pixel_count_of_all_primary_objects = " + total_pixel_count_of_all_primary_objects);
+//		double volume_fraction_of_primary_objects = primary_image_volume /  total_pixel_count_of_all_primary_objects;
+//		log.info("volume_fraction_of_primary_objects = " + volume_fraction_of_primary_objects);
 	
 		
 		//calculate secondary distances
@@ -477,24 +475,24 @@ public class ObjectInspector3D extends DynamicCommand {
 		ResultsTable border_distance_table = new ResultsTable();
 		
 		ResultsTable primary_label_origin_of_secondary_label_table = new ResultsTable();
-		clij2.statisticsOfBackgroundAndLabelledPixels(finalLabels_1, finalLabels_2, primary_label_origin_of_secondary_label_table);
+		clij2.statisticsOfLabelledPixels(finalLabels_1, finalLabels_2, primary_label_origin_of_secondary_label_table);
 					
 		if (original_2_gpu == null) {
 			
-			clij2.statisticsOfBackgroundAndLabelledPixels(finalLabels_2, finalLabels_2, secondary_original_measurements_table);
+			clij2.statisticsOfLabelledPixels(finalLabels_2, finalLabels_2, secondary_original_measurements_table);
 			
 		} else {
 			
-			clij2.statisticsOfBackgroundAndLabelledPixels(original_2_gpu, finalLabels_2, secondary_original_measurements_table);
+			clij2.statisticsOfLabelledPixels(original_2_gpu, finalLabels_2, secondary_original_measurements_table);
 			
 		}
-		clij2.statisticsOfBackgroundAndLabelledPixels(center_distance_map, finalLabels_2, center_distance_table);
+		clij2.statisticsOfLabelledPixels(center_distance_map, finalLabels_2, center_distance_table);
 		center_distance_map.close();
-		clij2.statisticsOfBackgroundAndLabelledPixels(border_distance_map, finalLabels_2, border_distance_table);
+		clij2.statisticsOfLabelledPixels(border_distance_map, finalLabels_2, border_distance_table);
 		border_distance_map.close();
 		
 		
-		if (display_analyzed_label_map) {
+		if (display_analyzed_label_maps) {
 			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, finalLabels_1, true, LutNames.GLASBEY_LUT);
 			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, finalLabels_2, true, LutNames.GLASBEY_LUT);
 		}
@@ -507,7 +505,7 @@ public class ObjectInspector3D extends DynamicCommand {
 		ResultsTable final_secondary_results_table = new ResultsTable();
 		
 		Variable[] primary_label_origin_of_secondary_label = primary_label_origin_of_secondary_label_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name());
-		primary_label_origin_of_secondary_label[0] = new Variable("Background");
+		//primary_label_origin_of_secondary_label[0] = new Variable("Background");
 		final_secondary_results_table.setColumn("PRIMARY_LABEL", primary_label_origin_of_secondary_label);
 		primary_label_origin_of_secondary_label_table = null;
 		
@@ -541,22 +539,14 @@ public class ObjectInspector3D extends DynamicCommand {
 			//skip intensity based measurements if original input image not available
 		}
 		
-	
-		Variable[] min_extension_2 = edge_analysis_table_2.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name());
-		Variable[] max_extension_2 = edge_analysis_table_2.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name());
-		Variable[] mean_extension_2 = edge_analysis_table_2.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name());
-		Variable[] std_dev_extension_2 = edge_analysis_table_2.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.STANDARD_DEVIATION_INTENSITY.name());
+		//final_edge_analysis_table_2.show("final_edge_analysis_table_2");
 		
-		Variable[] min_max_extension_ratio_2 = new Variable[min_extension_2.length];
-		for (int ratioIndex_2 = 0; ratioIndex_2 < min_max_extension_ratio_2.length; ratioIndex_2++) {
-			min_max_extension_ratio_2[ratioIndex_2] = new Variable(min_extension_2[ratioIndex_2].getValue() / max_extension_2[ratioIndex_2].getValue());
-		}
-		
-		final_secondary_results_table.setColumn("MIN_MAX_EXTENSION_RATIO", min_max_extension_ratio_2);
-		final_secondary_results_table.setColumn("MIN_EXTENSION", min_extension_2);
-		final_secondary_results_table.setColumn("MAX_EXTENSION", max_extension_2);
-		final_secondary_results_table.setColumn("MEAN_EXTENSION", mean_extension_2);
-		final_secondary_results_table.setColumn("STD_DEV_EXTENSION", std_dev_extension_2);
+		final_secondary_results_table.setColumn("MIN_MAX_EXTENSION_RATIO", final_edge_analysis_table_2.getColumnAsVariables("MIN_MAX_EXTENSION_RATIO"));
+		final_secondary_results_table.setColumn("MEAN_MAX_EXTENSION_RATIO", final_edge_analysis_table_2.getColumnAsVariables("MEAN_MAX_EXTENSION_RATIO"));
+		final_secondary_results_table.setColumn("MIN_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("MIN_EXTENSION"));
+		final_secondary_results_table.setColumn("MAX_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("MAX_EXTENSION"));
+		final_secondary_results_table.setColumn("MEAN_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("MEAN_EXTENSION"));
+		final_secondary_results_table.setColumn("STD_DEV_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("STD_DEV_EXTENSION"));
 
 	
 		final_secondary_results_table.setColumn("AVER_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name()));
@@ -595,11 +585,6 @@ public class ObjectInspector3D extends DynamicCommand {
 
 		secondary_original_measurements_table = null;
 		
-		if (!include_background_measurement) {
-			final_primary_results_table.deleteRow(0);
-			final_secondary_results_table.deleteRow(0);
-		}
-		
 		final_primary_results_table.show(PRIMARY_RESULTS_TABLE_NAME);	
 		final_secondary_results_table.show(SECONDARY_RESULTS_TABLE_NAME);
 		
@@ -630,9 +615,9 @@ public class ObjectInspector3D extends DynamicCommand {
 	
 	}
 	
-	public void labelExclusion(ClearCLBuffer input, String volumeRange, String MMDTC_Range, ResultsTable edge_analysis_table, ClearCLBuffer output) throws NumberFormatException {
+	public void labelExclusion(ClearCLBuffer input, String volumeRange, String MMDTC_Range, ResultsTable final_edge_analysis_table, ClearCLBuffer output) throws NumberFormatException {
 		
-		log.debug("Label excludion for " + input.getName());
+		log.debug("Label exclusion for " + input.getName());
 		//get minimum volume limiter
 		float minVolume = BV3DBoxUtilities.getMinFromRange(volumeRange);
 		log.debug("Min volume = " + minVolume);
@@ -651,46 +636,66 @@ public class ObjectInspector3D extends DynamicCommand {
 		
 			
 		ResultsTable inputStatisticsTable = new ResultsTable(); 
-		clij2.statisticsOfBackgroundAndLabelledPixels(input, input, inputStatisticsTable);
+		clij2.statisticsOfLabelledPixels(input, input, inputStatisticsTable);
 		//inputStatisticsTable.show("inputStatisticsTable_" + input.getName());	//test output
 		float[] volumeOfLabel = inputStatisticsTable.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.value);
 		log.debug("volumeOfLabel[] size = " + volumeOfLabel.length);
 		
-		int label_count = inputStatisticsTable.getCounter();
+		int label_count = inputStatisticsTable.size();
 		log.debug("Object count = " + label_count);
 		
+		ResultsTable edge_analysis_table = getLabelEdgeAnalysisTable(input);
+		log.debug("Initial edge_analysis_table size = " + edge_analysis_table.size());
 		
 		float[] min_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.value);
 		float[] max_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.value);
-		//float[] mean_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.value);
-		
+		float[] mean_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.value);
+		float[] std_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.STANDARD_DEVIATION_INTENSITY.value);
 		float[] min_max_extension_ratio = new float[min_extension.length];
-		for (int ratioIndex = 0; ratioIndex < min_max_extension_ratio.length; ratioIndex++) {
-			min_max_extension_ratio[ratioIndex] = min_extension[ratioIndex] / max_extension[ratioIndex];
-		}
-		log.debug("min_max_extension_ratio[] size = " + min_max_extension_ratio.length);
+		float[] mean_max_extension_ratio = new float[min_extension.length];
 		
-		
-		int[] label_exclusion_vector = new int[label_count];
+		int[] label_exclusion_vector = new int[label_count + 1];
 		label_exclusion_vector[0] = 0;
-		//create primary label exclusion vector image
-		for (int object = 1; object < label_count; object++) {
-			log.debug("Object --> " + object + " Volume = " + volumeOfLabel[object] + "/ MMDTCR = " + min_max_extension_ratio[object]);
+		int keptObjects = 0;
+		int excludedObjects = 0;
+		
+		for (int object = 0; object < label_count; object++) {
+			min_max_extension_ratio[object] = (max_extension[object] == 0) ? 0 : min_extension[object] / max_extension[object];
+			log.debug("Object --> " + object + " Volume = " + volumeOfLabel[object] + "/ min-max-extension-ratio = " + min_max_extension_ratio[object]);
+			
+			mean_max_extension_ratio[object] = (max_extension[object] == 0) ? 0 : mean_extension[object] / max_extension[object];
+			log.debug("Object --> " + object + " --> mean-max-extension-ratio = " + min_max_extension_ratio[object]);
+			
 			if (volumeOfLabel[object] >= minVolume && volumeOfLabel[object] <= maxVolume && min_max_extension_ratio[object] >= min_MMDTCR && min_max_extension_ratio[object] <= max_MMDTCR) {
 				
-				label_exclusion_vector[object] = 0;	//keep label
+				label_exclusion_vector[object + 1] = 0;	//keep label
+				keptObjects++;
+				final_edge_analysis_table.addRow();
+				final_edge_analysis_table.addValue("VOLUME_OF_LABEL", volumeOfLabel[object]);	//for test reasons
+				final_edge_analysis_table.addValue("MIN_MAX_EXTENSION_RATIO", min_max_extension_ratio[object]);
+				final_edge_analysis_table.addValue("MEAN_MAX_EXTENSION_RATIO", mean_max_extension_ratio[object]);
+				final_edge_analysis_table.addValue("MIN_EXTENSION", min_extension[object]);
+				final_edge_analysis_table.addValue("MAX_EXTENSION", max_extension[object]);
+				final_edge_analysis_table.addValue("MEAN_EXTENSION", mean_extension[object]);
+				final_edge_analysis_table.addValue("STD_DEV_EXTENSION", std_extension[object]);
 				
 			} else {
 				
-				label_exclusion_vector[object] = 1;	//remove label
-				edge_analysis_table.deleteRow(object);
+				label_exclusion_vector[object + 1] = 1;	//remove label
+				excludedObjects++;
 				
 			}
-			log.debug("label_exclusion_vector[0]["+object+"] = " + label_exclusion_vector[object]);
+			log.debug("label_exclusion_vector[0]["+object+"] = " + label_exclusion_vector[object + 1]);
 			
 		}
-		ImagePlus exclusion_vector_ImagePlus = IJ.createImage("label_exclusion_vector " + input.getName(), label_count, 1, 1, 8);
+								
+		log.debug("kept objects = " + keptObjects);
+		log.debug("excluded objects = " + excludedObjects);
+		log.debug("final edge_analysis_table size = " + edge_analysis_table.size());
+		
+		ImagePlus exclusion_vector_ImagePlus = IJ.createImage("label_exclusion_vector " + input.getName(), label_count + 1, 1, 1, 8);
 		ImageProcessor exclusionVectorProcessor = exclusion_vector_ImagePlus.getProcessor();
+		
 		for (int xPixel = 0; xPixel < label_exclusion_vector.length; xPixel++) {
 			exclusionVectorProcessor.putPixel(xPixel, 0, label_exclusion_vector[xPixel]);
 		}
@@ -712,7 +717,7 @@ public class ObjectInspector3D extends DynamicCommand {
 		clij2.reduceLabelsToLabelEdges(input, label_edges);
 		clij2.euclideanDistanceFromLabelCentroidMap(input, distance_map);
 		ResultsTable edge_agalysis_table = new ResultsTable();
-		clij2.statisticsOfBackgroundAndLabelledPixels(distance_map, label_edges, edge_agalysis_table);
+		clij2.statisticsOfLabelledPixels(distance_map, label_edges, edge_agalysis_table);
 		label_edges.close();
 		distance_map.close();
 		return edge_agalysis_table;

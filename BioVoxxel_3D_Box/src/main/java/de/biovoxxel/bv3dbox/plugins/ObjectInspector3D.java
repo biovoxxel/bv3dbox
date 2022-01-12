@@ -119,7 +119,6 @@ public class ObjectInspector3D extends DynamicCommand {
 		log.info("pad_stack_tops = " + pad_stack_tops);
 		log.info("display_analyzed_label_maps = " + display_analyzed_label_maps);
 		log.info("show_count_map = " + show_count_map);
-//		log.info("include_background_measurement = " + include_background_measurement);
 		log.info("------------------------------------------------------");
 		
 		
@@ -336,7 +335,8 @@ public class ObjectInspector3D extends DynamicCommand {
 		ResultsTable final_edge_analysis_table_2 = new ResultsTable();
 		
 		if (!secondary_volume_range.equalsIgnoreCase("0-infinity") || !secondary_MMDTCR_range.equalsIgnoreCase("0.00-1.00")) {
-					
+			
+			//TODO: test if min_max- or mean_max
 			labelExclusion(maskedLabels_2, secondary_volume_range, secondary_MMDTCR_range, final_edge_analysis_table_2, finalLabels_2);
 			
 		} else {

@@ -85,8 +85,6 @@ public class ObjectInspector3D extends DynamicCommand {
 	@Parameter(required = false, label = "Show count map", description = "")
 	private Boolean show_count_map = false;
 
-//	@Parameter(required = false, label = "Include background measurements", description = "")
-//	private Boolean include_background_measurement = false;
 
 	
 	CLIJ2 clij2 = CLIJ2.getInstance();
@@ -447,7 +445,8 @@ public class ObjectInspector3D extends DynamicCommand {
 		final_primary_results_table.setColumn("BOUNDING_BOX_EXTENT", primary_bounding_box_extent);
 		
 		primary_original_measurements_table = null;
-		
+
+//TODO: separate output for overall statistics 
 //		double primary_image_volume = (double) labels_1_gpu.getVolume();
 //		double total_pixel_count_of_all_primary_objects =  primary_image_volume - primary_volume_in_pixels[0]; //image volume - background volume
 //		log.info("total_pixel_count_of_all_primary_objects = " + total_pixel_count_of_all_primary_objects);

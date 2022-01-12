@@ -1,8 +1,5 @@
 package utilities;
 
-import org.scijava.log.LogLevel;
-import org.scijava.log.LogService;
-import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.service.Service;
 

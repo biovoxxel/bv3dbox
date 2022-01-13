@@ -1,7 +1,7 @@
 /**
  * 
  */
-package test.plugins;
+package example.code;
 
 import org.scijava.command.Command;
 import org.scijava.log.LogLevel;

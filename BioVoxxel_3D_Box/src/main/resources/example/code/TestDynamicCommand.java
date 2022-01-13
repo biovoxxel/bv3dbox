@@ -1,4 +1,4 @@
-package test.plugins;
+package example.code;
 
 import java.util.Arrays;
 import java.util.List;

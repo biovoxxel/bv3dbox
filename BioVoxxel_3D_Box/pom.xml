@@ -74,7 +74,7 @@
 	</issueManagement>
 	
 	 
-	 	<repositories>
+	<repositories>
 		<repository>
 			<id>imagej.public</id>
 			<url>http://maven.imagej.net/content/groups/public</url>
@@ -106,11 +106,18 @@
 	       <artifactId>junit-jupiter-engine</artifactId>
 	       <scope>test</scope>
 	    </dependency>
-
-
 	</dependencies>
 	
 	<build>
+		
+		<resources>
+			<resource>
+				<directory>**/example/code</directory>
+				<excludes>
+					<exclude>*.*</exclude>
+				</excludes>
+			</resource>
+		</resources>
 	  <plugins>
 	    <plugin>
 	      <groupId>org.apache.maven.plugins</groupId>

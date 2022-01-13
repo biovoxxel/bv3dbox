@@ -103,10 +103,12 @@ public class BV3DBoxUtilities {
 	}
 	
 	public enum LutNames {
+		NONE("None"),
+		FIRE_LUT("fire"),
 		GRAY("Grays"),
 		GLASBEY_LUT("glasbey_on_dark"),
 		GEEN_FIRE_BLUE_LUT("Green Fire Blue"),
-		FIRE_LUT("fire");
+		PHYSICS("physics");
 
 		public final String lutName;
 		

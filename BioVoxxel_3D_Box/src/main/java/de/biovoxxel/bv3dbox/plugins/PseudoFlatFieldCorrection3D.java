@@ -12,8 +12,6 @@ import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import org.scijava.widget.NumberWidget;
 
-import com.android.dx.gen.Label;
-
 import ij.ImagePlus;
 import ij.WindowManager;
 import ij.gui.ImageWindow;
@@ -54,7 +52,7 @@ public class PseudoFlatFieldCorrection3D extends DynamicCommand {
 	Integer stackSlice;
 	
 	
-	CLIJ2 clij2 = CLIJ2.getInstance();
+	CLIJ2 clij2;
 	ClearCLBuffer inputImage;
 	
 	private ImagePlus outputImagePlus;
@@ -142,11 +140,16 @@ public class PseudoFlatFieldCorrection3D extends DynamicCommand {
 		
 		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "debug_level", LogLevel.INFO));
 		
+		clij2 = CLIJ2.getInstance();
 		clij2.clear();
 		
 		readCalibration();
 		
-		inputImage = clij2.push(inputImagePlus);
+		if (inputImagePlus.getRoi() != null) {
+			inputImage = clij2.pushCurrentSelection(inputImagePlus);
+		} else {
+			inputImage = clij2.push(inputImagePlus);			
+		}
 		
 		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);
 		if(inputImagePlus.isStack()) {

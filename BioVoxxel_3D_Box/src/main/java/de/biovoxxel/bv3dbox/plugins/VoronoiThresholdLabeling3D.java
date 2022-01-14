@@ -139,7 +139,7 @@ public class VoronoiThresholdLabeling3D extends DynamicCommand {
 		output_image.close();
 		
 		outputImagePlus = WindowManager.getImage("VTL_" + inputImagePlus.getTitle());			
-		System.out.println(outputImagePlus);
+		
 		
 		if (outputImagePlus != null) {
 			outputImagePlus.setImage(tempOutputImagePlus);

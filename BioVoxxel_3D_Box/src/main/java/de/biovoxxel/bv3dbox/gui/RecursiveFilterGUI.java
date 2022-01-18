@@ -8,7 +8,7 @@ import org.scijava.plugin.Plugin;
 import de.biovoxxel.bv3dbox.plugins.BVRecursiveFilter;
 import ij.ImagePlus;
 
-@Plugin(type = Command.class, menuPath = "BV3DBox>Recursive Filter")
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Recursive Filter (2D/3D)")
 public class RecursiveFilterGUI extends DynamicCommand {
 
 	@Parameter(required = true, label = "", description = "")

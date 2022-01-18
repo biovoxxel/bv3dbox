@@ -1,17 +1,12 @@
 package de.biovoxxel.bv3dbox.plugins;
 
-import java.util.Arrays;
-import java.util.List;
-
 import javax.swing.JOptionPane;
 
-import org.scijava.command.Command;
-import org.scijava.command.DynamicCommand;
+import org.scijava.Cancelable;
 import org.scijava.log.LogLevel;
 import org.scijava.log.LogService;
-import org.scijava.module.MutableModuleItem;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
+import org.scijava.log.StderrLogService;
+import org.scijava.prefs.DefaultPrefService;
 import org.scijava.prefs.PrefService;
 
 import ij.IJ;
@@ -37,58 +32,28 @@ import utilities.BV3DBoxUtilities.LutNames;
  *
  */
 
-@Plugin(type = Command.class, menuPath = "BV3DBox>Object Inspector 2D/3D")
-public class ObjectInspector3D extends DynamicCommand {
 
-	@Parameter
-	PrefService prefs;
+public class BVObjectInspector implements Cancelable {
 	
-	@Parameter
-	LogService log;
 	
+	PrefService prefs = new DefaultPrefService();
 
-	@Parameter(required = true, label = "Primary objects (labels)", description = "")
-	private ImagePlus labels_1_ImagePlus;
-	
-	@Parameter(required = true, label = "Secondary objects (labels)", description = "")
-	private ImagePlus labels_2_ImagePlus;
-	
-	
-	@Parameter(required = true, persist = true, label = "Primary original image", description = "", initializer = "initializeOriginalImageChoices")
+	LogService log = new StderrLogService();
+
+	private ImagePlus primary_ImagePlus;
+	private ImagePlus secondary_ImagePlus;
 	private String original_1_title;
-	
-	@Parameter(required = true, persist = true, label = "Secondary original image (gray)", description = "", initializer = "initializeOriginalImageChoices")
 	private String original_2_title;
-	
-	
-	@Parameter(required = true, label = "Primary volume limitation", description = "")
 	private String primary_volume_range = "0-Infinity";
-	
-	@Parameter(required = true, label = "Primary MMDTC ratio", description = "")
 	private String primary_MMDTCR_range = "0.00-1.00";
-	
-	@Parameter(required = true, label = "Secondary volume limitation", description = "")
 	private String secondary_volume_range = "0-Infinity";
-	
-	@Parameter(required = true, label = "Secondary MMDTC ratio", description = "")
 	private String secondary_MMDTCR_range = "0.00-1.00";
-	
-	@Parameter(required = false, label = "Exclude primary edge objects", description = "")
 	private Boolean exclude_primary_objects_on_edges = true;
-	
-	@Parameter(required = false, label = "Pad stack tops", description = "")
 	private Boolean pad_stack_tops = false;
-	
-	@Parameter(required = false, label = "Show analysis label map", description = "")
 	private Boolean display_analyzed_label_maps = false;
-	
-	@Parameter(required = false, label = "Show count map", description = "")
 	private Boolean show_count_map = false;
-
-
 	
-	CLIJ2 clij2 = CLIJ2.getInstance();
-	
+	CLIJ2 clij2;
 	
 	ClearCLBuffer labels_1_gpu = null;
 	ClearCLBuffer labels_2_gpu = null;
@@ -102,39 +67,140 @@ public class ObjectInspector3D extends DynamicCommand {
 	String GEEN_FIRE_BLUE_LUT = "Green Fire Blue";
 	String FIRE_LUT = "Fire";
 	
+	/**
+	 * 
+	 * @param primary_ImagePlus
+	 * @param secondary_ImagePlus
+	 */
+	public BVObjectInspector(ImagePlus primary_ImagePlus, ImagePlus secondary_ImagePlus) {
 		
-	public void run() {
-				
+		this.primary_ImagePlus = primary_ImagePlus;
+		this.secondary_ImagePlus = secondary_ImagePlus;
+	}
+	
+	/**
+	 * Original images (one or both, can also be the same) need to be set if the analysis should also read out pixel intensity-based data. 
+	 *  
+	 * @param original_1_title
+	 * @param original_2_title
+	 */
+	public void setOriginalImages(String original_1_title, String original_2_title) {
+		this.original_1_title = original_1_title;
+		this.original_2_title = original_2_title;
+	}
+	
+	/**
+	 * Exclusion size for primary object labels
+	 * 
+	 * @param primary_volume_range
+	 */
+	public void setPrimaryVolumeRange(String primary_volume_range) {
+		this.primary_volume_range = primary_volume_range;
+	}
+	
+	/**
+	 * Exclusion of primary object labels based on their min-to-max-extension ratio.
+	 * This is the ratio of the smallest distance from the centroid to the objects' border
+	 * devided by the maximum distance from centroid to object border.
+	 * This way shape can be used as inclusion/exclusion criterion.
+	 * 
+	 * This is still experimental and might change e.g. to mean-to-max-extension ratio.
+	 * 
+	 * @param primary_MMDTCR_range
+	 */
+	public void setPrimaryMMDTCRRange(String primary_MMDTCR_range) {
+		this.primary_MMDTCR_range = primary_MMDTCR_range;
+	}
+	
+	/**
+	 * Exclusion size for secondary object labels
+	 * @param secondary_volume_range
+	 */
+	public void setSecondaryVolumeRange(String secondary_volume_range) {
+		this.secondary_volume_range = secondary_volume_range;
+	}
+	
+	/**
+	 * Exclusion of secondary object labels based on their min-to-max-extension ratio.
+	 * This is the ratio of the smallest distance from the centroid to the objects' border
+	 * devided by the maximum distance from centroid to object border.
+	 * This way shape can be used as inclusion/exclusion criterion.
+	 * 
+	 * This is still experimental and might change e.g. to mean-to-max-extension ratio.
+	 * 
+	 * @param secondary_MMDTCR_range
+	 */
+	public void setSecondaryMMDTCRRange(String secondary_MMDTCR_range) {
+		this.secondary_MMDTCR_range = secondary_MMDTCR_range;
+	}
+	
+	/**
+	 * Exclude image border touching object labels
+	 * 
+	 * @param exclude_primary_objects_on_edges
+	 */
+	public void setEdgeExclusion(boolean exclude_primary_objects_on_edges) {
+		this.exclude_primary_objects_on_edges = exclude_primary_objects_on_edges;
+	}
+	
+	/**
+	 * Adds a black slice before the first and after the last stack slice.
+	 * This way objects still visible in the first or last slice will not be excluded by the exclude on edge function.
+	 * This however introduces a certain bias and error in any analysis and should be used with care or only in test cases.
+	 * 
+	 * @param pad_stack_tops
+	 */
+	public void padStackTops(boolean pad_stack_tops) {
+		this.pad_stack_tops = pad_stack_tops;
+	}
+	
+	/**
+	 * Defines which output images will be displayed
+	 * 
+	 * @param display_analyzed_label_maps
+	 * @param show_count_map
+	 */
+	public void setOutputImageFlags(boolean display_analyzed_label_maps, boolean show_count_map) {
+		this.display_analyzed_label_maps = display_analyzed_label_maps;
+		this.show_count_map = show_count_map;
+	}
+	
+		
+	public void inspect() {
+		
 		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "debug_level", LogLevel.INFO));
-		log.info("------------------------------------------------------");
-		log.info("labels_1_ImagePlus = " + labels_1_ImagePlus);
-		log.info("labels_2_ImagePlus = " + labels_2_ImagePlus);
-		log.info("original_1_title = " + original_1_title);
-		log.info("original_2_title = " + original_2_title);
-		log.info("primary_volume_range = " + primary_volume_range);
-		log.info("primary_MMDTCR_range = " + primary_MMDTCR_range);
-		log.info("secondary_volume_range = " + secondary_volume_range);
-		log.info("secondary_MMDTCR_range = " + secondary_MMDTCR_range);
-		log.info("exclude_primary_objects_on_edges = " + exclude_primary_objects_on_edges);
-		log.info("pad_stack_tops = " + pad_stack_tops);
-		log.info("display_analyzed_label_maps = " + display_analyzed_label_maps);
-		log.info("show_count_map = " + show_count_map);
-		log.info("------------------------------------------------------");
+		
+		clij2 = CLIJ2.getInstance();
+		
+		log.debug("------------------------------------------------------");
+		log.debug("labels_1_ImagePlus = " + primary_ImagePlus);
+		log.debug("labels_2_ImagePlus = " + secondary_ImagePlus);
+		log.debug("original_1_title = " + original_1_title);
+		log.debug("original_2_title = " + original_2_title);
+		log.debug("primary_volume_range = " + primary_volume_range);
+		log.debug("primary_MMDTCR_range = " + primary_MMDTCR_range);
+		log.debug("secondary_volume_range = " + secondary_volume_range);
+		log.debug("secondary_MMDTCR_range = " + secondary_MMDTCR_range);
+		log.debug("exclude_primary_objects_on_edges = " + exclude_primary_objects_on_edges);
+		log.debug("pad_stack_tops = " + pad_stack_tops);
+		log.debug("display_analyzed_label_maps = " + display_analyzed_label_maps);
+		log.debug("show_count_map = " + show_count_map);
+		log.debug("------------------------------------------------------");
 		
 		
 		clij2.clear();
 
-		if (labels_1_ImagePlus == labels_2_ImagePlus) {
+		if (primary_ImagePlus == secondary_ImagePlus) {
 			cancel("Primary and secondary label image need to be different");
 			return;
 		}
 		
-		if (labels_1_ImagePlus.getNDimensions() > 3 || labels_2_ImagePlus.getNDimensions() > 3) {
+		if (primary_ImagePlus.getNDimensions() > 3 || secondary_ImagePlus.getNDimensions() > 3) {
 			cancel("Does not work on hyperstacks");
 		}
 		
-		int[] dimensions_label_image_1 = labels_1_ImagePlus.getDimensions();
-		int[] dimensions_label_image_2 = labels_2_ImagePlus.getDimensions();
+		int[] dimensions_label_image_1 = primary_ImagePlus.getDimensions();
+		int[] dimensions_label_image_2 = secondary_ImagePlus.getDimensions();
 		
 		for (int dim = 0; dim < dimensions_label_image_1.length; dim++) {
 			if (dimensions_label_image_1[dim] != dimensions_label_image_2[dim]) {
@@ -142,7 +208,7 @@ public class ObjectInspector3D extends DynamicCommand {
 			}
 		}
 		
-		if (labels_1_ImagePlus.getNDimensions() > 3 || labels_2_ImagePlus.getNDimensions() > 3) {
+		if (primary_ImagePlus.getNDimensions() > 3 || secondary_ImagePlus.getNDimensions() > 3) {
 			cancel("Does not work on hyperstacks");
 		}
 		
@@ -182,7 +248,7 @@ public class ObjectInspector3D extends DynamicCommand {
 		}
 		
 		
-		Calibration voxel_calibration = labels_1_ImagePlus.getCalibration();
+		Calibration voxel_calibration = primary_ImagePlus.getCalibration();
 		String calibrated_units = voxel_calibration.getUnit();
 		if (!calibrated_units.matches(".*ixel.*") && !calibrated_units.matches(".*oxel.*") && original_1_ImagePlus != null) {
 			voxel_calibration = original_1_ImagePlus.getCalibration();
@@ -196,21 +262,25 @@ public class ObjectInspector3D extends DynamicCommand {
 		
 	
 		if (exclude_primary_objects_on_edges && pad_stack_tops) {
-			padStackLids(labels_1_ImagePlus);
+			padStackLids(primary_ImagePlus);
 		}
 		
 		
-		if (labels_1_ImagePlus.getProcessor().isBinary()) {
+		
+		
+		if (primary_ImagePlus.getProcessor().isBinary()) {
 			
-			ClearCLBuffer binaryInput_1 = clij2.push(labels_1_ImagePlus);
+			log.debug("Start convert " + primary_ImagePlus.getTitle() + " to connected components");
+			ClearCLBuffer binaryInput_1 = clij2.push(primary_ImagePlus);
 			labels_1_gpu = clij2.create(binaryInput_1.getDimensions(), NativeTypeEnum.Float);
 			clij2.connectedComponentsLabelingBox(binaryInput_1, labels_1_gpu);
 			binaryInput_1.close();
-			log.debug("convert " + labels_1_ImagePlus.getTitle() + " to connected components");
+			log.debug("End convert " + primary_ImagePlus.getTitle() + " to connected components");
 			
-		} else if (labels_1_ImagePlus.getBitDepth() != 24) {
+		} else if (primary_ImagePlus.getBitDepth() != 24) {
 			
-			labels_1_gpu = clij2.push(labels_1_ImagePlus);
+			labels_1_gpu = clij2.push(primary_ImagePlus);
+			log.debug("Pushed to GPU = " + labels_1_gpu);
 			
 		} else {
 			
@@ -218,22 +288,24 @@ public class ObjectInspector3D extends DynamicCommand {
 			return;
 			
 		}
-		labels_1_gpu.setName("gpu_" + labels_1_ImagePlus.getTitle());
-		log.debug(labels_1_gpu + " pushed to GPU");			
+		labels_1_gpu.setName("gpu_" + primary_ImagePlus.getTitle());
+		
 		
 		
 				
-		if (labels_2_ImagePlus.getProcessor().isBinary()) {
+		if (secondary_ImagePlus.getProcessor().isBinary()) {
 			
-			ClearCLBuffer binaryInput_2 = clij2.push(labels_2_ImagePlus);
+			log.debug("Start convert " + secondary_ImagePlus.getTitle() + " to connected components");
+			ClearCLBuffer binaryInput_2 = clij2.push(secondary_ImagePlus);
 			labels_2_gpu = clij2.create(binaryInput_2.getDimensions(), NativeTypeEnum.Float);
 			clij2.connectedComponentsLabelingBox(binaryInput_2, labels_2_gpu);
 			binaryInput_2.close();
-			log.debug("convert " + labels_2_ImagePlus.getTitle() + " to connected components");
+			log.debug("End convert " + secondary_ImagePlus.getTitle() + " to connected components");
 			
-		} else if (labels_2_ImagePlus.getBitDepth() != 24) {
+		} else if (secondary_ImagePlus.getBitDepth() != 24) {
 			
-			labels_2_gpu = clij2.push(labels_2_ImagePlus);
+			labels_2_gpu = clij2.push(secondary_ImagePlus);
+			log.debug("Pushed to GPU = " + labels_2_gpu);
 			
 		} else {
 			
@@ -242,25 +314,25 @@ public class ObjectInspector3D extends DynamicCommand {
 			
 		}
 		
-		labels_2_gpu.setName("gpu_" + labels_2_ImagePlus.getTitle());
-		log.debug(labels_2_gpu + " pushed to GPU");	
+		labels_2_gpu.setName("gpu_" + secondary_ImagePlus.getTitle());
 		
 		
 		
-		if (!original_1_title.equals("None")) {
+		
+		if (original_1_ImagePlus != null) {
 			original_1_gpu = clij2.push(original_1_ImagePlus);
 			original_1_gpu.setName("gpu_" + original_1_ImagePlus.getTitle());
 			
-			log.debug(original_1_ImagePlus + " pushed to GPU");
+			log.debug("Pushed to GPU = " + original_1_ImagePlus);
 		}
 	
 		
 		
-		if (!original_2_title.equals("None")) {
+		if (original_2_ImagePlus != null) {
 			original_2_gpu = clij2.push(original_2_ImagePlus);
 			original_2_gpu.setName("gpu_" + original_2_ImagePlus.getTitle());
 			
-			log.debug(original_2_ImagePlus + " pushed to GPU");
+			log.debug("Pushed to GPU = " + original_2_ImagePlus);
 		}
 		
 		
@@ -295,21 +367,17 @@ public class ObjectInspector3D extends DynamicCommand {
 		
 		//exclude primary labels according to input limiters
 		ClearCLBuffer finalLabels_1 = clij2.create(labels_1_gpu);
-		finalLabels_1.setName("final_" + labels_1_ImagePlus.getTitle());
+		finalLabels_1.setName("final_" + primary_ImagePlus.getTitle());
 		
 		
 		ResultsTable final_edge_analysis_table_1 = new ResultsTable();
 		
-		if (!primary_volume_range.equalsIgnoreCase("0-infinity") || !primary_MMDTCR_range.equalsIgnoreCase("0.00-1.00")) {
-						
-			labelExclusion(labels_1_gpu, primary_volume_range, primary_MMDTCR_range, final_edge_analysis_table_1, finalLabels_1);
-			
-		} else {
-			
-			clij2.copy(labels_1_gpu, finalLabels_1);
-			
-		}
+		//TODO: test if min_max- or mean_max
+		labelExclusion(labels_1_gpu, primary_volume_range, primary_MMDTCR_range, final_edge_analysis_table_1, finalLabels_1);
+
 		labels_1_gpu.close();
+		
+		
 		
 		//Masking secondary labels with primary labels
 		ClearCLBuffer tempMaskedLabels_2 = clij2.create(labels_2_gpu);
@@ -330,25 +398,18 @@ public class ObjectInspector3D extends DynamicCommand {
 		
 		//exclude secondary labels according to input limiters
 		ClearCLBuffer finalLabels_2 = clij2.create(maskedLabels_2);
-		finalLabels_2.setName("final_" + labels_2_ImagePlus.getTitle());
+		finalLabels_2.setName("final_" + secondary_ImagePlus.getTitle());
 		
 		ResultsTable final_edge_analysis_table_2 = new ResultsTable();
 		
-		if (!secondary_volume_range.equalsIgnoreCase("0-infinity") || !secondary_MMDTCR_range.equalsIgnoreCase("0.00-1.00")) {
-			
-			//TODO: test if min_max- or mean_max
-			labelExclusion(maskedLabels_2, secondary_volume_range, secondary_MMDTCR_range, final_edge_analysis_table_2, finalLabels_2);
-			
-		} else {
-			
-			clij2.copy(maskedLabels_2, finalLabels_2);
-			
-		}
+		//TODO: test if min_max- or mean_max
+		labelExclusion(maskedLabels_2, secondary_volume_range, secondary_MMDTCR_range, final_edge_analysis_table_2, finalLabels_2);
+
 		maskedLabels_2.close();
 				
 		//create overlap count mask		
 		ClearCLBuffer overlapCountMap = clij2.create(finalLabels_1);
-		overlapCountMap.setName("CountMap_" + labels_1_ImagePlus.getTitle());
+		overlapCountMap.setName("CountMap_" + primary_ImagePlus.getTitle());
 		boolean label_overlap_count_map_created = clij2.labelOverlapCountMap(finalLabels_1, finalLabels_2, overlapCountMap);
 		log.debug("LabelOverlapCountMap finished = " + label_overlap_count_map_created);
 		
@@ -616,7 +677,7 @@ public class ObjectInspector3D extends DynamicCommand {
 	
 	public void labelExclusion(ClearCLBuffer input, String volumeRange, String MMDTC_Range, ResultsTable final_edge_analysis_table, ClearCLBuffer output) throws NumberFormatException {
 		
-		log.debug("Label exclusion for " + input.getName());
+		log.debug("Starting label exclusion for " + input.getName());
 		//get minimum volume limiter
 		float minVolume = BV3DBoxUtilities.getMinFromRange(volumeRange);
 		log.debug("Min volume = " + minVolume);
@@ -705,7 +766,8 @@ public class ObjectInspector3D extends DynamicCommand {
 		
 		//cleanup
 		exclusionVectorImage.close();
-		input.close();
+		
+		log.debug("Finishing label exclusion for " + input.getName());
 	}
 	
 	
@@ -723,33 +785,25 @@ public class ObjectInspector3D extends DynamicCommand {
 	}
 	
 	
-	
-	
-	public List<String> imageListWithNoneOption() {
+			
 		
-		String[] imageNames = BV3DBoxUtilities.extendImageTitleListWithNone();
-		
-		List<String> extendedImageList = Arrays.asList(imageNames);
-		
-		return extendedImageList;
-	}
-	
-	
-	public void initializeOriginalImageChoices() {
-		
-		List<String> extendedImageList = imageListWithNoneOption();
-		
-		final MutableModuleItem<String> original_1_title = getInfo().getMutableInput("original_1_title", String.class);
-		original_1_title.setChoices(extendedImageList);
-		
-		final MutableModuleItem<String> original_2_title = getInfo().getMutableInput("original_2_title", String.class);
-		original_2_title.setChoices(extendedImageList);
-	
+
+	@Override
+	public boolean isCanceled() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
+	@Override
+	public void cancel(String reason) {
+		// TODO Auto-generated method stub
+		
+	}
 
-	public void cancel() {
-		return;
+	@Override
+	public String getCancelReason() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

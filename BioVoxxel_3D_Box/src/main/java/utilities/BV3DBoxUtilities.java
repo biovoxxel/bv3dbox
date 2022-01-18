@@ -3,6 +3,7 @@ package utilities;
 import org.scijava.plugin.Plugin;
 import org.scijava.service.Service;
 
+import de.biovoxxel.bv3dbox.plugins.BVVoronoiThresholdLabeling;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
@@ -133,4 +134,7 @@ public class BV3DBoxUtilities {
 		
 		return grayLUT;
 	}
+	
+	
+	
 }

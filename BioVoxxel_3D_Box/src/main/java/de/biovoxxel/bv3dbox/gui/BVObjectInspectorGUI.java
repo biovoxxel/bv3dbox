@@ -10,8 +10,8 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import de.biovoxxel.bv3dbox.plugins.BVObjectInspector;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import ij.ImagePlus;
-import utilities.BV3DBoxUtilities;
 
 
 /**
@@ -20,7 +20,7 @@ import utilities.BV3DBoxUtilities;
  *
  */
 
-@Plugin(type = Command.class, menuPath = "BV3DBox>Object Inspector 2D/3D")
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Object Inspector (2D/3D)")
 public class BVObjectInspectorGUI extends DynamicCommand {
 
 	@Parameter(required = true, label = "Primary objects (labels)", description = "")

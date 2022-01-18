@@ -10,6 +10,9 @@ import org.scijava.log.StderrLogService;
 import org.scijava.prefs.DefaultPrefService;
 import org.scijava.prefs.PrefService;
 
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxSettings;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
@@ -19,9 +22,6 @@ import ij.process.LUT;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
-import utilities.BV3DBoxSettings;
-import utilities.BV3DBoxUtilities;
-import utilities.BV3DBoxUtilities.LutNames;
 
 /**
  * @author BioVoxxel

@@ -1,4 +1,4 @@
-package utilities;
+package de.biovoxxel.bv3dbox.utilities;
 
 import org.scijava.plugin.Plugin;
 import org.scijava.service.Service;

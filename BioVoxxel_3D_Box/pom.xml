@@ -109,10 +109,15 @@
 	</dependencies>
 	
 	<build>
-		
 		<resources>
 			<resource>
-				<directory>**/example/code</directory>
+				<directory>src/main/resources/legacy</directory>			
+					<includes>
+						<include>plugins.config</include>
+					</includes>	
+			</resource>
+			<resource>
+			<directory>src/main/resources/example/code</directory>
 				<excludes>
 					<exclude>*.*</exclude>
 				</excludes>

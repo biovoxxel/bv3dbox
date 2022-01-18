@@ -5,11 +5,10 @@ package de.biovoxxel.bv3dbox.plugins;
 
 import javax.swing.JOptionPane;
 
-import org.scijava.command.Command;
 import org.scijava.log.LogLevel;
 import org.scijava.log.LogService;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
+import org.scijava.log.StderrLogService;
+import org.scijava.prefs.DefaultPrefService;
 import org.scijava.prefs.PrefService;
 
 import ij.IJ;
@@ -28,52 +27,68 @@ import utilities.BV3DBoxUtilities.LutNames;
  *
  */
 
-@Plugin(type = Command.class, menuPath = "BV3DBox>Overlap Extractor 2D/3D")
-public class OverlapExtractor3D implements Command {
 
-	@Parameter
-	LogService log;
+public class BVOverlapExtractor {
+
 	
-	@Parameter
+	LogService log;
 	PrefService prefs;
 	
-	@Parameter(label = "Primary objects", description = "", persist = true)
 	private ImagePlus image_plus_1;
-	
-	@Parameter(label = "Secondary objects", description = "", persist = true)
 	private ImagePlus image_plus_2;
-	
-	@Parameter(label = "%-Volume range", description = "", min = "0", max = "100")
 	private String volume_range = "0.0-100.0";
+	private Boolean exclude_edge_objects = false;
+	private Boolean show_original_primary_statistics = false;
+	private Boolean show_extracted_objects = false;
+	private Boolean show_count_statistics = false;
+	private Boolean show_volume_statistics = false;
+	private Boolean show_percent_volume_map = false;
 	
-	@Parameter(label = "Exclude primary on edges", description = "")
-	private boolean exclude_edge_objects = false;
 	
-	@Parameter(label = "Show original primary statistics", description = "")
-	private boolean show_original_primary_statistics = false;
 	
-	@Parameter(label = "Show extracted objects", description = "")
-	private boolean show_extracted_objects = false;
-	
-	@Parameter(label = "Show count statistics", description = "")
-	private boolean show_count_statistics = false;
-	
-	@Parameter(label = "Show volume statistics", description = "")
-	private boolean show_volume_statistics = false;
+	/**
+	 * 
+	 * @param image_plus_1
+	 * @param image_plus_2
+	 */
+	public BVOverlapExtractor(ImagePlus image_plus_1, ImagePlus image_plus_2) {
+		this.image_plus_1 = image_plus_1;
+		this.image_plus_2 = image_plus_2;
 		
-	@Parameter(label = "Show %-volume map", description = "")
-	private boolean show_percent_volume_map = false;
+		this.log = new StderrLogService();
+		this.prefs = new DefaultPrefService();
+	}
+	
+	/**
+	 * Exclusion size (volume for 3D and area for 2D images) for primary object labels
+	 * 
+	 * @param volume_range
+	 */
+	public void setVolumeRange(String volume_range) {
+		this.volume_range = volume_range;
+	}
+	
+	/**
+	 * Defines which analyses tables and output images will be displayed
+	 * 
+	 * @param exclude_edge_objects
+	 * @param show_original_primary_statistics
+	 * @param show_extracted_objects
+	 * @param show_count_statistics
+	 * @param show_volume_statistics
+	 * @param show_percent_volume_map
+	 */
+	public void setOutputFlags(boolean exclude_edge_objects, boolean show_original_primary_statistics, boolean show_extracted_objects, boolean show_count_statistics, boolean show_volume_statistics, boolean show_percent_volume_map) {
+		this.exclude_edge_objects = exclude_edge_objects;
+		this.show_original_primary_statistics = show_original_primary_statistics;
+		this.show_extracted_objects = show_extracted_objects;
+		this.show_count_statistics = show_count_statistics;
+		this.show_volume_statistics = show_volume_statistics;
+		this.show_percent_volume_map = show_percent_volume_map;
+	}
 	
 	
-	
-//	/**
-//	 * 
-//	 */
-//	public BinaryFeatureExtractor3D() {
-//		
-//	}
-	
-	public void run() {
+	public void extract() {
 		
 		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "debug_level", LogLevel.INFO));
 				
@@ -248,5 +263,9 @@ public class OverlapExtractor3D implements Command {
 		
 		clij2.clear();
 		
+	}
+	
+	public void run() {
+		extract();
 	}
 }

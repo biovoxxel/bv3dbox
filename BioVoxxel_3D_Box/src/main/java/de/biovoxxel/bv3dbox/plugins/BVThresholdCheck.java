@@ -7,7 +7,6 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 
-import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.log.LogLevel;
@@ -19,6 +18,10 @@ import org.scijava.prefs.PrefService;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxSettings;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.process.AutoThresholder;
 import ij.process.ImageProcessor;
@@ -27,16 +30,13 @@ import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
 import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
-import utilities.BV3DBoxSettings;
-import utilities.BV3DBoxUtilities;
-import utilities.BV3DBoxUtilities.LutNames;
 
 /**
  * @author BioVoxxel
  *
  */
-@Plugin(type = Command.class, menuPath = "BV3DBox>Threshold Check 2D/3D")
-public class ThresholdCheck3D extends DynamicCommand {
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Threshold Check (2D/3D)")
+public class BVThresholdCheck extends DynamicCommand {
 
 	@Parameter
 	PrefService prefs;
@@ -57,14 +57,12 @@ public class ThresholdCheck3D extends DynamicCommand {
 	@Parameter(label = "Stack slice", initializer = "imageSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
 	Integer stackSlice;
 	
-	@Parameter(label = "Contrast saturation (%)", min = "0.0", max = "100.0", stepSize = "0.1", style = NumberWidget.SLIDER_STYLE, callback = "thresholdCheck", persist = false)
+	@Parameter(label = "Contrast saturation (%)", min = "0.0", max = "100.0", stepSize = "0.1", style = NumberWidget.SLIDER_STYLE, callback = "thresholdCheck", persist = false, required = false)
 	Double saturation = 0.0;
 
 	@Parameter(label = "Binary output style", choices = {"0/255", "Labels", "0/1"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE)
-	String binaryOutputStyle;
+	String outputImageStyle;
 	
-	@Parameter(visibility = ItemVisibility.MESSAGE, callback = "thresholdCheck")
-	String qualityIndicators = "";
 		
 	CLIJ2 clij2;
 	ClearCLBuffer inputImage;
@@ -86,6 +84,7 @@ public class ThresholdCheck3D extends DynamicCommand {
 	
 	public void run() {
 		applyThreshold();
+		
 	}
 	
 	public void thresholdCheck() {
@@ -112,13 +111,10 @@ public class ThresholdCheck3D extends DynamicCommand {
 	public LUT createLUT() {
 		
 		double saturatedIntensity = saturation > 0.00 ? getSaturatedMaxIntentsity(saturation) : 255.0;
-		double normalizedThresholdValue = getNormalizedThreshold();
-		
-		log.debug("normalizedThresholdValue =" + normalizedThresholdValue);
 		
 		for (int v = 0; v < bins; v++) {
 			
-			if ( v < normalizedThresholdValue) {
+			if ( v < thresholdValue) {
 				red[v] = (byte) 0;
 				blue[v] = (byte) 255;
 			} else {
@@ -140,11 +136,11 @@ public class ThresholdCheck3D extends DynamicCommand {
 		ClearCLBuffer outputImage = clij2.create(inputImage);
 		clij2.threshold(inputImage, outputImage, thresholdValue);
 		
-		if (binaryOutputStyle.equals("0/255")) {
+		if (outputImageStyle.equals("0/255")) {
 			ImagePlus outputImagePlus = clij2.pullBinary(outputImage);
 			outputImagePlus.setTitle(thresholdMethod + "_" + inputImagePlus.getTitle());
 			outputImagePlus.show();
-		} else if (binaryOutputStyle.equals("0/1")) {
+		} else if (outputImageStyle.equals("0/1")) {
 			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, outputImage, true, LutNames.GRAY);
 		} else {
 			ClearCLBuffer labelOutputImage = clij2.create(outputImage.getDimensions(), NativeTypeEnum.Float);
@@ -235,7 +231,6 @@ public class ThresholdCheck3D extends DynamicCommand {
 		log.debug("totalPixelCount =" + totalPixelCount);
 		
 		double acceptedSaturatedPixelCount = totalPixelCount / 100 * percentSaturation;
-		double normalizedThresholdValue = getNormalizedThreshold();
 		
 		ImageProcessor inputProcessor = inputImagePlus.getProcessor();
 		int[] histogram = inputProcessor.getHistogram(256);
@@ -250,7 +245,7 @@ public class ThresholdCheck3D extends DynamicCommand {
 				saturationIntensity = intensity;
 			} 
 			
-			if (intensity >= normalizedThresholdValue) {
+			if (intensity >= thresholdValue) {
 				foregroundPixelCount += histogram[intensity];
 			}
 		}
@@ -271,18 +266,14 @@ public class ThresholdCheck3D extends DynamicCommand {
 		sensitivity = truePositive / (truePositive + falseNegative);
 		specificity = trueNegative / (trueNegative + falsePositive);
 		
-		qualityIndicators = "Sensitivity=" + df.format(sensitivity) + " / Specificity = " + df.format(specificity);
-		log.debug(qualityIndicators);
+		IJ.showStatus(thresholdMethod + "(" + thresholdLibrary + " ): Sensitivity=" + df.format(sensitivity) + " / Specificity = " + df.format(specificity));
+		log.debug(thresholdMethod + "(" + thresholdLibrary + " ): Sensitivity=" + df.format(sensitivity) + " / Specificity = " + df.format(specificity));
 		
 		return saturationIntensity;
 	}
 	
 	
-	private double getNormalizedThreshold() {
-		int bitDepth = inputImagePlus.getBitDepth();
-		return thresholdValue * 255 / (Math.pow(2, bitDepth) - 1.0);
-	}
-	
+		
 	public void cancel() {
 		inputImagePlus.setLut(originalLut);
 	}

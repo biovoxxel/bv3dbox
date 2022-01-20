@@ -3,6 +3,8 @@
  */
 package de.biovoxxel.bv3dbox.plugins;
 
+import java.awt.Rectangle;
+
 import org.scijava.Cancelable;
 import org.scijava.log.LogLevel;
 import org.scijava.log.LogService;
@@ -15,7 +17,9 @@ import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.WindowManager;
+import ij.gui.Roi;
 import ij.measure.Calibration;
 import ij.plugin.LutLoader;
 import ij.process.LUT;
@@ -58,6 +62,11 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 
 	private final String OUTPUT_PREFIX = "VTL_"; 
 
+	private ClearCLBuffer filteredImage = null;
+	private ClearCLBuffer backgroundSubtractedImage = null;
+	private ClearCLBuffer thresholdedImage = null;
+	private ClearCLBuffer maximaImage = null;
+	private ClearCLBuffer outputImage = null;
 
 	public BVVoronoiThresholdLabeling(ImagePlus inputImagePlus) {
 		
@@ -96,7 +105,7 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 	 * 
 	 * @param image
 	 */
-	private void setupInputImage(ImagePlus image) {
+	public void setupInputImage(ImagePlus image) {
 		
 		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "debug_level", LogLevel.INFO));
 		this.inputImagePlus = image;
@@ -109,8 +118,22 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
 		
-		if (inputImagePlus.getRoi() != null) {
-			input_image = clij2.pushCurrentSelection(inputImagePlus);
+		Roi currentRoi = inputImagePlus.getRoi();
+		log.debug("currentRoi = " + currentRoi);
+		
+		if (currentRoi != null) {
+			
+			Rectangle boundingRectangle = currentRoi.getBounds();
+			log.debug("boundingRectangle = " + boundingRectangle);
+			
+			ImageStack croppedStack = inputImagePlus.getStack().crop(boundingRectangle.x, boundingRectangle.y, 0, boundingRectangle.width, boundingRectangle.height, inputImagePlus.getNSlices());
+			log.debug("croppedStack = " + croppedStack);
+			
+			ImagePlus tempImagePlus = new ImagePlus("tempImage", croppedStack);
+			log.debug("tempImagePlus = " + tempImagePlus);
+			
+			input_image = clij2.push(tempImagePlus);
+			
 		} else {
 			input_image = clij2.push(inputImagePlus);			
 		}
@@ -133,31 +156,40 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 	}
 	
 	
+	public ImagePlus getOutputImage() {
+		
+		return outputImagePlus;
+		
+	}
+	
+	
 	/**
 	 * Complete processing sequence with either the default input values or the given ones (via Constructor)
 	 */
 	public void processImage() {
 						
-		ClearCLBuffer filteredImage = filterImage(input_image, filterMethod, filterRadius);
+		filteredImage = filterImage(input_image, filterMethod, filterRadius);
 		IJ.showProgress(0.2);
 		
-		ClearCLBuffer backgroundSubtractedImage = backgroundSubtraction(filteredImage, backgroundSubtractionMethod, backgroundRadius);
+		backgroundSubtractedImage = backgroundSubtraction(filteredImage, backgroundSubtractionMethod, backgroundRadius);
 		filteredImage.close();
 		IJ.showProgress(0.4);
 		
-		ClearCLBuffer thresholdedImage = thresholdImage(backgroundSubtractedImage, thresholdMethod);
+		thresholdedImage = thresholdImage(backgroundSubtractedImage, thresholdMethod);
 		backgroundSubtractedImage.close();
 		IJ.showProgress(0.6);
 		
-		ClearCLBuffer maximaImage = detectMaxima(input_image, spotSigma, maximaRadius);
+		maximaImage = detectMaxima(input_image, spotSigma, maximaRadius);
 		IJ.showProgress(0.8);
 		
-		ClearCLBuffer outputImage = createLabels(maximaImage, thresholdedImage);
+		outputImage = createLabels(maximaImage, thresholdedImage);
 		maximaImage.close();
 		thresholdedImage.close();
 		IJ.showProgress(0.9);
 		
 		createOutputImage(outputImage, outputType);
+		outputImage.close();
+		IJ.showProgress(1.0);
 		
 	}
 
@@ -316,14 +348,19 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 		return output_image;
 	}
 
-	
+	//TODO: Outlines does not work as intended, since the gray LUT is not applied to the output image
 	public void createOutputImage(ClearCLBuffer output_image, String outputType) {
 		ImagePlus tempOutputImagePlus;
 		
 		if (outputType.equals("Binary")) {
 			tempOutputImagePlus = clij2.pullBinary(output_image);
-		} else {
+		} else if (outputType.equals("Labels")) {
 			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, output_image, true, LutNames.GLASBEY_LUT);
+		} else {
+			ClearCLBuffer temp_output_image = clij2.create(input_image);
+			clij2.visualizeOutlinesOnOriginal(input_image, output_image, temp_output_image);
+			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, temp_output_image, true, LutNames.GRAY);
+			output_image.close();
 		}
 						
 		outputImagePlus = WindowManager.getImage(outputImageName);			

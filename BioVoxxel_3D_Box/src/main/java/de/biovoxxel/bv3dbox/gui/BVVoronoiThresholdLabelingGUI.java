@@ -36,43 +36,45 @@ public class BVVoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(label = "Background radius", min = "0f", max = "100f", callback = "adaptBackground")
 	private Float backgroundRadius = 1.0f;
 	
-	@Parameter(label = "Threshold method", initializer = "thresholdMethodList", callback = "adaptThreshold")
+	@Parameter(label = "Threshold method", initializer = "thresholdMethodList", callback = "processImage")
 	private String thresholdMethod;
 	
-	@Parameter(label = "Spot sigma", min = "0f", callback = "adaptMaximaDetection")
+	@Parameter(label = "Spot sigma", min = "0f", callback = "processImage")
 	private Float spotSigma;
 	
-	@Parameter(label = "Maxima detection radius", min = "0f", callback = "adaptMaximaDetection")
+	@Parameter(label = "Maxima detection radius", min = "0f", callback = "processImage")
 	private Float maximaRadius;
 	
-	@Parameter(label = "Output type", choices = {"Labels", "Binary"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE, callback = "adaptOutputType")
+	@Parameter(label = "Output type", choices = {"Labels", "Binary", "Outlines"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE, callback = "processImage")
 	private String outputType;
 	
 	@Parameter(label = "Stack slice", initializer = "imageSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
 	Integer stackSlice;
+	
+	@Parameter
+	Boolean applyOnCompleteImage = false;
 	
 	
 	BVVoronoiThresholdLabeling bvvtl;
 	
 	private ClearCLBuffer input_image;
 	
-	private ClearCLBuffer filteredImage = null;
-	private ClearCLBuffer backgroundSubtractedImage  = null;
-	private ClearCLBuffer thresholdedImage = null;
-	private ClearCLBuffer maximaImage = null;
-	private ClearCLBuffer outputImage = null;
-
 	private String priorFilterMethod;
 	private String priorBackgroundMethod;
 	
 	
 	@Override
 	public void run() {
-		
+				
+		if (inputImagePlus.getRoi() != null && applyOnCompleteImage) {
+			bvvtl.getOutputImage().close();
+			inputImagePlus.killRoi();
+			setupImage();
+			processImage();
+		}
 	}
 	
 	
-	@SuppressWarnings("unused")
 	private void setupImage() {
 		
 		bvvtl = new BVVoronoiThresholdLabeling(inputImagePlus);
@@ -123,15 +125,10 @@ public class BVVoronoiThresholdLabelingGUI extends DynamicCommand {
 			mutableFilterRadius.setMaximumValue(200f);
 		}
 		
-		filteredImage = bvvtl.filterImage(input_image, filterMethod, filterRadius);
-		backgroundSubtractedImage = bvvtl.backgroundSubtraction(filteredImage, backgroundSubtractionMethod, backgroundRadius);
-		thresholdedImage = bvvtl.thresholdImage(backgroundSubtractedImage, thresholdMethod);
-		maximaImage = bvvtl.detectMaxima(input_image, spotSigma, maximaRadius);
-		outputImage = bvvtl.createLabels(maximaImage, thresholdedImage);
-		bvvtl.createOutputImage(outputImage, outputType);
+		processImage();
 	}
-	
-	
+
+
 	
 	@SuppressWarnings("unused")
 	private void adaptBackground() {
@@ -148,81 +145,24 @@ public class BVVoronoiThresholdLabelingGUI extends DynamicCommand {
 			mutableBackgroundRadius.setMaximumValue(200f);
 		}
 		
-		if (filteredImage == null) {
-			filteredImage = bvvtl.filterImage(input_image, filterMethod, filterRadius);
-		}
-		
-		backgroundSubtractedImage = bvvtl.backgroundSubtraction(filteredImage, backgroundSubtractionMethod, backgroundRadius);
-		thresholdedImage = bvvtl.thresholdImage(backgroundSubtractedImage, thresholdMethod);
-		maximaImage = bvvtl.detectMaxima(input_image, spotSigma, maximaRadius);
-		outputImage = bvvtl.createLabels(maximaImage, thresholdedImage);
-		bvvtl.createOutputImage(outputImage, outputType);
+		processImage();
 	}
 	
 	
-	@SuppressWarnings("unused")
-	private void adaptThreshold() {
-		
-		if (filteredImage == null) {
-			filteredImage = bvvtl.filterImage(input_image, filterMethod, filterRadius);
-		}
-		
-		if (backgroundSubtractedImage == null) {
-			backgroundSubtractedImage = bvvtl.backgroundSubtraction(filteredImage, backgroundSubtractionMethod, backgroundRadius);
-		}
-		
-		thresholdedImage = bvvtl.thresholdImage(backgroundSubtractedImage, thresholdMethod);
-		maximaImage = bvvtl.detectMaxima(input_image, spotSigma, maximaRadius);
-		outputImage = bvvtl.createLabels(maximaImage, thresholdedImage);
+	private void processImage() {
+		ClearCLBuffer filteredImage = bvvtl.filterImage(input_image, filterMethod, filterRadius);
+		ClearCLBuffer backgroundSubtractedImage = bvvtl.backgroundSubtraction(filteredImage, backgroundSubtractionMethod, backgroundRadius);
+		filteredImage.close();
+		ClearCLBuffer thresholdedImage = bvvtl.thresholdImage(backgroundSubtractedImage, thresholdMethod);
+		backgroundSubtractedImage.close();
+		ClearCLBuffer maximaImage = bvvtl.detectMaxima(input_image, spotSigma, maximaRadius);
+		ClearCLBuffer outputImage = bvvtl.createLabels(maximaImage, thresholdedImage);
+		thresholdedImage.close();
+		maximaImage.close();
 		bvvtl.createOutputImage(outputImage, outputType);
-		
+		outputImage.close();
 	}
 	
-	@SuppressWarnings("unused")
-	private void adaptMaximaDetection() {
-		
-		if (filteredImage == null) {
-			filteredImage = bvvtl.filterImage(input_image, filterMethod, filterRadius);
-		}
-		
-		if (backgroundSubtractedImage == null) {
-			backgroundSubtractedImage = bvvtl.backgroundSubtraction(filteredImage, backgroundSubtractionMethod, backgroundRadius);
-		}
-		
-		if (thresholdedImage == null) {
-			thresholdedImage = bvvtl.thresholdImage(backgroundSubtractedImage, thresholdMethod);
-		}
-		
-		maximaImage = bvvtl.detectMaxima(input_image, spotSigma, maximaRadius);
-		outputImage = bvvtl.createLabels(maximaImage, thresholdedImage);
-		bvvtl.createOutputImage(outputImage, outputType);
-		
-	}
-	
-	
-	@SuppressWarnings("unused")
-	private void adaptOutputType() {
-		if (filteredImage == null) {
-			filteredImage = bvvtl.filterImage(input_image, filterMethod, filterRadius);
-		}
-		
-		if (backgroundSubtractedImage == null) {
-			backgroundSubtractedImage = bvvtl.backgroundSubtraction(filteredImage, backgroundSubtractionMethod, backgroundRadius);
-		}
-		
-		if (thresholdedImage == null) {
-			thresholdedImage = bvvtl.thresholdImage(backgroundSubtractedImage, thresholdMethod);
-		}
-		
-		if (maximaImage == null) {
-			maximaImage = bvvtl.detectMaxima(input_image, spotSigma, maximaRadius);			
-		}
-		
-		if (outputImage == null) {
-			outputImage = bvvtl.createLabels(maximaImage, thresholdedImage);			
-		}
-		bvvtl.createOutputImage(outputImage, outputType);
-	}
 	
 	@SuppressWarnings("unused")
 	private void slideSlices() {

@@ -54,12 +54,12 @@ public class BVThresholdCheck extends DynamicCommand {
 	@Parameter(label = "Auto Threshold", initializer = "thresholdMethodList", callback = "thresholdCheck", persist = true)
 	String thresholdMethod = "Default";
 	
+	@Parameter(label = "Contrast saturation (%)", min = "0.00", max = "100.00", stepSize = "0.05", style = NumberWidget.SLIDER_STYLE, callback = "thresholdCheck", persist = false, required = false)
+	Double saturation = 0.00;
+
 	@Parameter(label = "Stack slice", initializer = "imageSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
 	Integer stackSlice;
 	
-	@Parameter(label = "Contrast saturation (%)", min = "0.0", max = "100.0", stepSize = "0.1", style = NumberWidget.SLIDER_STYLE, callback = "thresholdCheck", persist = false, required = false)
-	Double saturation = 0.0;
-
 	@Parameter(label = "Binary output style", choices = {"0/255", "Labels", "0/1"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE)
 	String outputImageStyle;
 	

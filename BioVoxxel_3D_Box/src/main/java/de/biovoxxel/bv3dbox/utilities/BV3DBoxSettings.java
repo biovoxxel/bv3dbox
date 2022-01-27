@@ -20,9 +20,9 @@ public class BV3DBoxSettings implements Command {
 	public void run() {
 			
 		if (debugMode) {
-			prefs.put(BV3DBoxSettings.class, "debug_level", LogLevel.DEBUG);			
+			prefs.put(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.DEBUG);			
 		} else {
-			prefs.put(BV3DBoxSettings.class, "debug_level", LogLevel.INFO);			
+			prefs.put(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO);			
 		}
 		
 	}	

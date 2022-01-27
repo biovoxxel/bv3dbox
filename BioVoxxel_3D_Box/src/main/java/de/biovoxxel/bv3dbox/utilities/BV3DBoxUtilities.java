@@ -3,7 +3,6 @@ package de.biovoxxel.bv3dbox.utilities;
 import org.scijava.plugin.Plugin;
 import org.scijava.service.Service;
 
-import de.biovoxxel.bv3dbox.plugins.BVVoronoiThresholdLabeling;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
@@ -61,7 +60,7 @@ public class BV3DBoxUtilities {
 		if (lutName.equals(LutNames.GRAY)) {
 			outputLut = createGrayLUT();
 		} else {
-			outputLut = LutLoader.openLut(IJ.getDirectory("luts") + lutName.lutName + ".lut");			
+			outputLut = LutLoader.openLut(IJ.getDirectory("luts") + lutName.lutName + ".lut");		
 		}
 		imagePlusToBePulled.setLut(outputLut);
 
@@ -104,7 +103,6 @@ public class BV3DBoxUtilities {
 	}
 	
 	public enum LutNames {
-		NONE("None"),
 		FIRE_LUT("fire"),
 		GRAY("Grays"),
 		GLASBEY_LUT("glasbey_on_dark"),

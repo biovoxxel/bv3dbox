@@ -1,7 +1,7 @@
 /**
  * 
  */
-package utilities;
+package de.biovoxxel.bv3dbox.utilities;
 
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;

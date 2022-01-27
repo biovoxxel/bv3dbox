@@ -90,7 +90,7 @@ public class BVOverlapExtractor {
 	
 	public void extract() {
 		
-		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "debug_level", LogLevel.INFO));
+		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO));
 				
 		if (image_plus_1 == image_plus_2) {
 			JOptionPane.showMessageDialog(null, "Images need to be different", "Same Image", JOptionPane.WARNING_MESSAGE);

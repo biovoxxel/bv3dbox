@@ -107,7 +107,7 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 	 */
 	public void setupInputImage(ImagePlus image) {
 		
-		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "debug_level", LogLevel.INFO));
+		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO));
 		this.inputImagePlus = image;
 				
 		outputImageName = WindowManager.getUniqueName(OUTPUT_PREFIX + inputImagePlus.getTitle());

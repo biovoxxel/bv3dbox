@@ -195,7 +195,7 @@ public class BVThresholdCheck extends DynamicCommand {
 	@SuppressWarnings("unused")
 	private void imageSetup() {
 				
-		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "debug_level", LogLevel.INFO));
+		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO));
 		
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
@@ -265,7 +265,7 @@ public class BVThresholdCheck extends DynamicCommand {
 		
 		sensitivity = truePositive / (truePositive + falseNegative);
 		specificity = trueNegative / (trueNegative + falsePositive);
-		
+//TODO: calculation of at least the specificity seems to be still not correct (atleast for stacks)
 		IJ.showStatus(thresholdMethod + "(" + thresholdLibrary + " ): Sensitivity=" + df.format(sensitivity) + " / Specificity = " + df.format(specificity));
 		log.debug(thresholdMethod + "(" + thresholdLibrary + " ): Sensitivity=" + df.format(sensitivity) + " / Specificity = " + df.format(specificity));
 		

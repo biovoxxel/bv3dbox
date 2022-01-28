@@ -1,3 +1,7 @@
+---
+extensions: ["mathjax"]
+---
+
 # BioVoxxel 3D Box (bv3dbox)
 
 The known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) functions now for 2D and 3D images in one place.

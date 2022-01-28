@@ -1,37 +1,25 @@
-## Welcome to GitHub Pages
+# BioVoxxel 3D Box (bv3dbox)
 
-You can use the [editor on GitHub](https://github.com/biovoxxel/bv3dbox/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+The known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) functions now for 2D and 3D images in one place.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+![image](https://user-images.githubusercontent.com/10721817/151507835-a243ccfd-913b-4f5d-bddb-0a4ed2433005.png)
 
-### Markdown
+## Functionalities
+- Threshold Check: A helping tool to better identify suitable histogram-based automatic intensity thresholds, compare them qualitatively and quantitatively. This is based on the publication: [Qualitative and Quantitative Evaluation of Two New Histogram Limiting Binarization Algorithms](https://www.cscjournals.org/library/manuscriptinfo.php?mc=IJIP-829), IJIP (2014).
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
 
-```markdown
-Syntax highlighted code block
 
-# Header 1
-## Header 2
-### Header 3
+## Installation
+The Biovoxxel Toolbox as well as the BioVoxxel 3D Box are distributed via the [BioVoxxel Fiji update site](https://imagej.net/update-sites/following)
 
-- Bulleted
-- List
+## Issues
+https://github.com/biovoxxel/bv3dbox/issues
 
-1. Numbered
-2. List
+## Contact
+via [BioVoxxel gitter channel](https://gitter.im/biovoxxel/BioVoxxel_Toolbox)
 
-**Bold** and _Italic_ and `Code` text
+## Acknowledgement
+The BioVoxxel 3D Box funtions are heavily based and rely strongly on the CLIJ library family.
+Therefore, this development would have not been possible without the work of Robert Haase and colleagues.
 
-[Link](url) and ![Image](src)
-```
-
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/biovoxxel/bv3dbox/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+Robert Haase, Loic Alain Royer, Peter Steinbach, Deborah Schmidt, Alexandr Dibrov, Uwe Schmidt, Martin Weigert, Nicola Maghelli, Pavel Tomancak, Florian Jug, Eugene W Myers. [CLIJ: GPU-accelerated image processing for everyone. Nat Methods (2019)](https://doi.org/10.1038/s41592-019-0650-1)

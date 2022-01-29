@@ -10,6 +10,21 @@ The known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) fu
 ### Threshold Check: 
 A helping tool to better identify suitable histogram-based automatic intensity thresholds, compare them qualitatively and quantitatively. This is based on the publication: [Qualitative and Quantitative Evaluation of Two New Histogram Limiting Binarization Algorithms](https://www.cscjournals.org/library/manuscriptinfo.php?mc=IJIP-829), IJIP (2014).
 
+The Threshold Check allows to compare all implemented [Auto Thresholds](https://imagej.net/plugins/auto-threshold) from ImageJ (by [Gabriel Landini](https://github.com/landinig)) and its counterparts from the CLIJ2 library. It indicates in blue colors the non extracted image areas and in red/orange/yellow the extracted ones. The contrast saturation slider helps to push visibility of the actual intensities in the original image and to better see, if the extracted areas coincide with the actually intended objects which should be extracted from the image. In the ImageJ main window, the status bar shows the corresponding sensitivity and specificity values for the extracted areas in relation to the highlighted object ares (influenced by the chosen saturation). 
+
+![image](https://user-images.githubusercontent.com/10721817/151660419-101bf26c-0127-465c-95fb-280f1cc92504.png)
+
+If the saturation is kept fixed a more objective and quantitative comparison of the performance of individual Auto Thresholds can be achieved. 
+
+![image](https://user-images.githubusercontent.com/10721817/151660612-7974d883-c221-4bb8-9cf6-1d3c96ce3a12.png)
+
+
+If the user finds a useful threshold the output can be set to either binary with the values 0/255 (ImageJ binary standard), binary 0/1 (CLIJ2 standard) or "Labels" which extracts the the objects filled with unique intensity values to be used as labeled connected components for further analysis (recommended setup).
+
+![image](https://user-images.githubusercontent.com/10721817/151660615-ea6ae986-f0b3-4c9b-b3b8-c9f30e6c09ce.png)
+
+
+
 ### Flat Field Correction
 The flat field correction allows to correct for uneven illumination including a dark-field (dark current) image subtraction. The dark-field image can also be ommited if unavailable. If the original image which sould be corrected for uneven illumination is a stack, flat-field as well as dark-field images can also be provided as single images. Those will be adapted to the original stack slice number. Otherwise, if they are not single slices, dark-field and flat-field need to have the same size in all dimensions. 
 Input images can have 8, 16, or 32-bit. _RGB images are not yet supported_.
@@ -28,6 +43,22 @@ The output will be 32-bit to account for accurate float-point pixel intensity va
 
 ![image](https://user-images.githubusercontent.com/10721817/151659090-8a4032cb-337a-402e-889f-8e7781acfe35.png)
 
+### Recursive Filter
+A recursive filter repetitively applies the same filter on the previously filtered version of the underlying image. This keepsspecifically for the median filter shape alterations low, perfectly removes noise, homogenizes objects but still keeps border of also small objects better that a median filter with a bigger radius. It also performs efficiently due to the small filter size.
+
+![image](https://user-images.githubusercontent.com/10721817/151659864-04528775-85e3-4980-9fb5-00fb5424838d.png)
+
+### Voronoi Threshold Labeler
+The labeler is meant to be used as a image segmentation tool combining image pre-processing using a variety of convolition filters, background subtraction methods, auto thresholding and intensity maxima detection. The latter allows object separation similar to the a watershed algorithm, but will be only effective if _Labels_ is chosen as output. Dependent on the combination of pre-processing. background subtraction, threshold and maxima detection quite variable objects can be extracted from an image.
+
+![image](https://user-images.githubusercontent.com/10721817/151660909-302f642f-e9c3-4c4b-a761-10acb79cf932.png)
+
+This tool works in 2D as well as 3D images.
+
+### Object Inspector
+
+
+![image](https://user-images.githubusercontent.com/10721817/151661661-fbc7ae90-b30b-4ffa-ac44-752a7ca37b48.png)
 
 
 ## Installation

@@ -23,6 +23,7 @@ If the user finds a useful threshold the output can be set to either binary with
 
 ![image](https://user-images.githubusercontent.com/10721817/151660615-ea6ae986-f0b3-4c9b-b3b8-c9f30e6c09ce.png)
 
+---
 
 
 ### Flat Field Correction
@@ -37,6 +38,8 @@ $$result = { original - darkfield \over flatfield - darkfield }$$
 
 ![image](https://user-images.githubusercontent.com/10721817/151598573-534b8f3f-99bd-4bb7-b420-140ca8f94ef7.png)
 
+---
+
 ### Pseudo Flat Field Corection
 The pseudo flat field correction takes a copy of the original image to be corrected and blurs it with a Gaussian Blur filter. If the image is scaled 3D stack (with indicated units such as µm), the filter will also consider the correct x/y/z scaling ratio and perform the blurring accordingly in 3D space. This way the background created stays undistorted in relation to the original data. If the original image is a time series or slices should be considered independent the blurring can be forced to be done in 2D and correction will be applied slice by slice to the original.
 The background image can be displayed and for proper correction, the blurring radius should be high enough to eliminate all traces of any original object in the background image. Only different intensity shading must remain.
@@ -45,10 +48,14 @@ The output will be 32-bit to account for accurate float-point pixel intensity va
 
 ![image](https://user-images.githubusercontent.com/10721817/151659090-8a4032cb-337a-402e-889f-8e7781acfe35.png)
 
+---
+
 ### Recursive Filter
 A recursive filter repetitively applies the same filter on the previously filtered version of the underlying image. This keepsspecifically for the median filter shape alterations low, perfectly removes noise, homogenizes objects but still keeps border of also small objects better that a median filter with a bigger radius. It also performs efficiently due to the small filter size.
 
 ![image](https://user-images.githubusercontent.com/10721817/151659864-04528775-85e3-4980-9fb5-00fb5424838d.png)
+
+---
 
 ### Voronoi Threshold Labeler
 The labeler is meant to be used as a image segmentation tool combining image pre-processing using a variety of convolition filters, background subtraction methods, auto thresholding and intensity maxima detection. The latter allows object separation similar to the a watershed algorithm, but will be only effective if _Labels_ is chosen as output. Dependent on the combination of pre-processing. background subtraction, threshold and maxima detection quite variable objects can be extracted from an image.
@@ -56,6 +63,8 @@ The labeler is meant to be used as a image segmentation tool combining image pre
 ![image](https://user-images.githubusercontent.com/10721817/151660909-302f642f-e9c3-4c4b-a761-10acb79cf932.png)
 
 This tool works in 2D as well as 3D images.
+
+---
 
 ### Object Inspector
 The _Object Inspector_ is the new version of the [_Speckle Inspector_](https://imagej.net/plugins/biovoxxel-toolbox#speckle-inspector). It analyzes (secondary) objects inside (primary) objects.
@@ -78,10 +87,14 @@ Results tables are available for primary as well as secondary objects including 
 
 ![image](https://user-images.githubusercontent.com/10721817/151661661-fbc7ae90-b30b-4ffa-ac44-752a7ca37b48.png)
 
+---
+
 ### Overlap Extractor
 This tool is the new version of the [_Binary Feature Extractor_](https://imagej.net/plugins/biovoxxel-toolbox#binary-feature-extractor). It keeps objects from one image which overlap with objects from a second image by a specified area (2D) or volume (3D) range. All primary objects which are covered less or more than the specified range values will be excluded from the analysis. The remaining ones will be extracted in a separate image. Original primary objects can also be displayed with the actual volume coverage. Original statistics for all objects are displayed in one table if desired while extraction statistics are displayed in a seperate table (_OE3D_Statistics_)
 
 ![image](https://user-images.githubusercontent.com/10721817/151672100-7a913fc8-cf9f-46ee-bbfc-a5d49ffac5cc.png)
+
+---
 
 ### Post Processor
 This tool is meant to be used on binary images or labels but can be used for most functions also as a normal image filter tool. This way, is partially the counter part of the [Filter Check](https://imagej.net/plugins/biovoxxel-toolbox#filter-check)
@@ -90,20 +103,32 @@ This tool is meant to be used on binary images or labels but can be used for mos
 
 _Ongoing development: more filter functions will be added in future_
 
+---
+
 ### 3D Neighbor Analysis
 planned and coming in near future
 
-### 
+---
+
+### Convoluted Background Subtraction
+
+---
 
 ## Installation
 The Biovoxxel Toolbox as well as the BioVoxxel 3D Box are distributed via the [BioVoxxel Fiji update site](https://imagej.net/update-sites/following)
 
+---
+
 ## Issues
 [https://github.com/biovoxxel/bv3dbox/issues](https://github.com/biovoxxel/bv3dbox/issues)
+
+---
 
 ## Contact
 via [e-mail](mailto:jan.brocher@biovoxxel.de)
 via [BioVoxxel gitter channel](https://gitter.im/biovoxxel/BioVoxxel_Toolbox)
+
+---
 
 ## Acknowledgement
 The BioVoxxel 3D Box funtions are heavily based and rely strongly on the CLIJ library family.

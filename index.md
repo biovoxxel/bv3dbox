@@ -2,7 +2,7 @@
 
 # BioVoxxel 3D Box (bv3dbox)
 
-The known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) functions now for 2D and 3D images in one place.
+Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) functions now for 2D and 3D images in one place. All functions are heavily based on GPU computing via the fabulous [CLIJ2 library](url)
 
 ![image](https://user-images.githubusercontent.com/10721817/151507835-a243ccfd-913b-4f5d-bddb-0a4ed2433005.png)
 
@@ -83,14 +83,26 @@ This tool is the new version of the [_Binary Feature Extractor_](https://imagej.
 
 ![image](https://user-images.githubusercontent.com/10721817/151672100-7a913fc8-cf9f-46ee-bbfc-a5d49ffac5cc.png)
 
+### Post Processor
+This tool is meant to be used on binary images or labels but can be used for most functions also as a normal image filter tool. This way, is partially the counter part of the [Filter Check](https://imagej.net/plugins/biovoxxel-toolbox#filter-check)
+
+![image](https://user-images.githubusercontent.com/10721817/151672895-30af6deb-67b4-45fb-ac6d-5deb9777c8a7.png)
+
+_Ongoing development: more filter functions will be added in future_
+
+### 3D Neighbor Analysis
+planned and coming in near future
+
+### 
 
 ## Installation
 The Biovoxxel Toolbox as well as the BioVoxxel 3D Box are distributed via the [BioVoxxel Fiji update site](https://imagej.net/update-sites/following)
 
 ## Issues
-https://github.com/biovoxxel/bv3dbox/issues
+[https://github.com/biovoxxel/bv3dbox/issues](https://github.com/biovoxxel/bv3dbox/issues)
 
 ## Contact
+via [e-mail](mailto:jan.brocher@biovoxxel.de)
 via [BioVoxxel gitter channel](https://gitter.im/biovoxxel/BioVoxxel_Toolbox)
 
 ## Acknowledgement

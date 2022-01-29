@@ -30,7 +30,9 @@ The flat field correction allows to correct for uneven illumination including a 
 Input images can have 8, 16, or 32-bit. _RGB images are not yet supported_.
 The Output image is always 32-bit to account for correct float-point values after image division. 
 
-Formula:  $$result = { original - darkfield \over flatfield - darkfield }$$
+Formula:
+
+$$result = { original - darkfield \over flatfield - darkfield }$$
 
 
 ![image](https://user-images.githubusercontent.com/10721817/151598573-534b8f3f-99bd-4bb7-b420-140ca8f94ef7.png)
@@ -56,9 +58,30 @@ The labeler is meant to be used as a image segmentation tool combining image pre
 This tool works in 2D as well as 3D images.
 
 ### Object Inspector
+The _Object Inspector_ is the new version of the [_Speckle Inspector_](https://imagej.net/plugins/biovoxxel-toolbox#speckle-inspector). It analyzes (secondary) objects inside (primary) objects.
+Input parameters are:
 
+- `Primary objects`: this is an image holding the primary (outer) objects in form of labels or a binary image. Must be provided!
+- `Secondary objects`: this is an image holding the secondary (inner) objects in form of labels or a binary image. Must be provided!
+- `Primary original image`: The original image related to the primary objects. This has to be provided only if pixel intensity-related values should be analyzed
+- `Secondary original image`: The original image related to the secondary objects. This has to be provided only if pixel intensity-related values should be analyzed
+- `Primary volume limitation`: all primary objects inside this 2D area / 3D volume range will be analyzed. All others will be excluded from analysis
+- `Primary MMDTC ratio`: This refers to the **M**ean / **M**ax **D**istance **T**o **C**entroid ratio (ratio between the average and maximum distance of the objects' border to the centroid). This is used to exclude objects of similar size but difference in shape (similar to the circularity in the standard ImageJ `Analyze Particles...`function.
+- `Secondary volume limitation`: equivalent of the above for the secondary objects.
+- `Secondary MMDTC ratio`: equivalent of the above for the secondary objects.
+- `Exclude primary edge objects`: All objects which touch the image border or in 3D the image borders and the upper and lower stack slice will be excluded. All secondary objects contained in those objects will also be removed from the nalysis and output image
+- `Pad stack tops`: if active it will add a black slice before the first and after the last stack slice. This avoids removing primary objects still visible in the first and last slice if _Exclude primary edge objects_ is active. To achieve proper measurements, however, it is recommended to avoid this function and acquire objects completely during imaging.
+- `Show analysis label maps`: will display the analyzed objects as intensity coded labels (with new consecutive numbering)
+- `Show count map`: shows labels of the primary objects with the intensity indicating the numbers of secondary objects contained inside them.
+
+Results tables are available for primary as well as secondary objects including object counting and relational identification, size, intensity and some shape values.
 
 ![image](https://user-images.githubusercontent.com/10721817/151661661-fbc7ae90-b30b-4ffa-ac44-752a7ca37b48.png)
+
+### Overlap Extractor
+This tool is the new version of the [_Binary Feature Extractor_](https://imagej.net/plugins/biovoxxel-toolbox#binary-feature-extractor). It keeps objects from one image which overlap with objects from a second image by a specified area (2D) or volume (3D) range. All primary objects which are covered less or more than the specified range values will be excluded from the analysis. The remaining ones will be extracted in a separate image. Original primary objects can also be displayed with the actual volume coverage. Original statistics for all objects are displayed in one table if desired while extraction statistics are displayed in a seperate table (_OE3D_Statistics_)
+
+![image](https://user-images.githubusercontent.com/10721817/151672100-7a913fc8-cf9f-46ee-bbfc-a5d49ffac5cc.png)
 
 
 ## Installation

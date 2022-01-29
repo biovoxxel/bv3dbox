@@ -45,7 +45,7 @@ public class BVVoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(label = "Maxima detection radius", min = "0f", callback = "processImage")
 	private Float maximaRadius;
 	
-	@Parameter(label = "Output type", choices = {"Labels", "Binary", "Outlines"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE, callback = "processImage")
+	@Parameter(label = "Output type", choices = {"Labels", "Binary"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE, callback = "processImage")
 	private String outputType;
 	
 	@Parameter(label = "Stack slice", initializer = "imageSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")

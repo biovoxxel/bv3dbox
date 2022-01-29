@@ -1,3 +1,7 @@
 theme: jekyll-theme-minimal
-title: BioVoxxel_3D_Box
+title: BioVoxxel 3D Box
+author: Jan Brocher
 logo: images/bv3dbox-logo.png
+
+navbar-links:
+  Homepage: https://www.biovoxxel.de

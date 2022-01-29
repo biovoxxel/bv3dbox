@@ -19,7 +19,7 @@ public class BVPostProcessorGUI extends DynamicCommand {
 	@Parameter(required = true, initializer = "setupImage")
 	ImagePlus inputImagePlus;
 	
-	@Parameter(label = "Processing method", choices = {"Erode", "Dilate", "Open", "Close", "Binary fill holes"}, callback = "processImage")
+	@Parameter(label = "Processing method", choices = {"Median (sphere, max r=15)", "Median (box, max r=15)", "Erode (sphere)", "Erode (box)", "Dilate (sphere)", "Dilate (box)", "Open (sphere)", "Open (box)", "Close (sphere)", "Close (box)", "Fill holes (labels)", "Variance (sphere)", "Variance (box)"}, callback = "processImage")
 	String method = "Erode";
 	
 	@Parameter(label = "Iterations", min = "0", stepSize = "1", callback = "processImage")
@@ -73,7 +73,7 @@ public class BVPostProcessorGUI extends DynamicCommand {
 			outputImagePlus = new ImagePlus();
 		}
 		outputImagePlus.setImage(tempImagePlus);
-		outputImagePlus.setTitle("BVPP_" + inputImagePlus.getTitle());
+		outputImagePlus.setTitle(WindowManager.getUniqueName("BVPP_" + inputImagePlus.getTitle()));
 		outputImagePlus.getProcessor().resetMinAndMax();
 		outputImagePlus.show();
 	}

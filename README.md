@@ -1,5 +1,3 @@
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
-
 # BioVoxxel 3D Box (bv3dbox)
 
 Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) functions now for 2D and 3D images in one place. All functions are heavily based on GPU computing via the fabulous [CLIJ2 library](url)
@@ -31,10 +29,7 @@ The flat field correction allows to correct for uneven illumination including a 
 Input images can have 8, 16, or 32-bit. _RGB images are not yet supported_.
 The Output image is always 32-bit to account for correct float-point values after image division. 
 
-Formula:
-
-$$result = { original - darkfield \over flatfield - darkfield }$$
-
+Formula: result = (original - darkfield) / (flatfield - darkfield) 
 
 ![image](https://user-images.githubusercontent.com/10721817/151598573-534b8f3f-99bd-4bb7-b420-140ca8f94ef7.png)
 

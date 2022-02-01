@@ -17,7 +17,8 @@ import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Voronoi Threshold Labler (2D/3D)")
+//menuPath = "Plugins>BioVoxxel 3D Box>Voronoi Threshold Labler (2D/3D)"
+@Plugin(type = Command.class)
 public class BVVoronoiThresholdLabelingGUI extends DynamicCommand {
 
 	

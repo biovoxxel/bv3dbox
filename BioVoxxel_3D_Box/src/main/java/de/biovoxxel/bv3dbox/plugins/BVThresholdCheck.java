@@ -35,7 +35,9 @@ import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
  * @author BioVoxxel
  *
  */
-@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Threshold Check (2D/3D)")
+
+//menuPath = "Plugins>BioVoxxel 3D Box>Threshold Check (2D/3D)"
+@Plugin(type = Command.class)
 public class BVThresholdCheck extends DynamicCommand {
 
 	@Parameter

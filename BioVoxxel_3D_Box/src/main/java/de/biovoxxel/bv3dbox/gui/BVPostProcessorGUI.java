@@ -13,8 +13,8 @@ import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
 
-//menuPath = "Plugins>BioVoxxel 3D Box>Post Processor (2D/3D)"
-@Plugin(type = Command.class)	
+
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Post Processor (2D/3D)")	
 public class BVPostProcessorGUI extends DynamicCommand {
 
 	@Parameter(required = true, initializer = "setupImage")

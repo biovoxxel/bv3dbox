@@ -7,8 +7,8 @@ import org.scijava.plugin.Plugin;
 import de.biovoxxel.bv3dbox.plugins.BVOverlapExtractor;
 import ij.ImagePlus;
 
-//menuPath = "Plugins>BioVoxxel 3D Box>Overlap Extractor (2D/3D)"
-@Plugin(type = Command.class)
+
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Overlap Extractor (2D/3D)")
 public class BVOverlapExtractorGUI implements Command {
 
 	

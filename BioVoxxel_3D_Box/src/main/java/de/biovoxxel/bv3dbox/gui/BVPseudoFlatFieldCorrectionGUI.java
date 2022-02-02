@@ -11,8 +11,8 @@ import de.biovoxxel.bv3dbox.plugins.BVPseudoFlatFieldCorrection;
 import ij.ImagePlus;
 import ij.WindowManager;
 
-//menuPath = "Plugins>BioVoxxel 3D Box>Pseudo Flat Field Correction (2D/3D)"
-@Plugin(type = Command.class)
+
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Pseudo Flat Field Correction (2D/3D)")
 public class BVPseudoFlatFieldCorrectionGUI extends DynamicCommand {
 
 	@Parameter(required = true, initializer = "setupImage")

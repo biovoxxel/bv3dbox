@@ -20,8 +20,8 @@ import ij.ImagePlus;
  *
  */
 
-//menuPath = "Plugins>BioVoxxel 3D Box>Object Inspector (2D/3D)"
-@Plugin(type = Command.class)
+
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Object Inspector (2D/3D)")
 public class BVObjectInspectorGUI extends DynamicCommand {
 
 	@Parameter(required = true, label = "Primary objects (labels)", description = "")

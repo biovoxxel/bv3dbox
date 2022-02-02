@@ -105,6 +105,7 @@ public class BVOverlapExtractor {
 		float maxVolume = BV3DBoxUtilities.getMaxFromRange(volume_range);
 	
 		CLIJ2 clij2 = CLIJ2.getInstance();
+		clij2.clear();
 		
 		ClearCLBuffer image_1_CCL;
 		if (image_plus_1.getProcessor().isBinary()) {

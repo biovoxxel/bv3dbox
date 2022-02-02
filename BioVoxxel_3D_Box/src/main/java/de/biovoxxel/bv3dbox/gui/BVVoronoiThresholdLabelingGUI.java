@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
+import org.scijava.module.DefaultModuleService;
+import org.scijava.module.DefaultMutableModule;
+import org.scijava.module.MutableModule;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -56,7 +59,7 @@ public class BVVoronoiThresholdLabelingGUI extends DynamicCommand {
 	Boolean applyOnCompleteImage = false;
 	
 	
-	BVVoronoiThresholdLabeling bvvtl;
+	BVVoronoiThresholdLabeling bvvtl = new BVVoronoiThresholdLabeling();
 	
 	private ClearCLBuffer input_image;
 	
@@ -72,24 +75,30 @@ public class BVVoronoiThresholdLabelingGUI extends DynamicCommand {
 			inputImagePlus.killRoi();
 			setupImage();
 			processImage();
+			bvvtl.getInputImageAsClearClBuffer().close();
+			bvvtl.getCurrentCLIJ2Instance().close();
+		} else {
+			bvvtl.getInputImageAsClearClBuffer().close();
+			bvvtl.getCurrentCLIJ2Instance().close();
 		}
 	}
 	
 	
 	private void setupImage() {
 		
-		bvvtl = new BVVoronoiThresholdLabeling(inputImagePlus);
+		//bvvtl = new BVVoronoiThresholdLabeling(inputImagePlus);
+		bvvtl.setupInputImage(inputImagePlus);
 		input_image = bvvtl.getInputImageAsClearClBuffer();
 		
 		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);
+		
 		if(inputImagePlus.isStack()) {
 			
-			stackSlice.setMaximumValue(inputImagePlus.getStackSize());
+			stackSlice.setMaximumValue(inputImagePlus.getStackSize());	
 			
 		} else {
 			
 			stackSlice.setMaximumValue(1);
-			
 		}
 	}
 	

@@ -26,6 +26,7 @@ public class BVFlatFieldCorrection {
 	
 	public BVFlatFieldCorrection() {
 		clij2 = CLIJ2.getInstance();
+		clij2.clear();
 	}
 	
 

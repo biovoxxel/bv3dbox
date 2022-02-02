@@ -38,7 +38,7 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 	PrefService prefs = new DefaultPrefService();
 	LogService log = new StderrLogService();
 			
-	CLIJ2 clij2;
+	private CLIJ2 clij2;
 	
 	private ImagePlus inputImagePlus;
 	private ClearCLBuffer input_image;
@@ -68,6 +68,12 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 	private ClearCLBuffer maximaImage = null;
 	private ClearCLBuffer outputImage = null;
 
+	
+	public BVVoronoiThresholdLabeling() {
+		
+	}
+	
+	
 	public BVVoronoiThresholdLabeling(ImagePlus inputImagePlus) {
 		
 		setupInputImage(inputImagePlus);
@@ -350,17 +356,17 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 
 	//TODO: Outlines does not work as intended, since the gray LUT is not applied to the output image
 	public void createOutputImage(ClearCLBuffer output_image, String outputType) {
-		ImagePlus tempOutputImagePlus;
+		ImagePlus tempOutputImagePlus = null;
 		
 		if (outputType.equals("Binary")) {
 			tempOutputImagePlus = clij2.pullBinary(output_image);
 		} else if (outputType.equals("Labels")) {
 			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, output_image, true, LutNames.GLASBEY_LUT);
 		} else {
-			ClearCLBuffer temp_output_image = clij2.create(input_image);
-			clij2.visualizeOutlinesOnOriginal(input_image, output_image, temp_output_image);
-			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, temp_output_image, true, LutNames.GRAY);
-			output_image.close();
+//			ClearCLBuffer temp_output_image = clij2.create(input_image);
+//			clij2.visualizeOutlinesOnOriginal(input_image, output_image, temp_output_image);
+//			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, temp_output_image, true, LutNames.GRAY);
+//			output_image.close();
 		}
 						
 		outputImagePlus = WindowManager.getImage(outputImageName);			
@@ -386,6 +392,10 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 	
 	public String getOutputImageName() {
 		return outputImageName;
+	}
+	
+	public CLIJ2 getCurrentCLIJ2Instance() {
+		return clij2;
 	}
 	
 		

@@ -171,6 +171,7 @@ public class BVObjectInspector implements Cancelable {
 		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO));
 		
 		clij2 = CLIJ2.getInstance();
+		clij2.clear();
 		
 		log.debug("------------------------------------------------------");
 		log.debug("labels_1_ImagePlus = " + primary_ImagePlus);

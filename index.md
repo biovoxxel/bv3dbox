@@ -33,7 +33,7 @@ The Output image is always 32-bit to account for correct float-point values afte
 
 Formula:
 
-$$result = { original - darkfield \over flatfield - darkfield } . { average background intensity }$$
+$$result = { original - darkfield \over flatfield - darkfield } x { average_background_intensity }$$
 
 
 ![image](https://user-images.githubusercontent.com/10721817/151598573-534b8f3f-99bd-4bb7-b420-140ca8f94ef7.png)
@@ -57,7 +57,7 @@ A recursive filter repetitively applies the same filter on the previously filter
 
 ---
 
-### Voronoi Threshold Labeler
+### Voronoi Threshold Labeler (#vtl)
 The labeler is meant to be used as a image segmentation tool combining image pre-processing using a variety of convolition filters, background subtraction methods, auto thresholding and intensity maxima detection. The latter allows object separation similar to the a watershed algorithm, but will be only effective if _Labels_ is chosen as output. Dependent on the combination of pre-processing. background subtraction, threshold and maxima detection quite variable objects can be extracted from an image.
 
 ![image](https://user-images.githubusercontent.com/10721817/152376765-39b0a628-6705-490a-a9ae-921368a67b57.png)
@@ -115,6 +115,26 @@ Results tables are available for primary as well as secondary objects including 
 This tool is the new version of the [_Binary Feature Extractor_](https://imagej.net/plugins/biovoxxel-toolbox#binary-feature-extractor). It keeps objects from one image which overlap with objects from a second image by a specified area (2D) or volume (3D) range. All primary objects which are covered less or more than the specified range values will be excluded from the analysis. The remaining ones will be extracted in a separate image. Original primary objects can also be displayed with the actual volume coverage. Original statistics for all objects are displayed in one table if desired while extraction statistics are displayed in a seperate table (_OE3D_Statistics_)
 
 ![image](https://user-images.githubusercontent.com/10721817/151672100-7a913fc8-cf9f-46ee-bbfc-a5d49ffac5cc.png)
+
+---
+
+### Label Splitter
+The label splitter is the equivalent of a watershedding function for binary images. It will take a binary image as input and separate objects according to the following methods. The output image will be displayed as consecutive intensity labels (intensity = identifier).
+This is the last part of the [Voronoi Threshold Labeler](#vtl) processing.
+
+Methods:
+* `Separation method`: There are 3 different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are
+  * `Maxima`: intensity maxima are determined on the original image in a square/box neighborhood defined by the `Maxima detection radius` after applying a gaussian blur on the original image in a neighborhood defined by the `Spot sigma`. The detected maxima are the seeds from which the objects are filled via a masked voronoi extension.
+  * `Eroded box`: The extracted objects/areas are eroded in a square/box neighborhood defined by the `Spot sigma` and used as a seed for the same voronoi filling of the objects.
+  * `Eroded sphere`: The extracted objects/areas are eroded in a circle/sphere neighborhood defined by the `Spot sigma` and used as seeds.
+  
+  The erosion methods are useful for bigger and irregularly shaped objects, while the maxima method performs better for smaller objects. The erosion-based methods ignore the field `Maxima detection radius`. Too high spot sigmas will delete smaller objects from the image.
+* `Spot sigma`: Blurring strength for maxima detection OR neighborhood definition for the ersosion methods.
+* `Maxima detection radius`: Defines the box neighborhood in which unique maxima are detected. 
+
+![image](https://user-images.githubusercontent.com/10721817/152409487-3cfd3313-90ff-4004-871f-48b91eba554a.png)
+
+Further separation methods are planned to be added, so stay tuned!
 
 ---
 

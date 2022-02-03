@@ -33,7 +33,7 @@ The Output image is always 32-bit to account for correct float-point values afte
 
 Formula:
 
-$$result = { original - darkfield \over flatfield - darkfield }$$
+$$result = { original - darkfield \over flatfield - darkfield } . { average background intensity }$$
 
 
 ![image](https://user-images.githubusercontent.com/10721817/151598573-534b8f3f-99bd-4bb7-b420-140ca8f94ef7.png)
@@ -44,7 +44,7 @@ $$result = { original - darkfield \over flatfield - darkfield }$$
 The pseudo flat field correction takes a copy of the original image to be corrected and blurs it with a Gaussian Blur filter. If the image is scaled 3D stack (with indicated units such as µm), the filter will also consider the correct x/y/z scaling ratio and perform the blurring accordingly in 3D space. This way the background created stays undistorted in relation to the original data. If the original image is a time series or slices should be considered independent the blurring can be forced to be done in 2D and correction will be applied slice by slice to the original.
 The background image can be displayed and for proper correction, the blurring radius should be high enough to eliminate all traces of any original object in the background image. Only different intensity shading must remain.
 In the case of a 3D image all slices can be checked using the stack slice slider.
-The output will be 32-bit to account for accurate float-point pixel intensity values.
+The output will be 32-bit to account for accurate float-point pixel intensity values. Calculation is done according to the upper formula used for flat-field correction without a dark-field subtraction
 
 ![image](https://user-images.githubusercontent.com/10721817/151659090-8a4032cb-337a-402e-889f-8e7781acfe35.png)
 
@@ -60,7 +60,29 @@ A recursive filter repetitively applies the same filter on the previously filter
 ### Voronoi Threshold Labeler
 The labeler is meant to be used as a image segmentation tool combining image pre-processing using a variety of convolition filters, background subtraction methods, auto thresholding and intensity maxima detection. The latter allows object separation similar to the a watershed algorithm, but will be only effective if _Labels_ is chosen as output. Dependent on the combination of pre-processing. background subtraction, threshold and maxima detection quite variable objects can be extracted from an image.
 
-![image](https://user-images.githubusercontent.com/10721817/151660909-302f642f-e9c3-4c4b-a761-10acb79cf932.png)
+![image](https://user-images.githubusercontent.com/10721817/152376765-39b0a628-6705-490a-a9ae-921368a67b57.png)
+
+
+Parameter meaning and usage:
+* `Image Filter`: diverse convolution filter methods to homogenize objects and background for improved background subtraction and object segmentation
+* `Filter radius`: strength of filtering. Bigger radii homogenize more but increase processing time. _Hint: the median filter has a maximum radius of 15_
+* `Background subtraction`: Diverse options to reduce unspecific signal. _TopHat_ is comparable with ImageJ's Rolling Ball method (>Process >Subtract Background). 
+* `Background radius`: Strength of background homogenization. One can orient on a certain prinziple like, the bigger the objects, the bigger the radius needed.
+* `Threshold method`: Automatic intensity threshold to extract basic object areas after the upper pre-processing steps
+* `Separation method`: There are 3 different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are
+  * `Maxima`: intensity maxima are determined on the original image in a square/box neighborhood defined by the `Maxima detection radius` after applying a gaussian blur on the original image in a neighborhood defined by the `Spot sigma`. The detected maxima are the seeds from which the objects are filled via a masked voronoi extension.
+  * `Eroded box`: The extracted objects/areas are eroded in a square/box neighborhood defined by the `Spot sigma` and used as a seed for the same voronoi filling of the objects.
+  * `Eroded sphere`: The extracted objects/areas are eroded in a circle/sphere neighborhood defined by the `Spot sigma` and used as seeds.
+  
+  The erosion methods are useful for bigger and irregularly shaped objects, while the maxima method performs better for smaller objects. The erosion-based methods ignore the field `Maxima detection radius`. Too high spot sigmas will delete smaller objects from the image.
+* `Spot sigma`: Blurring strength for maxima detection OR neighborhood definition for the ersosion methods.
+* `Maxima detection radius`: Defines the box neighborhood in which unique maxima are detected.
+* `Output type`:
+  * `Labels` (recommended): creates individual labels for separable objects with consecutive numbering.
+  * `Binary`: creates a binary (0/255) image without object separation.
+* `Stack slice`: allows to navigate through stack slices in 3D stacks
+* `Apply on complete image`: In case the procedure is tested in a user created ROI/selection it will finally be applied to the complete image if this option is active. For very big 3D images it is strongly recommended to first test on smaller subregions to avoid running out of graphics card memory and long processing times.
+
 
 This tool works in 2D as well as 3D images.
 

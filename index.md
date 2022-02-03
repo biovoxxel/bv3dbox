@@ -57,7 +57,7 @@ A recursive filter repetitively applies the same filter on the previously filter
 
 ---
 
-### Voronoi Threshold Labeler (#vtl)
+### Voronoi Threshold Labeler
 The labeler is meant to be used as a image segmentation tool combining image pre-processing using a variety of convolition filters, background subtraction methods, auto thresholding and intensity maxima detection. The latter allows object separation similar to the a watershed algorithm, but will be only effective if _Labels_ is chosen as output. Dependent on the combination of pre-processing. background subtraction, threshold and maxima detection quite variable objects can be extracted from an image.
 
 ![image](https://user-images.githubusercontent.com/10721817/152376765-39b0a628-6705-490a-a9ae-921368a67b57.png)
@@ -120,7 +120,7 @@ This tool is the new version of the [_Binary Feature Extractor_](https://imagej.
 
 ### Label Splitter
 The label splitter is the equivalent of a watershedding function for binary images. It will take a binary image as input and separate objects according to the following methods. The output image will be displayed as consecutive intensity labels (intensity = identifier).
-This is the last part of the [Voronoi Threshold Labeler](#vtl) processing.
+This is the last part of the [Voronoi Threshold Labeler](Voronoi Threshold Labeler) processing.
 
 Methods:
 * `Separation method`: There are 3 different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are

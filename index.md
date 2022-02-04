@@ -6,18 +6,38 @@ Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Too
 
 ![image](https://user-images.githubusercontent.com/10721817/151507835-a243ccfd-913b-4f5d-bddb-0a4ed2433005.png)
 
+
 ## Functionalities
+
 ### Threshold Check: 
-A helping tool to better identify suitable histogram-based automatic intensity thresholds, compare them qualitatively and quantitatively. This is based on the publication: [Qualitative and Quantitative Evaluation of Two New Histogram Limiting Binarization Algorithms](https://www.cscjournals.org/library/manuscriptinfo.php?mc=IJIP-829), IJIP (2014).
+A helping tool to better identify suitable histogram-based automatic intensity thresholds, compare them qualitatively and quantitatively. This is based on the publication: [Qualitative and Quantitative Evaluation of Two New Histogram Limiting Binarization Algorithms](https://www.cscjournals.org/library/manuscriptinfo.php?mc=IJIP-829), Brocher J., IJIP (2014).
 
-The Threshold Check allows to compare all implemented [Auto Thresholds](https://imagej.net/plugins/auto-threshold) from ImageJ (by [Gabriel Landini](https://github.com/landinig)) and its counterparts from the CLIJ2 library. It indicates in blue colors the non extracted image areas and in red/orange/yellow the extracted ones. The contrast saturation slider helps to push visibility of the actual intensities in the original image and to better see, if the extracted areas coincide with the actually intended objects which should be extracted from the image. In the ImageJ main window, the status bar shows the corresponding sensitivity and specificity values for the extracted areas in relation to the highlighted object ares (influenced by the chosen saturation). 
+The Threshold Check allows to compare all implemented [Auto Thresholds](https://imagej.net/plugins/auto-threshold) from ImageJ (by [Gabriel Landini](https://github.com/landinig)) and its counterparts from the CLIJ2 library (by [Robert Haase](https://github.com/haesleinhuepf)). It uses false color to indicate the following:
 
-![image](https://user-images.githubusercontent.com/10721817/151660419-101bf26c-0127-465c-95fb-280f1cc92504.png)
+* `blue`: non-extracted pixels which are also not part of the ground truth (_true negative_)
+* `cyan`: non-extracted pixels which are part of the ground truth (_false negative_)
+* `orange` to `red`: extracted pixels which are NOT overlapping with the ground truth (_false positive_)
+* `orange` to `yellow`: extracted pixels which are part of the ground truth (_true positive_)
+
+The ground truth is in this case NOT the perfect, desired outcome but rather the next best estimation. It will also contain unspecific objects (or generally pixels) if the underlying image is not pre-processed by image filtering and/or background subtraction. It just serves as the quickest and direct way of comparing the extraction to an approximation of an acceptable outcome!
+
+The following example image without preprocessing in which the segmentation result according to jaccard and dice indices are good but the segmentation would also contain a lot of noise still.
+
+![image](https://user-images.githubusercontent.com/10721817/152508569-d8537d3d-6152-47a7-bcde-062d2034cd9a.png)
+
+After image filtering using a recursive median filter with a radius = 2 and 30 iterations the indicated quality is slightly below 1 but the subjective outcome is better due to lower noise extraction. So, one should aim for high jaccard and dice values without ignoring the real (subjective) object recognition.
+
+![image](https://user-images.githubusercontent.com/10721817/152510105-bd53d30a-18da-416b-b593-07598fbdc2cc.png)
+
+
+The `Contrast saturation (%)` slider serves to highlight brighter image content and "add" it to the ground truth. Objects of interest should in the best case therefore appear completely in yellow. If parts are highlighted in `cyan` they are not recognized by the current threshold even though being of interest, while if they show up in `orange` or `red` they are picked up by the threshold but are rather undesired.
+
+In the ImageJ main window, the status bar shows the corresponding [Jaccard Index](https://en.wikipedia.org/wiki/Jaccard_index) and [Dice Coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) values for the current setup and comparison of approximated ground truth versus segmentation result are displayed. The closer to 1.0 they are the more more accurate the segmentation will be (in context of the approximated ground truth). The lower they are the lower the relative "segmentation quality".
+
 
 If the saturation is kept fixed a more objective and quantitative comparison of the performance of individual Auto Thresholds can be achieved. 
 
-![image](https://user-images.githubusercontent.com/10721817/151660612-7974d883-c221-4bb8-9cf6-1d3c96ce3a12.png)
-
+![image](https://user-images.githubusercontent.com/10721817/152512052-fa834e26-6933-4d97-92c6-cd8e7e13574a.png)
 
 If the user finds a useful threshold the output can be set to either binary with the values 0/255 (ImageJ binary standard), binary 0/1 (CLIJ2 standard) or "Labels" which extracts the the objects filled with unique intensity values to be used as labeled connected components for further analysis (recommended setup).
 
@@ -26,9 +46,9 @@ If the user finds a useful threshold the output can be set to either binary with
 ---
 
 
-### Flat Field Correction
-The flat field correction allows to correct for uneven illumination including a dark-field (dark current) image subtraction. The dark-field image can also be ommited if unavailable. If the original image which sould be corrected for uneven illumination is a stack, flat-field as well as dark-field images can also be provided as single images. Those will be adapted to the original stack slice number. Otherwise, if they are not single slices, dark-field and flat-field need to have the same size in all dimensions. 
-Input images can have 8, 16, or 32-bit. _RGB images are not yet supported_.
+(### Flat Field Correction)
+The flat field correction allows to correct for uneven illumination including a dark-field (dark current) image subtraction. The dark-field image can also be ommited if unavailable. If the original image which sould be corrected for uneven illumination is a stack, flat-field as well as dark-field images can also be provided as single images. Those will be adapted to the original stack slice number. Otherwise, if they are not single slices, dark-field and flat-field need to have the same dimensions as the image to be corrected. 
+Input images can have 8, 16, or 32-bit. _RGB images are not yet supported (will be available in the future as well)_.
 The Output image is always 32-bit to account for correct float-point values after image division. 
 
 Formula:
@@ -40,13 +60,16 @@ $$result = { original - darkfield \over flatfield - darkfield } x { average_back
 
 ---
 
-### Pseudo Flat Field Corection
-The pseudo flat field correction takes a copy of the original image to be corrected and blurs it with a Gaussian Blur filter. If the image is scaled 3D stack (with indicated units such as µm), the filter will also consider the correct x/y/z scaling ratio and perform the blurring accordingly in 3D space. This way the background created stays undistorted in relation to the original data. If the original image is a time series or slices should be considered independent the blurring can be forced to be done in 2D and correction will be applied slice by slice to the original.
-The background image can be displayed and for proper correction, the blurring radius should be high enough to eliminate all traces of any original object in the background image. Only different intensity shading must remain.
+### Pseudo Flat Field Correction
+The pseudo flat field correction takes a copy of the original image to be corrected and blurs it with a Gaussian Blur filter using the specified radius. If the image is a scaled 3D stack (with indicated units such as µm), the filter will also consider the correct x/y/z scaling ratio and perform the blurring accordingly in 3D space. This way the background created stays undistorted in relation to the original data. If the original image is a time series, slices should be considered independent the blurring can be forced to be done in 2D and correction will be applied slice by slice to the original.
+The background image can be displayed and for easier adaption of the radius value. The blurring radius should be high enough to eliminate all traces of any original object in the background image. Only different intensity shading must remain. _If this is impossible to achieve, the method might not be suitable for that particular type of image._
 In the case of a 3D image all slices can be checked using the stack slice slider.
 The output will be 32-bit to account for accurate float-point pixel intensity values. Calculation is done according to the upper formula used for flat-field correction without a dark-field subtraction
 
 ![image](https://user-images.githubusercontent.com/10721817/151659090-8a4032cb-337a-402e-889f-8e7781acfe35.png)
+
+**Important: this is a non-quantitative optical correction. Intensity values will not be corrected according to any real uneven illumination and are therefore NOT suitable for intensity quantifications anymore!**
+If intensity quantification is desired and uneven illumination needs to be corrected, the [Flat Field Correction](###-flat-field-correction) must be used.
 
 ---
 

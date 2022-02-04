@@ -75,9 +75,7 @@ public class BVThresholdCheck extends DynamicCommand {
 	public double thresholdValue = 0.0;
 	private LUT originalLut;
 	private DecimalFormat df = new DecimalFormat("0.00000");
-	private double sensitivity;
-	private double specificity;
-	
+		
 	/**
 	 * 
 	 */
@@ -146,7 +144,7 @@ public class BVThresholdCheck extends DynamicCommand {
 			ClearCLBuffer labelOutputImage = clij2.create(outputImage.getDimensions(), NativeTypeEnum.Float);
 			
 			clij2.connectedComponentsLabelingBox(outputImage, labelOutputImage);
-			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, labelOutputImage, true, LutNames.GRAY);
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, labelOutputImage, true, LutNames.GLASBEY_LUT);
 			labelOutputImage.close();
 		}
 		
@@ -213,7 +211,7 @@ public class BVThresholdCheck extends DynamicCommand {
 		} else {
 			
 			stackSlice.setMaximumValue(1);
-			
+			stackSlice.setValue(this, 1);
 		}
 	
 		thresholdCheck();
@@ -263,11 +261,22 @@ public class BVThresholdCheck extends DynamicCommand {
 		double falseNegative = Math.max(saturatedPixelCount - foregroundPixelCount, 0);
 		log.debug("falseNegative =" + falseNegative);
 		
-		sensitivity = truePositive / (truePositive + falseNegative);
-		specificity = trueNegative / (trueNegative + falsePositive);
-//TODO: calculation of at least the specificity seems to be still not correct (atleast for stacks)
-		IJ.showStatus(thresholdMethod + "(" + thresholdLibrary + " ): Sensitivity=" + df.format(sensitivity) + " / Specificity = " + df.format(specificity));
-		log.debug(thresholdMethod + "(" + thresholdLibrary + " ): Sensitivity=" + df.format(sensitivity) + " / Specificity = " + df.format(specificity));
+		double sensitivity = truePositive / (truePositive + falseNegative);
+		log.debug("Sensitivity = " + df.format(sensitivity));
+		
+		double specificity = trueNegative / (trueNegative + falsePositive);
+		log.debug("Specificity = " + df.format(specificity));
+		
+		double jaccardIndex = truePositive / (truePositive + falsePositive + falseNegative);
+		log.debug("JaccardIndex = " + df.format(jaccardIndex));
+		
+		double diceCoeff = (2 * truePositive) / (2 * truePositive + falsePositive + falseNegative);
+		log.debug("DiceCoeff = " + df.format(diceCoeff));
+		
+		System.out.println("recalc dice = " + ((2*jaccardIndex) / (jaccardIndex + 1)));
+		
+//TODO: calculation of at least the specificity seems to be still not correct (at least for stacks)
+		IJ.showStatus(thresholdMethod + "(" + thresholdLibrary + "): JaccardIndex=" + df.format(jaccardIndex) + " / DiceCoeff = " + df.format(diceCoeff));
 		
 		return saturationIntensity;
 	}

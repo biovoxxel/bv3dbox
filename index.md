@@ -2,7 +2,7 @@
 
 # BioVoxxel 3D Box (bv3dbox)
 
-Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) functions now for 2D and 3D images in one place. All functions are heavily based on GPU computing via the fabulous [CLIJ2 library](url)
+Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) functions now for 2D and 3D images in one place. All functions are heavily based on GPU computing via the fabulous [CLIJ2 library](https://clij.github.io/). Segmentation output is based stronger on labels (intensity coding of objects) instead of ROIs. Those labels can be equivalently used like ROIs with many CLIJ2 functions. Also label images created via other tools such as [MorphoLibJ](https://imagej.net/plugins/morpholibj) are suitable inputs for any plugin using labels.
 
 ![image](https://user-images.githubusercontent.com/10721817/151507835-a243ccfd-913b-4f5d-bddb-0a4ed2433005.png)
 
@@ -46,7 +46,7 @@ If the user finds a useful threshold the output can be set to either binary with
 ---
 
 
-(### Flat Field Correction)
+### Flat Field Correction
 The flat field correction allows to correct for uneven illumination including a dark-field (dark current) image subtraction. The dark-field image can also be ommited if unavailable. If the original image which sould be corrected for uneven illumination is a stack, flat-field as well as dark-field images can also be provided as single images. Those will be adapted to the original stack slice number. Otherwise, if they are not single slices, dark-field and flat-field need to have the same dimensions as the image to be corrected. 
 Input images can have 8, 16, or 32-bit. _RGB images are not yet supported (will be available in the future as well)_.
 The Output image is always 32-bit to account for correct float-point values after image division. 
@@ -170,6 +170,11 @@ _Ongoing development: more filter functions will be added in future_
 
 ---
 
+### Add Labels to 3D ROI Manager
+This adds all 2D or 3D labels as ROIs to the 3D ROI Manager from the magnificent [3D Suite](https://mcib3d.frama.io/3d-suite-imagej/) by [Thomas Boudier](url)
+
+---
+
 ### 3D Neighbor Analysis
 planned and coming in near future
 
@@ -180,7 +185,19 @@ planned and coming in near future
 ---
 
 ## Installation
-The Biovoxxel Toolbox as well as the BioVoxxel 3D Box are distributed via the [BioVoxxel Fiji update site](https://imagej.net/update-sites/following)
+The BioVoxxel 3D Box are distributed via the [BioVoxxel 3D Box update site]()
+
+### Dependencies (ImageJ update sites)
+The following update sites need to be minimally active to be able to use all functionalities of the BioVoxxel 3D Box
+
+* CLIJ2
+* CLIJx
+* 3D ImageJ Suite
+
+---
+
+## Citation
+
 
 ---
 
@@ -200,3 +217,5 @@ The BioVoxxel 3D Box funtions are heavily based and rely strongly on the CLIJ li
 Therefore, this development would have not been possible without the work of Robert Haase and colleagues.
 
 Robert Haase, Loic Alain Royer, Peter Steinbach, Deborah Schmidt, Alexandr Dibrov, Uwe Schmidt, Martin Weigert, Nicola Maghelli, Pavel Tomancak, Florian Jug, Eugene W Myers. [CLIJ: GPU-accelerated image processing for everyone. Nat Methods (2019)](https://doi.org/10.1038/s41592-019-0650-1)
+
+J. Ollion, J. Cochennec, F. Loll, C. Escudé, T. Boudier. (2013) TANGO: A Generic Tool for High-throughput 3D Image Analysis for Studying Nuclear Organization. Bioinformatics 2013 Jul 15;29(14):1840-1. http://dx.doi.org/10.1093/bioinformatics/btt276

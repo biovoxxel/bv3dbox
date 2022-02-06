@@ -173,10 +173,15 @@ _Ongoing development: more filter functions will be added in future_
 ### Add Labels to 3D ROI Manager
 This adds all 2D or 3D labels as ROIs to the 3D ROI Manager from the magnificent [3D Suite](https://mcib3d.frama.io/3d-suite-imagej/) by [Thomas Boudier](url)
 
+![image](https://user-images.githubusercontent.com/10721817/152698429-62a83164-01b1-40bc-a4ca-a24b8e977db0.png)
+
+
 ---
 
 ### 3D Neighbor Analysis
-planned and coming in near future
+The neighbor analysis allows to analyze how many neighbor objects a specific labeled object has (intensity values in objects indicate neighbor count). In addition, the neighbor counts as well as the count distribution can be plotted.
+
+![image](https://user-images.githubusercontent.com/10721817/152698285-3253ef1e-044a-4f15-8bf6-5781c016a2b6.png)
 
 ---
 

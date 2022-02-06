@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.biovoxxel</groupId>
 	<artifactId>bv3dbox</artifactId>
-	<version>0.1.0</version>
+	<version>1.0.0</version>
   
 	<name>BioVoxxel 3D Box</name>
 	<inceptionYear>2021</inceptionYear>
@@ -106,6 +106,16 @@
 	       <artifactId>junit-jupiter-engine</artifactId>
 	       <scope>test</scope>
 	    </dependency>
+	    <dependency>
+	    	<groupId>net.haesleinhuepf</groupId>
+	    	<artifactId>clijx_</artifactId>
+	    	<version>0.32.1.1</version>
+	    </dependency>
+	    <dependency>
+	    	<groupId>org.framagit.mcib3d</groupId>
+	    	<artifactId>mcib3d-core</artifactId>
+	    	<version>4.0.1</version>
+	    </dependency>
 	</dependencies>
 	
 	<build>
@@ -127,7 +137,7 @@
 	    <plugin>
 	      <groupId>org.apache.maven.plugins</groupId>
 	      <artifactId>maven-jar-plugin</artifactId>
-	      <configuration>
+	     <configuration>
 	        <outputDirectory>C:\Users\broch\Desktop\Fiji.app BVTB 3.0\plugins</outputDirectory>
 	      </configuration>
 	    </plugin>

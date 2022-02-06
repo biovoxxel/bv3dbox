@@ -1,20 +1,91 @@
 package de.biovoxxel.bv3dbox.utilities;
 
-import org.scijava.plugin.Plugin;
-import org.scijava.service.Service;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import org.scijava.log.LogService;
+import org.scijava.log.StderrLogService;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
+import ij.measure.Calibration;
 import ij.plugin.LutLoader;
 import ij.process.LUT;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
+import net.imagej.updater.UpdateService;
+import net.imagej.updater.UpdateSite;
 
-@Plugin(type = Service.class)
+
 public class BV3DBoxUtilities {
 	
+	private static LogService log = new StderrLogService();
+	
+	
+	public static void main(String[] args) {
+		System.out.println(BV3DBoxUtilities.class.getClassLoader().getResourceAsStream("/plugins.config"));
 		
+	}
+	
+	public BV3DBoxUtilities() {
+		
+	}
+	
+	
+	public static void displayMissingDependencyWarning(UpdateService updateService, String updateSiteName) {
+					
+		String[] updateSiteArray = updateSiteName.split(",");
+		
+		for (int site = 0; site < updateSiteArray.length; site++) {
+			try {
+				UpdateSite requestedUpdateSite = updateService.getUpdateSite(updateSiteArray[site].trim()); 
+				
+				if (!requestedUpdateSite.isActive()) {
+					
+					log.error(updateSiteArray[site].trim() + " update site needs to be activated to use this plugin.\n"
+							+ "Go to >Help >Update... and then use the Manage update sites button.");
+				}
+				
+			} catch (NullPointerException e) {
+				e.printStackTrace();
+				log.error("Update site \"" + updateSiteArray[site].trim() + "\" is not existing in list of ImageJ update sites");
+			}		
+		}
+	}
+	
+	
+	
+	/**
+	 * 
+	 * @param image
+	 * @return	double[] holding first (voxelWidth / voxelHeight) and second (voxelDepth / voxelWidth) ratios 
+	 */
+	public static double[] getVoxelRelations(ImagePlus image) {
+		
+		Calibration cal = image.getCalibration();
+		
+		double voxelWidth = cal.pixelWidth;
+		double voxelHeight = cal.pixelHeight;
+		double voxelDepth = cal.pixelDepth;
+		
+		double width_height_ratio = voxelWidth / voxelHeight;
+		double depth_width_ratio = voxelDepth / voxelWidth;
+		
+		double[] voxelRatios = new double[] { width_height_ratio, depth_width_ratio };
+		
+		return voxelRatios;
+	}
+	
+	
+	public static long[] getImageDimensions(ImagePlus image) {
+		
+		return new long[] { (long)image.getWidth(), (long)image.getHeight(), (long)image.getStackSize() };
+		
+	}
+	
 	public static String[] extendImageTitleListWithNone() {
 		String[] allImageNames = WindowManager.getImageTitles();
 		String[] imageNames = new String[allImageNames.length + 1];
@@ -73,6 +144,32 @@ public class BV3DBoxUtilities {
 		
 		return imagePlusToBePulled;
 	}
+	
+	
+	
+	public static void updateOutputImagePlus(ImagePlus imageToShow, String imageName) {
+		ImagePlus outputImagePlus = WindowManager.getImage(imageName);
+		
+		if (outputImagePlus == null) {
+			outputImagePlus = new ImagePlus();
+		}
+		outputImagePlus.setImage(imageToShow);
+		outputImagePlus.setTitle(imageName);
+		outputImagePlus.show();
+	}
+	
+	
+	
+	public static ClearCLBuffer convertBinaryToLabelBuffer(CLIJ2 clij2, ImagePlus binary_image) {
+		ClearCLBuffer temp_input_image = clij2.push(binary_image);
+		ClearCLBuffer connectedComponentLabels = clij2.create(temp_input_image);
+		clij2.connectedComponentsLabelingDiamond(temp_input_image, connectedComponentLabels);
+		temp_input_image.close();
+		
+		return connectedComponentLabels;
+	}
+	
+	
 	
 	public static float getMinFromRange(String range) throws NumberFormatException {
 		float min_value = Float.NaN;

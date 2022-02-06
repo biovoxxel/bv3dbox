@@ -28,7 +28,7 @@ import net.haesleinhuepf.clij2.plugins.StatisticsOfLabelledPixels;
  */
 
 
-public class BVOverlapExtractor {
+public class BV_OverlapExtractor {
 
 	
 	LogService log;
@@ -51,7 +51,7 @@ public class BVOverlapExtractor {
 	 * @param image_plus_1
 	 * @param image_plus_2
 	 */
-	public BVOverlapExtractor(ImagePlus image_plus_1, ImagePlus image_plus_2) {
+	public BV_OverlapExtractor(ImagePlus image_plus_1, ImagePlus image_plus_2) {
 		this.image_plus_1 = image_plus_1;
 		this.image_plus_2 = image_plus_2;
 		

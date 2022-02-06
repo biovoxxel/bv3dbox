@@ -9,14 +9,15 @@ import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import de.biovoxxel.bv3dbox.plugins.BVFlatFieldCorrection;
+import de.biovoxxel.bv3dbox.plugins.BV_FlatFieldCorrection;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import ij.ImagePlus;
 import ij.WindowManager;
+import net.imagej.updater.UpdateService;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Flat Field Correction (2D/3D)")
-public class BVFlatFieldCorrectionGUI extends DynamicCommand {
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Filtering>Flat Field Correction (2D/3D)")
+public class BV_FlatFieldCorrectionGUI extends DynamicCommand {
 
 	@Parameter(required = true)
 	ImagePlus originalImagePlus = null;
@@ -31,7 +32,7 @@ public class BVFlatFieldCorrectionGUI extends DynamicCommand {
 	
 	@Override
 	public void run() {
-		BVFlatFieldCorrection bvffcorr = new BVFlatFieldCorrection();
+		BV_FlatFieldCorrection bvffcorr = new BV_FlatFieldCorrection();
 		
 		ImagePlus darkFieldImagePlus = WindowManager.getImage(darkFieldImageName);
 		
@@ -41,6 +42,8 @@ public class BVFlatFieldCorrectionGUI extends DynamicCommand {
 	}
 	
 	public void initializeOriginalImageChoices() {
+		
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
 		
 		List<String> extendedImageList = Arrays.asList(BV3DBoxUtilities.extendImageTitleListWithNone());
 		

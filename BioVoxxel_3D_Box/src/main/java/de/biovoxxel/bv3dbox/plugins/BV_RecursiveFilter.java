@@ -19,7 +19,7 @@ import net.haesleinhuepf.clij2.CLIJ2;
  *
  */
 
-public class BVRecursiveFilter implements Cancelable {
+public class BV_RecursiveFilter implements Cancelable {
 
 	ImagePlus inputImagePlus;
 	private ClearCLBuffer input_image;
@@ -36,12 +36,12 @@ public class BVRecursiveFilter implements Cancelable {
 	
 	
 	
-	public BVRecursiveFilter(ImagePlus inputImagePlus) {
+	public BV_RecursiveFilter(ImagePlus inputImagePlus) {
 		setupImage(inputImagePlus);
 	}
 	
-	
-	public void setupImage(ImagePlus image) {
+		
+	private void setupImage(ImagePlus image) {
 		this.inputImagePlus = image;
 		
 		clij2 = CLIJ2.getInstance();
@@ -63,14 +63,19 @@ public class BVRecursiveFilter implements Cancelable {
 	}
 	
 	
-
+	public CLIJ2 getCurrentCLIJ2Instance() {
+		return clij2;
+		
+	}
+	
+	
 	/**
 	 * applies a median filter of a given radius (max = 4 px) a specified number of times (iterations) recursively on an image.
 	 * The plugin decides automatically between 2D or 3D filtering dependent on the input image.  
 	 * Uncalibrated images are filtered isotropically in all dimensions. Calibrated images are filtered in relation to their
 	 * x/y, x/z, and y/z calibrated aspect ratio to avoid dimensional distortion artifacts.
 	 */
-	public void runRecursiveFilter(String filterMethod, double radius, int iterations) {
+	public ClearCLBuffer runRecursiveFilter(String filterMethod, double radius, int iterations) {
 		
 		ClearCLBuffer temp_image = clij2.create(input_image);
 		difference_check = clij2.create(input_image);
@@ -167,14 +172,9 @@ public class BVRecursiveFilter implements Cancelable {
 			}
 		}
 		
-		ImagePlus output_image = clij2.pull(input_image);
-		output_image.setTitle(inputImagePlus.getTitle() + "_" + radius + "_" + finalIteration + "x");
-		output_image.show();
-		
-		input_image.close();
 		temp_image.close();
-		clij2.clear();
-		
+
+		return input_image;		
 	}
 	
 	

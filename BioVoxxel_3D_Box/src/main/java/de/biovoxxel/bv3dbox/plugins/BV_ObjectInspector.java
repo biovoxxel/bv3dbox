@@ -33,7 +33,7 @@ import net.haesleinhuepf.clij2.plugins.StatisticsOfLabelledPixels;
  */
 
 
-public class BVObjectInspector implements Cancelable {
+public class BV_ObjectInspector implements Cancelable {
 	
 	
 	PrefService prefs = new DefaultPrefService();
@@ -72,7 +72,7 @@ public class BVObjectInspector implements Cancelable {
 	 * @param primary_ImagePlus
 	 * @param secondary_ImagePlus
 	 */
-	public BVObjectInspector(ImagePlus primary_ImagePlus, ImagePlus secondary_ImagePlus) {
+	public BV_ObjectInspector(ImagePlus primary_ImagePlus, ImagePlus secondary_ImagePlus) {
 		
 		this.primary_ImagePlus = primary_ImagePlus;
 		this.secondary_ImagePlus = secondary_ImagePlus;

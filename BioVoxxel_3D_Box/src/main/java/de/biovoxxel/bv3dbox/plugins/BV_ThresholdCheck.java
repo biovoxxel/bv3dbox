@@ -30,13 +30,16 @@ import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
 import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
+import net.haesleinhuepf.clij2.plugins.LocalThreshold;
+import net.haesleinhuepf.clijx.CLIJx;
+import net.haesleinhuepf.clijx.clij2wrappers.GetAutomaticThreshold;
 
 /**
  * @author BioVoxxel
  *
  */
-@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Threshold Check (2D/3D)")
-public class BVThresholdCheck extends DynamicCommand {
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Segmentation>Threshold Check (2D/3D)")
+public class BV_ThresholdCheck extends DynamicCommand {
 
 	@Parameter
 	PrefService prefs;
@@ -86,7 +89,6 @@ public class BVThresholdCheck extends DynamicCommand {
 	}
 	
 	public void thresholdCheck() {
-		
 		if (thresholdLibrary.equals("CLIJ2")) {
 			
 			thresholdValue = clij2.getAutomaticThreshold(inputImage, thresholdMethod);	

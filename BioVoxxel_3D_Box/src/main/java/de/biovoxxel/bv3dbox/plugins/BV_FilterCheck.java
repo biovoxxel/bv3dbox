@@ -16,7 +16,7 @@ import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
 
 //@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Filter Check (2D/3D)")
-public class BVFilterCheck extends DynamicCommand {
+public class BV_FilterCheck extends DynamicCommand {
 
 //	public FilterCheck3D() {
 //		// TODO Auto-generated constructor stub

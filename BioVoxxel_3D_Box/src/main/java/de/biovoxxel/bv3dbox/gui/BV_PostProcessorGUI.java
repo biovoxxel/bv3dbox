@@ -7,15 +7,17 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.NumberWidget;
 
-import de.biovoxxel.bv3dbox.plugins.BVPostProcessor;
+import de.biovoxxel.bv3dbox.plugins.BV_PostProcessor;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import ij.ImagePlus;
 import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
+import net.imagej.updater.UpdateService;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Post Processor (2D/3D)")	
-public class BVPostProcessorGUI extends DynamicCommand {
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Labels>Post Processor (2D/3D)")	
+public class BV_PostProcessorGUI extends DynamicCommand {
 
 	@Parameter(required = true, initializer = "setupImage")
 	ImagePlus inputImagePlus;
@@ -29,7 +31,7 @@ public class BVPostProcessorGUI extends DynamicCommand {
 	@Parameter(label = "Stack slice", initializer = "imageSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
 	Integer stackSlice;
 	
-	BVPostProcessor bvpp;
+	BV_PostProcessor bvpp;
 
 	private ImagePlus outputImagePlus;
 	private String outputImageName;
@@ -45,7 +47,10 @@ public class BVPostProcessorGUI extends DynamicCommand {
 	
 	@SuppressWarnings("unused")
 	private void setupImage() {
-		bvpp = new BVPostProcessor(inputImagePlus);
+		
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
+		
+		bvpp = new BV_PostProcessor(inputImagePlus);
 		
 		outputImageName = "BVPP_" + inputImagePlus.getTitle();
 		
@@ -56,6 +61,7 @@ public class BVPostProcessorGUI extends DynamicCommand {
 			
 		} else {
 			
+			stackSlice.setValue(this, 1);
 			stackSlice.setMaximumValue(1);
 			
 		}

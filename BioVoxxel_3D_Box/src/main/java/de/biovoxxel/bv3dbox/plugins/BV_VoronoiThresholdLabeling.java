@@ -5,6 +5,7 @@ package de.biovoxxel.bv3dbox.plugins;
 
 import java.awt.Rectangle;
 
+import org.joml.Math;
 import org.scijava.Cancelable;
 import org.scijava.log.LogLevel;
 import org.scijava.log.LogService;
@@ -32,7 +33,7 @@ import net.haesleinhuepf.clij2.CLIJ2;
  *
  */
 
-public class BVVoronoiThresholdLabeling implements Cancelable {
+public class BV_VoronoiThresholdLabeling implements Cancelable {
 
 
 	PrefService prefs = new DefaultPrefService();
@@ -50,6 +51,7 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 	private String backgroundSubtractionMethod;
 	private Float backgroundRadius = 0.0f;
 	private String thresholdMethod = "Default";
+	private String separationMethod = "Maxima";
 	private Float spotSigma = 0.0f;
 	private Float maximaRadius = 0.0f;
 	private String outputType = "Labels";
@@ -65,16 +67,16 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 	private ClearCLBuffer filteredImage = null;
 	private ClearCLBuffer backgroundSubtractedImage = null;
 	private ClearCLBuffer thresholdedImage = null;
-	private ClearCLBuffer maximaImage = null;
+	private ClearCLBuffer seedImage = null;
 	private ClearCLBuffer outputImage = null;
 
 	
-	public BVVoronoiThresholdLabeling() {
+	public BV_VoronoiThresholdLabeling() {
 		
 	}
 	
 	
-	public BVVoronoiThresholdLabeling(ImagePlus inputImagePlus) {
+	public BV_VoronoiThresholdLabeling(ImagePlus inputImagePlus) {
 		
 		setupInputImage(inputImagePlus);
 		
@@ -92,13 +94,14 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 	 * @param maximaRadius
 	 * @param outputType	should be either "Labels" or "Binary" 
 	 */
-	public BVVoronoiThresholdLabeling(ImagePlus inputImagePlus, String filterMethod, Float filterRadius, String backgroundSubtractionMethod, Float backgroundRadius, String thresholdMethod, Float spotSigma, Float maximaRadius, String outputType) {
+	public BV_VoronoiThresholdLabeling(ImagePlus inputImagePlus, String filterMethod, Float filterRadius, String backgroundSubtractionMethod, Float backgroundRadius, String thresholdMethod, String separationMethod, Float spotSigma, Float maximaRadius, String outputType) {
 		this.inputImagePlus = inputImagePlus;
 		this.filterMethod = filterMethod;
 		this.filterRadius = filterRadius;
 		this.backgroundSubtractionMethod = backgroundSubtractionMethod;
 		this.backgroundRadius = backgroundRadius;
 		this.thresholdMethod = thresholdMethod;
+		this.separationMethod = separationMethod;
 		this.spotSigma = spotSigma;
 		this.maximaRadius = maximaRadius;
 		this.outputType = outputType;
@@ -146,6 +149,18 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 	}
 	
 	
+	public void setParameters(String filterMethod, Float filterRadius, String backgroundSubtractionMethod, Float backgroundRadius, String thresholdMethod, String separationMethod, Float spotSigma, Float maximaRadius, String outputType) {
+		this.filterMethod = filterMethod;
+		this.filterRadius = filterRadius;
+		this.backgroundSubtractionMethod = backgroundSubtractionMethod;
+		this.backgroundRadius = backgroundRadius;
+		this.thresholdMethod = thresholdMethod;
+		this.separationMethod = separationMethod;
+		this.spotSigma = spotSigma;
+		this.maximaRadius = maximaRadius;
+		this.outputType = outputType;
+	}
+	
 	private void readCalibration() {
 		Calibration cal = inputImagePlus.getCalibration();
 		x_y_ratio = cal.pixelWidth / cal.pixelHeight;
@@ -185,11 +200,15 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 		backgroundSubtractedImage.close();
 		IJ.showProgress(0.6);
 		
-		maximaImage = detectMaxima(input_image, spotSigma, maximaRadius);
+		if (separationMethod.equals("Maxima")) {
+			seedImage = detectMaxima(input_image, spotSigma, maximaRadius);		
+		} else {
+			seedImage = createErodedSeeds(input_image, Math.round(spotSigma), separationMethod);
+		}
 		IJ.showProgress(0.8);
 		
-		outputImage = createLabels(maximaImage, thresholdedImage);
-		maximaImage.close();
+		outputImage = createLabels(seedImage, thresholdedImage);
+		seedImage.close();
 		thresholdedImage.close();
 		IJ.showProgress(0.9);
 		
@@ -342,13 +361,41 @@ public class BVVoronoiThresholdLabeling implements Cancelable {
 		return maxima_image;
 	}
 
-	
-	public ClearCLBuffer createLabels(ClearCLBuffer maxima_image, ClearCLBuffer thresholded_image) {
-		// mask spots
-		ClearCLBuffer masked_spots = clij2.create(maxima_image);
-		clij2.binaryAnd(maxima_image, thresholded_image, masked_spots);
+	public ClearCLBuffer createErodedSeeds(ClearCLBuffer input_image, Integer erode_iteration, String erosion_method) {
 		
-		ClearCLBuffer output_image = clij2.create(maxima_image.getDimensions(), NativeTypeEnum.Float);
+		boolean is3D = input_image.getDimension() > 2 ? true : false;
+		
+		ClearCLBuffer eroded_image = clij2.create(input_image);
+		
+		if (is3D) {
+			if (erosion_method.equals("Eroded box")) {
+				clij2.minimum3DBox(input_image, eroded_image, erode_iteration, erode_iteration, erode_iteration);
+			}
+			
+			if (erosion_method.equals("Eroded sphere")) {
+				clij2.minimum3DSphere(input_image, eroded_image, erode_iteration, erode_iteration, erode_iteration);
+			}
+		} else {
+			if (erosion_method.equals("Eroded box")) {
+				clij2.minimum2DBox(input_image, eroded_image, erode_iteration, erode_iteration);
+			}
+			
+			if (erosion_method.equals("Eroded sphere")) {
+				clij2.minimum2DSphere(input_image, eroded_image, erode_iteration, erode_iteration);
+			}
+		}
+		
+		return eroded_image;
+		
+	}
+	
+	
+	public ClearCLBuffer createLabels(ClearCLBuffer seed_image, ClearCLBuffer thresholded_image) {
+		// mask spots
+		ClearCLBuffer masked_spots = clij2.create(seed_image);
+		clij2.binaryAnd(seed_image, thresholded_image, masked_spots);
+		
+		ClearCLBuffer output_image = clij2.create(seed_image.getDimensions(), NativeTypeEnum.Float);
 		clij2.maskedVoronoiLabeling(masked_spots, thresholded_image, output_image);
 		
 		return output_image;

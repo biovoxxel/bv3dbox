@@ -21,7 +21,7 @@ import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
 
 
-public class BVPseudoFlatFieldCorrection implements Cancelable {
+public class BV_PseudoFlatFieldCorrection implements Cancelable {
 
 	PrefService prefs = new DefaultPrefService();
 	LogService log = new StderrLogService();
@@ -37,7 +37,7 @@ public class BVPseudoFlatFieldCorrection implements Cancelable {
 
 		
 		
-	public BVPseudoFlatFieldCorrection(ImagePlus inputImagePlus) {
+	public BV_PseudoFlatFieldCorrection(ImagePlus inputImagePlus) {
 		
 		setInputImage(inputImagePlus);
 		

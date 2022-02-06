@@ -3,45 +3,48 @@ package de.biovoxxel.bv3dbox.gui;
 import java.util.Arrays;
 import java.util.List;
 
+import org.joml.Math;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
-import org.scijava.module.DefaultModuleService;
-import org.scijava.module.DefaultMutableModule;
-import org.scijava.module.MutableModule;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import de.biovoxxel.bv3dbox.plugins.BVVoronoiThresholdLabeling;
+import de.biovoxxel.bv3dbox.plugins.BV_VoronoiThresholdLabeling;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import ij.ImagePlus;
 import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
+import net.imagej.updater.UpdateService;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Voronoi Threshold Labler (2D/3D)")
-public class BVVoronoiThresholdLabelingGUI extends DynamicCommand {
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Segmentation>Voronoi Threshold Labler (2D/3D)")
+public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 
 	
 	@Parameter(required = true, initializer = "setupImage")
 	private ImagePlus inputImagePlus;
 	
-	@Parameter(label = "Image Filter", choices = {"None", "Gaussian", "DoG", "Median", "Mean", "Open", "Close", "Variance"}, callback = "adaptFilter")
+	@Parameter(label = "Image filter", choices = {"None", "Gaussian", "DoG", "Median", "Mean", "Open", "Close", "Variance"}, callback = "adaptFilter")
 	private String filterMethod = "Gaussian";
 	
-	@Parameter(label = "", min = "0f", max = "100f", callback = "adaptFilter")
+	@Parameter(label = "Filter radius", min = "0f", max = "100f", callback = "adaptFilter")
 	private Float filterRadius = 1.0f;
 	
-	@Parameter(label = "Background Subtraction", choices = {"None", "DoG", "DoM", "TopHat", "BottomHat"}, callback = "adaptBackground")
+	@Parameter(label = "Background subtraction", choices = {"None", "DoG", "DoM", "TopHat", "BottomHat"}, callback = "adaptBackground")
 	private String backgroundSubtractionMethod;
 	
 	@Parameter(label = "Background radius", min = "0f", max = "100f", callback = "adaptBackground")
 	private Float backgroundRadius = 1.0f;
 	
 	@Parameter(label = "Threshold method", initializer = "thresholdMethodList", callback = "processImage")
-	private String thresholdMethod;
+	private String thresholdMethod = "Default";
+	
+	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded box", "Eroded sphere"}, callback = "processImage")
+	private String separationMethod = "Maxima";
 	
 	@Parameter(label = "Spot sigma", min = "0f", callback = "processImage")
 	private Float spotSigma;
@@ -55,11 +58,11 @@ public class BVVoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(label = "Stack slice", initializer = "imageSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
 	Integer stackSlice;
 	
-	@Parameter
+	@Parameter(label = "Apply on complete image")
 	Boolean applyOnCompleteImage = false;
 	
 	
-	BVVoronoiThresholdLabeling bvvtl = new BVVoronoiThresholdLabeling();
+	BV_VoronoiThresholdLabeling bvvtl = new BV_VoronoiThresholdLabeling();
 	
 	private ClearCLBuffer input_image;
 	
@@ -86,7 +89,8 @@ public class BVVoronoiThresholdLabelingGUI extends DynamicCommand {
 	
 	private void setupImage() {
 		
-		//bvvtl = new BVVoronoiThresholdLabeling(inputImagePlus);
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
+		
 		bvvtl.setupInputImage(inputImagePlus);
 		input_image = bvvtl.getInputImageAsClearClBuffer();
 		
@@ -165,10 +169,16 @@ public class BVVoronoiThresholdLabelingGUI extends DynamicCommand {
 		filteredImage.close();
 		ClearCLBuffer thresholdedImage = bvvtl.thresholdImage(backgroundSubtractedImage, thresholdMethod);
 		backgroundSubtractedImage.close();
-		ClearCLBuffer maximaImage = bvvtl.detectMaxima(input_image, spotSigma, maximaRadius);
-		ClearCLBuffer outputImage = bvvtl.createLabels(maximaImage, thresholdedImage);
+		
+		ClearCLBuffer seedImage = bvvtl.getCurrentCLIJ2Instance().create(input_image);
+		if (separationMethod.equals("Maxima")) {
+			seedImage = bvvtl.detectMaxima(input_image, spotSigma, maximaRadius);		
+		} else {
+			seedImage = bvvtl.createErodedSeeds(thresholdedImage, Math.round(spotSigma), separationMethod);
+		}
+		ClearCLBuffer outputImage = bvvtl.createLabels(seedImage, thresholdedImage);
 		thresholdedImage.close();
-		maximaImage.close();
+		seedImage.close();
 		bvvtl.createOutputImage(outputImage, outputType);
 		outputImage.close();
 	}

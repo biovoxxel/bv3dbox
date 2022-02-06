@@ -22,7 +22,7 @@ import net.haesleinhuepf.clij2.CLIJ2;
  */
 
 
-public class BVPostProcessor extends DynamicCommand {
+public class BV_PostProcessor extends DynamicCommand {
 
 	private final LogService log = new StderrLogService();
 	private final PrefService prefs = new DefaultPrefService();
@@ -32,7 +32,7 @@ public class BVPostProcessor extends DynamicCommand {
 	/**
 	 * 
 	 */
-	public BVPostProcessor(ImagePlus inputImagePlus) {
+	public BV_PostProcessor(ImagePlus inputImagePlus) {
 		
 		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO));
 	
@@ -47,7 +47,7 @@ public class BVPostProcessor extends DynamicCommand {
 	}
 	
 	
-	public BVPostProcessor() {		
+	public BV_PostProcessor() {		
 		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO));
 	}
 
@@ -226,7 +226,7 @@ public class BVPostProcessor extends DynamicCommand {
 	
 	public static void main(String[] args) {
 		ImagePlus inputImage = new ImagePlus("C:\\Users\\broch\\Desktop\\Binary Nuclei.tif"); 
-		BVPostProcessor bvpp = new BVPostProcessor(inputImage);
+		BV_PostProcessor bvpp = new BV_PostProcessor(inputImage);
 		
 		ClearCLBuffer output = bvpp.postProcessor("Erode", 3);
 		clij2.pull(output).show();

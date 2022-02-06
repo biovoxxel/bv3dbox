@@ -7,13 +7,15 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.NumberWidget;
 
-import de.biovoxxel.bv3dbox.plugins.BVPseudoFlatFieldCorrection;
+import de.biovoxxel.bv3dbox.plugins.BV_PseudoFlatFieldCorrection;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import ij.ImagePlus;
 import ij.WindowManager;
+import net.imagej.updater.UpdateService;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Pseudo Flat Field Correction (2D/3D)")
-public class BVPseudoFlatFieldCorrectionGUI extends DynamicCommand {
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Filtering>Pseudo Flat Field Correction (2D/3D)")
+public class BV_PseudoFlatFieldCorrectionGUI extends DynamicCommand {
 
 	@Parameter(required = true, initializer = "setupImage")
 	ImagePlus inputImagePlus;
@@ -31,7 +33,7 @@ public class BVPseudoFlatFieldCorrectionGUI extends DynamicCommand {
 	Integer stackSlice;
 	
 	
-	BVPseudoFlatFieldCorrection bvpffc;
+	BV_PseudoFlatFieldCorrection bvpffc;
 	
 
 	public void run() {
@@ -43,8 +45,9 @@ public class BVPseudoFlatFieldCorrectionGUI extends DynamicCommand {
 	@SuppressWarnings("unused")
 	private void setupImage() {
 		
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
 				
-		bvpffc = new BVPseudoFlatFieldCorrection(inputImagePlus);
+		bvpffc = new BV_PseudoFlatFieldCorrection(inputImagePlus);
 		
 		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);
 		if(inputImagePlus.isStack()) {
@@ -54,7 +57,7 @@ public class BVPseudoFlatFieldCorrectionGUI extends DynamicCommand {
 		} else {
 			
 			stackSlice.setMaximumValue(1);
-			
+			stackSlice.setValue(this, 1);
 		}
 	}
 	

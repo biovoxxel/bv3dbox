@@ -9,9 +9,10 @@ import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import de.biovoxxel.bv3dbox.plugins.BVObjectInspector;
+import de.biovoxxel.bv3dbox.plugins.BV_ObjectInspector;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import ij.ImagePlus;
+import net.imagej.updater.UpdateService;
 
 
 /**
@@ -21,8 +22,8 @@ import ij.ImagePlus;
  */
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Object Inspector (2D/3D)")
-public class BVObjectInspectorGUI extends DynamicCommand {
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Analysis>Object Inspector (2D/3D)")
+public class BV_ObjectInspectorGUI extends DynamicCommand {
 
 	@Parameter(required = true, label = "Primary objects (labels)", description = "")
 	private ImagePlus primary_ImagePlus;
@@ -78,6 +79,8 @@ public class BVObjectInspectorGUI extends DynamicCommand {
 	
 	public void initializeOriginalImageChoices() {
 		
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
+		
 		List<String> extendedImageList = imageListWithNoneOption();
 		
 		final MutableModuleItem<String> original_1_title = getInfo().getMutableInput("original_1_title", String.class);
@@ -94,7 +97,7 @@ public class BVObjectInspectorGUI extends DynamicCommand {
 	}
 	
 	public void run() {
-		BVObjectInspector bvoi = new BVObjectInspector(primary_ImagePlus, secondary_ImagePlus);
+		BV_ObjectInspector bvoi = new BV_ObjectInspector(primary_ImagePlus, secondary_ImagePlus);
 		
 		bvoi.setOriginalImages(original_1_title, original_2_title);
 		bvoi.setPrimaryVolumeRange(primary_volume_range);

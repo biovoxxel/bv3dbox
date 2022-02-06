@@ -8,7 +8,7 @@ import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
 
-public class BVFlatFieldCorrection {
+public class BV_FlatFieldCorrection {
 
 	private CLIJ2 clij2;
 	
@@ -24,7 +24,7 @@ public class BVFlatFieldCorrection {
 	private final int HEIGHT = 1;
 	private final int DEPTH = 2;
 	
-	public BVFlatFieldCorrection() {
+	public BV_FlatFieldCorrection() {
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
 	}

@@ -202,6 +202,10 @@ The following update sites need to be minimally active to be able to use all fun
 ---
 
 ## Citation
+If you use this library and its functions to generate and publish results, please condider to acknowledge and cite the toolbox using the DOI.
+
+[![DOI](https://zenodo.org/badge/434949702.svg)](https://zenodo.org/badge/latestdoi/434949702)
+
 
 
 ---

@@ -55,7 +55,7 @@ The Output image is always 32-bit to account for correct float-point values afte
 
 Formula:
 
-$$result = { original - darkfield \over flatfield - darkfield } . { [average background intensity] }$$
+$$result = { original - darkfield \over flatfield - darkfield } * { average\;background\;intensity }$$
 
 
 ![image](https://user-images.githubusercontent.com/10721817/151598573-534b8f3f-99bd-4bb7-b420-140ca8f94ef7.png)

@@ -10,6 +10,7 @@ import org.scijava.prefs.PrefService;
 
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxSettings;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
 import ij.gui.Plot;
 import ij.measure.ResultsTable;
@@ -23,6 +24,7 @@ public class BV_NeighborAnalysis {
 
 	private LogService log = new StderrLogService();
 	private PrefService prefs = new DefaultPrefService();
+	private Boolean displayDebugImages = prefs.getBoolean(BV3DBoxSettings.class, "bv_3d_box_settings_display_debug_images", false);
 	private CLIJ2 clij2;
 	private ClearCLBuffer connectedComponentLabels;
 	
@@ -65,31 +67,74 @@ public class BV_NeighborAnalysis {
 	 * @param method - NeighborMethods enum type expected
 	 * @return ClearCLBuffer
 	 */
-	public ClearCLBuffer getNeighborCountMap(ClearCLBuffer input_image, String method, String distanceRange) {
+	public ClearCLBuffer getNeighborCountMap(ClearCLBuffer input_image, String method, String distanceRange, Boolean excludeFinalEdgeObjects) {
+		
+		log.debug("input_image = " + input_image);
+		log.debug("method = " + method);
+		log.debug("distanceRange = " + distanceRange);
+		log.debug("excludeFinalEdgeObjects = " + excludeFinalEdgeObjects);
 		
 		ClearCLBuffer voronoi_image = clij2.create(input_image.getDimensions(), NativeTypeEnum.Float);	
 		ClearCLBuffer neighbor_count_map = clij2.create(voronoi_image);
 		neighbor_count_map.setName("NCM_" + input_image.getName());
 		
+		clij2.extendLabelingViaVoronoi(input_image, voronoi_image);
+		
+		if (displayDebugImages) { BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, voronoi_image, false, LutNames.GLASBEY_LUT); }
+		
 		if (method.equals(NeighborMethods.OBJECTS.method)) {
+								
+			ClearCLBuffer touching_voronoi_neighbor_map = clij2.create(voronoi_image);
+			clij2.touchingNeighborCountMap(voronoi_image, touching_voronoi_neighbor_map);
 			
-			clij2.extendLabelingViaVoronoi(input_image, voronoi_image);
-					
-			ClearCLBuffer touching_neighbor_map = clij2.create(input_image.getDimensions(), NativeTypeEnum.Float);
-			clij2.touchingNeighborCountMap(voronoi_image, touching_neighbor_map);
-			clij2.mask(touching_neighbor_map, input_image, neighbor_count_map);
+			if (excludeFinalEdgeObjects) {
+				
+				ClearCLBuffer no_edge_voronoi_image = clij2.create(voronoi_image);
+				clij2.excludeLabelsOnEdges(voronoi_image, no_edge_voronoi_image);
+				
+				ClearCLBuffer no_edge_voronoi_neighbor_map = clij2.create(voronoi_image);
+				clij2.mask(touching_voronoi_neighbor_map, no_edge_voronoi_image, no_edge_voronoi_neighbor_map);
+				no_edge_voronoi_image.close();
+				
+				clij2.mask(no_edge_voronoi_neighbor_map, input_image, neighbor_count_map);
+				
+			} else {
+				
+				clij2.mask(touching_voronoi_neighbor_map, input_image, neighbor_count_map);
+				
+			}
 			
-			voronoi_image.close();
-			touching_neighbor_map.close();
+			touching_voronoi_neighbor_map.close();
 			
 		} else if ((method.equals(NeighborMethods.DISTANCE.method))) {
 			
 			float minDistance = BV3DBoxUtilities.getMinFromRange(distanceRange);
 			float maxDistance = BV3DBoxUtilities.getMaxFromRange(distanceRange);
 			
-			clij2.proximalNeighborCountMap(input_image, neighbor_count_map, minDistance, maxDistance);
+			ClearCLBuffer proximal_neighbor_map = clij2.create(voronoi_image);
+			clij2.proximalNeighborCountMap(input_image, proximal_neighbor_map, minDistance, maxDistance);
 			
+			if (excludeFinalEdgeObjects) {
+				
+				ClearCLBuffer no_edge_voronoi = clij2.create(voronoi_image);
+				clij2.excludeLabelsOnEdges(voronoi_image, no_edge_voronoi);
+				clij2.mask(proximal_neighbor_map, no_edge_voronoi, neighbor_count_map);
+				
+				
+				no_edge_voronoi.close();
+				
+			} else {
+				
+				clij2.copy(proximal_neighbor_map, neighbor_count_map);
+				
+			}
+			
+			proximal_neighbor_map.close();
 		}
+		
+		voronoi_image.close();
+		
+		
 //		else if ((method.equals(NeighborMethods.CENTROIDS.method))) {
 //			
 //			ClearCLBuffer centroid_image = clij2.create(input_image.getDimensions(), NativeTypeEnum.Float);
@@ -150,9 +195,11 @@ public class BV_NeighborAnalysis {
 			distribution[(int)neighborCounts[n]] += 1;
 		}
 		
+		distribution[0] = 0;
+		
 		Plot plot = new Plot("NeighborDistribution_" + connectedComponentLabels.getName(), "Neighbors", "Labels");
 		plot.add("separate bars", distribution);
-		
+	
 		return plot;
 	}
 	

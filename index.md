@@ -2,9 +2,11 @@
 
 # BioVoxxel 3D Box (bv3dbox)
 
+**REMARK: This is currently still in alpha release stage and should be handled with care when creating results. Please inform me about any [issues](https://github.com/biovoxxel/bv3dbox/issues) you encounter!**
+
 Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) functions now for 2D and 3D images in one place. All functions are heavily based on GPU computing via the fabulous [CLIJ2 library](https://clij.github.io/). Segmentation output is based stronger on labels (intensity coding of objects) instead of ROIs. Those labels can be equivalently used like ROIs with many CLIJ2 functions. Also label images created via other tools such as [MorphoLibJ](https://imagej.net/plugins/morpholibj) are suitable inputs for any plugin using labels.
 
-![image](https://user-images.githubusercontent.com/10721817/151507835-a243ccfd-913b-4f5d-bddb-0a4ed2433005.png)
+![image](https://user-images.githubusercontent.com/10721817/152758424-ec724aa7-7202-4047-a530-8420b87f38c9.png)
 
 
 ## Functionalities
@@ -53,7 +55,7 @@ The Output image is always 32-bit to account for correct float-point values afte
 
 Formula:
 
-$$result = { original - darkfield \over flatfield - darkfield } x { average_background_intensity }$$
+$$result = { original - darkfield \over flatfield - darkfield } . { "average background intensity" }$$
 
 
 ![image](https://user-images.githubusercontent.com/10721817/151598573-534b8f3f-99bd-4bb7-b420-140ca8f94ef7.png)
@@ -115,18 +117,18 @@ This tool works in 2D as well as 3D images.
 The _Object Inspector_ is the new version of the [_Speckle Inspector_](https://imagej.net/plugins/biovoxxel-toolbox#speckle-inspector). It analyzes (secondary) objects inside (primary) objects.
 Input parameters are:
 
-- `Primary objects`: this is an image holding the primary (outer) objects in form of labels or a binary image. Must be provided!
-- `Secondary objects`: this is an image holding the secondary (inner) objects in form of labels or a binary image. Must be provided!
-- `Primary original image`: The original image related to the primary objects. This has to be provided only if pixel intensity-related values should be analyzed
-- `Secondary original image`: The original image related to the secondary objects. This has to be provided only if pixel intensity-related values should be analyzed
-- `Primary volume limitation`: all primary objects inside this 2D area / 3D volume range will be analyzed. All others will be excluded from analysis
-- `Primary MMDTC ratio`: This refers to the **M**ean / **M**ax **D**istance **T**o **C**entroid ratio (ratio between the average and maximum distance of the objects' border to the centroid). This is used to exclude objects of similar size but difference in shape (similar to the circularity in the standard ImageJ `Analyze Particles...`function.
-- `Secondary volume limitation`: equivalent of the above for the secondary objects.
-- `Secondary MMDTC ratio`: equivalent of the above for the secondary objects.
-- `Exclude primary edge objects`: All objects which touch the image border or in 3D the image borders and the upper and lower stack slice will be excluded. All secondary objects contained in those objects will also be removed from the nalysis and output image
-- `Pad stack tops`: if active it will add a black slice before the first and after the last stack slice. This avoids removing primary objects still visible in the first and last slice if _Exclude primary edge objects_ is active. To achieve proper measurements, however, it is recommended to avoid this function and acquire objects completely during imaging.
-- `Show analysis label maps`: will display the analyzed objects as intensity coded labels (with new consecutive numbering)
-- `Show count map`: shows labels of the primary objects with the intensity indicating the numbers of secondary objects contained inside them.
+* `Primary objects`: this is an image holding the primary (outer) objects in form of labels or a binary image. Must be provided!
+* `Secondary objects`: this is an image holding the secondary (inner) objects in form of labels or a binary image. Must be provided!
+* `Primary original image`: The original image related to the primary objects. This has to be provided only if pixel intensity-related values should be analyzed
+* `Secondary original image`: The original image related to the secondary objects. This has to be provided only if pixel intensity-related values should be analyzed
+* `Primary volume limitation`: all primary objects inside this 2D area / 3D volume range will be analyzed. All others will be excluded from analysis
+* `Primary MMDTC ratio`: This refers to the **M**ean / **M**ax **D**istance **T**o **C**entroid ratio (ratio between the average and maximum distance of the objects' border to the centroid). This is used to exclude objects of similar size but difference in shape (similar to the circularity in the standard ImageJ `Analyze Particles...`function.
+* `Secondary volume limitation`: equivalent of the above for the secondary objects.
+* `Secondary MMDTC ratio`: equivalent of the above for the secondary objects.
+* `Exclude primary edge objects`: All objects which touch the image border or in 3D the image borders and the upper and lower stack slice will be excluded. All secondary objects contained in those objects will also be removed from the nalysis and output image
+* `Pad stack tops`: if active it will add a black slice before the first and after the last stack slice. This avoids removing primary objects still visible in the first and last slice if _Exclude primary edge objects_ is active. To achieve proper measurements, however, it is recommended to avoid this function and acquire objects completely during imaging.
+* `Show analysis label maps`: will display the analyzed objects as intensity coded labels (with new consecutive numbering)
+* `Show count map`: shows labels of the primary objects with the intensity indicating the numbers of secondary objects contained inside them.
 
 Results tables are available for primary as well as secondary objects including object counting and relational identification, size, intensity and some shape values.
 
@@ -170,22 +172,31 @@ _Ongoing development: more filter functions will be added in future_
 
 ---
 
+### 3D Neighbor Analysis
+The neighbor analysis allows to analyze how many neighbor objects a specific labeled object has (intensity values in objects indicate neighbor count). In addition, the neighbor counts as well as the count distribution can be plotted.
+
+Parameters:
+* `Method`: Neighbors are determined based on...
+ * `Objects`: ...the voronoi drawn on basis of the original object outline
+ * `Distance`: ...the distance range given calculated from the centroid of each object to the other centroids. Therefore, object shape is neglected. Only recommended for small and isotropic objects
+* `Distance range`: centroids not reachable within the given distance range are not considered as neighbors.
+* `Exclude edges from visualization`: objects which directly touch the border or whos voronoi is touching imge edges are taken into account as neighbors of others but are finally not displayed since their own neighbor count is incorrect due to missing neighbors not part of the field of view. If the complete sample is imaged this option should not be used.
+* `Plot neighbour counts`: for each input label the number of neighbors will be plotted. Those are also indicated in the neighbor count map image.
+* `Plot neighbor distribution`: the distribution of neighbor frequencies is plotted. The value plotted for zero neighbors are excluded objects (due to edge exclusion).
+
+![image](https://user-images.githubusercontent.com/10721817/152757955-fad1f18e-ccad-409c-8d8d-6b706fe25607.png)
+
+---
+
 ### Add Labels to 3D ROI Manager
 This adds all 2D or 3D labels as ROIs to the 3D ROI Manager from the magnificent [3D Suite](https://mcib3d.frama.io/3d-suite-imagej/) by [Thomas Boudier](url)
 
 ![image](https://user-images.githubusercontent.com/10721817/152698429-62a83164-01b1-40bc-a4ca-a24b8e977db0.png)
 
-
----
-
-### 3D Neighbor Analysis
-The neighbor analysis allows to analyze how many neighbor objects a specific labeled object has (intensity values in objects indicate neighbor count). In addition, the neighbor counts as well as the count distribution can be plotted.
-
-![image](https://user-images.githubusercontent.com/10721817/152698285-3253ef1e-044a-4f15-8bf6-5781c016a2b6.png)
-
 ---
 
 ### Convoluted Background Subtraction
+The equivalent function to the original convoluted background subtraction is already on the todo list
 
 ---
 
@@ -205,8 +216,6 @@ The following update sites need to be minimally active to be able to use all fun
 If you use this library and its functions to generate and publish results, please condider to acknowledge and cite the toolbox using the DOI.
 
 [![DOI](https://zenodo.org/badge/434949702.svg)](https://zenodo.org/badge/latestdoi/434949702)
-
-
 
 ---
 

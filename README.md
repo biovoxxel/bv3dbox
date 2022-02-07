@@ -53,7 +53,7 @@ The Output image is always 32-bit to account for correct float-point values afte
 
 Formula:
 
-$$result = { original - darkfield \over flatfield - darkfield } . { "average background intensity" }$$
+$$result = { original - darkfield \over flatfield - darkfield } * { average\;of\;(flatfield - darkfield) }$$
 
 
 ![image](https://user-images.githubusercontent.com/10721817/151598573-534b8f3f-99bd-4bb7-b420-140ca8f94ef7.png)
@@ -232,6 +232,6 @@ via [BioVoxxel gitter channel](https://gitter.im/biovoxxel/BioVoxxel_Toolbox)
 The BioVoxxel 3D Box funtions are heavily based and rely strongly on the CLIJ library family.
 Therefore, this development would have not been possible without the work of Robert Haase and colleagues.
 
-Robert Haase, Loic Alain Royer, Peter Steinbach, Deborah Schmidt, Alexandr Dibrov, Uwe Schmidt, Martin Weigert, Nicola Maghelli, Pavel Tomancak, Florian Jug, Eugene W Myers. [CLIJ: GPU-accelerated image processing for everyone. Nat Methods (2019)](https://doi.org/10.1038/s41592-019-0650-1)
+* Robert Haase, Loic Alain Royer, Peter Steinbach, Deborah Schmidt, Alexandr Dibrov, Uwe Schmidt, Martin Weigert, Nicola Maghelli, Pavel Tomancak, Florian Jug, Eugene W Myers. [CLIJ: GPU-accelerated image processing for everyone. Nat Methods (2019)](https://doi.org/10.1038/s41592-019-0650-1)
 
-J. Ollion, J. Cochennec, F. Loll, C. Escudé, T. Boudier. (2013) TANGO: A Generic Tool for High-throughput 3D Image Analysis for Studying Nuclear Organization. Bioinformatics 2013 Jul 15;29(14):1840-1. http://dx.doi.org/10.1093/bioinformatics/btt276
+* J. Ollion, J. Cochennec, F. Loll, C. Escudé, T. Boudier. (2013) TANGO: A Generic Tool for High-throughput 3D Image Analysis for Studying Nuclear Organization. Bioinformatics 2013 Jul 15;29(14):1840-1. http://dx.doi.org/10.1093/bioinformatics/btt276

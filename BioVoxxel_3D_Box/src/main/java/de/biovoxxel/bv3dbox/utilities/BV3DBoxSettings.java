@@ -15,6 +15,9 @@ public class BV3DBoxSettings implements Command {
 
 	@Parameter(label = "Activate debug logging")
 	private Boolean debugMode = false; 
+	
+	@Parameter(label = "Display debug images")
+	private Boolean displayDebugImages = false; 
 
 	@Override
 	public void run() {
@@ -23,6 +26,12 @@ public class BV3DBoxSettings implements Command {
 			prefs.put(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.DEBUG);			
 		} else {
 			prefs.put(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO);			
+		}
+		
+		if (displayDebugImages) {
+			prefs.put(BV3DBoxSettings.class, "bv_3d_box_settings_display_debug_images", true);			
+		} else {
+			prefs.put(BV3DBoxSettings.class, "bv_3d_box_settings_display_debug_images", false);			
 		}
 		
 	}	

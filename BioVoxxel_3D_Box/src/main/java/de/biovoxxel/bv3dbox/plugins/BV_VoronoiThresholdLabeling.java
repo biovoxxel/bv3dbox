@@ -27,6 +27,7 @@ import ij.process.LUT;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
+import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
 
 
 /*
@@ -286,7 +287,7 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			if (stackSize == 1) {
 				clij2.median2DSphere(input_image, filtered_image, filterRadius, y_filter_radius);	
 			} else {
-				clij2.median3DSliceBySliceSphere(input_image, filtered_image, filterRadius, y_filter_radius);				
+				clij2.median3DSliceBySliceSphere(input_image, filtered_image, filterRadius, y_filter_radius);
 			}
 		}
 		
@@ -361,15 +362,39 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 
 	
 	
-	
+	@Deprecated
 	public ClearCLBuffer thresholdImage(ClearCLBuffer background_subtracted_image, String thresholdMethod) {
+		
 		ClearCLBuffer thresholded_image = clij2.create(background_subtracted_image);
+						
+		log.debug("threshold = " + clij2.getAutomaticThreshold(background_subtracted_image, thresholdMethod));
 		
 		clij2.automaticThreshold(background_subtracted_image, thresholded_image, thresholdMethod);
 		
 		return thresholded_image;
 	}
 
+	
+	public ClearCLBuffer thresholdImage(ClearCLBuffer background_subtracted_image, int threshold) {
+		
+		log.debug("threshold = " + threshold);
+		
+		ClearCLBuffer thresholded_image = clij2.create(background_subtracted_image);
+		
+		clij2.threshold(background_subtracted_image, thresholded_image, threshold);
+		
+		return thresholded_image;
+		
+	}
+	
+	
+	public int getThresholdValue(String thresholdMethod, int[] histogram) {
+		
+		AutoThresholderImageJ1 autoThresholderIJ1 = new AutoThresholderImageJ1();
+		
+		return autoThresholderIJ1.getThreshold(thresholdMethod, histogram);
+		
+	}
 	
 
 	public ClearCLBuffer detectMaxima(ClearCLBuffer input_image, Float spotSigma, Float maximaRadius) {
@@ -485,13 +510,11 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		
 	}
 
-	@Override
 	public boolean isCanceled() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	@Override
 	public void cancel(String reason) {
 		
 		ImagePlus outputImagePlus = WindowManager.getImage(outputImageName);
@@ -502,7 +525,6 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		
 	}
 
-	@Override
 	public String getCancelReason() {
 		// TODO Auto-generated method stub
 		return null;

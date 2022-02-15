@@ -16,6 +16,7 @@ import de.biovoxxel.bv3dbox.plugins.BV_VoronoiThresholdLabeling;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import ij.ImagePlus;
 import ij.WindowManager;
+import ij.process.StackStatistics;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
 import net.imagej.updater.UpdateService;
@@ -102,8 +103,9 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	private String priorFilterMethod;
 	private String priorBackgroundMethod;
 	
+	private int[] stackHistogram;
 	
-	@Override
+	
 	public void run() {
 				
 		if (inputImagePlus.getRoi() != null && applyOnCompleteImage) {
@@ -131,11 +133,30 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		
 		if(inputImagePlus.isStack()) {
 			
-			stackSlice.setMaximumValue(inputImagePlus.getStackSize());	
+			stackSlice.setMaximumValue(inputImagePlus.getStackSize());
 			
 		} else {
 			
 			stackSlice.setMaximumValue(1);
+		}
+		
+		
+		StackStatistics stackStatistics = new StackStatistics(inputImagePlus);
+		if (inputImagePlus.getRoi() != null) {
+			stackStatistics = new StackStatistics(inputImagePlus.duplicate());
+		} else {
+			stackStatistics = new StackStatistics(inputImagePlus);
+		}
+		System.out.println(stackStatistics);
+		
+		double[] tempHistogram = stackStatistics.histogram();
+		
+		System.out.println(tempHistogram);
+		
+		stackHistogram = new int[tempHistogram.length];
+		
+		for (int i = 0; i < tempHistogram.length; i++) {
+			stackHistogram[i] = (int) tempHistogram[i];
 		}
 	}
 	
@@ -200,7 +221,11 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		ClearCLBuffer filteredImage = bvvtl.filterImage(input_image, filterMethod, filterRadius);
 		ClearCLBuffer backgroundSubtractedImage = bvvtl.backgroundSubtraction(filteredImage, backgroundSubtractionMethod, backgroundRadius);
 		filteredImage.close();
-		ClearCLBuffer thresholdedImage = bvvtl.thresholdImage(backgroundSubtractedImage, thresholdMethod);
+				
+		int thresholdValue = bvvtl.getThresholdValue(thresholdMethod, stackHistogram);
+		
+		ClearCLBuffer thresholdedImage = bvvtl.thresholdImage(backgroundSubtractedImage, thresholdValue);
+				
 		backgroundSubtractedImage.close();
 		
 		ClearCLBuffer seedImage = bvvtl.getCurrentCLIJ2Instance().create(input_image);

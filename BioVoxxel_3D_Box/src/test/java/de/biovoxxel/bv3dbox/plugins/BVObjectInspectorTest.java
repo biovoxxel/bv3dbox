@@ -21,7 +21,7 @@ class BVObjectInspectorTest {
 	
 	@BeforeEach
 	void setup() {
-		BVObjectInspector bvoi = new BVObjectInspector(image1, image2);
+		BV_ObjectInspector bvoi = new BV_ObjectInspector(image1, image2);
 		bvoi.inspect();
 	}
 	

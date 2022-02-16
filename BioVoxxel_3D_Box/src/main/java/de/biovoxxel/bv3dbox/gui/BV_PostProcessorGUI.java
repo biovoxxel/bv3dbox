@@ -71,7 +71,8 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 	private String outputImageName;
 	
 	public void run() {
-			
+		
+		outputImagePlus.setTitle(WindowManager.getUniqueName(outputImagePlus.getTitle()));
 		bvpp.getInputBuffer().close();
 		CLIJ2 clij2 = bvpp.getCLIJ2Instance();
 		clij2.clear();
@@ -114,7 +115,7 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 			outputImagePlus = new ImagePlus();
 		}
 		outputImagePlus.setImage(tempImagePlus);
-		outputImagePlus.setTitle(WindowManager.getUniqueName("BVPP_" + inputImagePlus.getTitle()));
+		outputImagePlus.setTitle("BVPP_" + inputImagePlus.getTitle());
 		outputImagePlus.getProcessor().resetMinAndMax();
 		outputImagePlus.show();
 	}

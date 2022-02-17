@@ -458,6 +458,8 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		ClearCLBuffer output_image = clij2.create(seed_image.getDimensions(), NativeTypeEnum.Float);
 		clij2.maskedVoronoiLabeling(masked_spots, thresholded_image, output_image);
 		
+		masked_spots.close();
+		
 		return output_image;
 	}
 

@@ -108,8 +108,14 @@ Parameter meaning and usage:
 * `Stack slice`: allows to navigate through stack slices in 3D stacks
 * `Apply on complete image`: In case the procedure is tested in a user created ROI/selection it will finally be applied to the complete image if this option is active. For very big 3D images it is strongly recommended to first test on smaller subregions to avoid running out of graphics card memory and long processing times.
 
+3D Example:
 
-This tool works in 2D as well as 3D images.
+![Original-small](https://user-images.githubusercontent.com/10721817/154435398-b3a57ca1-6a88-499a-86d9-7c3d7a9d97de.gif)   ![Extracted-small](https://user-images.githubusercontent.com/10721817/154435426-957f4c4c-50ca-405d-a876-17d0a7fed78b.gif)
+
+
+
+
+
 
 ---
 

@@ -2,8 +2,18 @@ package de.biovoxxel.bv3dbox.plugins;
 
 import javax.swing.JOptionPane;
 
+import org.scijava.log.LogLevel;
+import org.scijava.log.LogService;
+import org.scijava.log.StderrLogService;
+import org.scijava.prefs.DefaultPrefService;
+import org.scijava.prefs.PrefService;
+
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxSettings;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
 import ij.WindowManager;
+import ij.process.ImageConverter;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
@@ -44,12 +54,15 @@ import net.haesleinhuepf.clij2.CLIJ2;
 
 public class BV_FlatFieldCorrection {
 
+	PrefService prefs = new DefaultPrefService();
+	private Boolean showDebugImages = prefs.getBoolean(BV3DBoxSettings.class, "bv_3d_box_settings_display_debug_images", false);
+
+	LogService log = new StderrLogService();
+	
 	private CLIJ2 clij2;
 	
 	private ImagePlus originalImagePlus = null;
-	private ImagePlus flatFieldImagePlus = null;
-	private ImagePlus darkFieldImagePlus = null;
-	
+		
 	private ClearCLBuffer original_image = null;
 	private ClearCLBuffer flat_field_image = null;
 	private ClearCLBuffer dark_field_image = null;
@@ -59,6 +72,9 @@ public class BV_FlatFieldCorrection {
 	private final int DEPTH = 2;
 	
 	public BV_FlatFieldCorrection() {
+		
+		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO));
+		
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
 	}
@@ -67,25 +83,46 @@ public class BV_FlatFieldCorrection {
 	
 	public void setImages(ImagePlus originalImagePlus, ImagePlus flatFieldImagePlus, ImagePlus darkFieldImagePlus) {
 		
+		log.debug("originalImagePlus = " + originalImagePlus);
+		log.debug("flatFieldImagePlus = " + flatFieldImagePlus);
+		log.debug("darkFieldImagePlus = " + darkFieldImagePlus);
+		
+		
 		this.originalImagePlus = originalImagePlus;
-		this.flatFieldImagePlus = flatFieldImagePlus;
-		this.darkFieldImagePlus = darkFieldImagePlus;
 		
-		long[] originalDimensions;
-		long[] flatFieldDimensions;
-		long[] darkFieldDimensions;
-		
+		long[] originalDimensions = null;
+		long[] flatFieldDimensions = null;
+		long[] darkFieldDimensions = null;
 		
 				
 		if (originalImagePlus == null) {
+			
 			JOptionPane.showMessageDialog(null, "The original image to be corrected is missing", "Image missing", JOptionPane.ERROR_MESSAGE);
 			return;
+			
 		} else {
 			
-			originalDimensions = new long[]{(long)originalImagePlus.getWidth(), (long)originalImagePlus.getHeight(), (long)originalImagePlus.getStackSize()};
+			if (originalImagePlus.getBitDepth() == 24 && originalImagePlus.isStack()) {
+				
+				nonSupportedFormat(originalImagePlus);
+				
+			} else if (originalImagePlus.getBitDepth() == 24 && !originalImagePlus.isStack()) {
+				
+				ImagePlus originalBrightnessImagePlus = getBrightnessChannel(originalImagePlus);
+				
+				originalDimensions = new long[]{(long)originalBrightnessImagePlus.getWidth(), (long)originalBrightnessImagePlus.getHeight(), (long)originalBrightnessImagePlus.getStackSize()};
+				
+				original_image = clij2.create(originalDimensions, NativeTypeEnum.Float);
+				original_image = clij2.push(originalBrightnessImagePlus);
+				
+			} else {
+				
+				originalDimensions = new long[]{(long)originalImagePlus.getWidth(), (long)originalImagePlus.getHeight(), (long)originalImagePlus.getStackSize()};
+				
+				original_image = clij2.create(originalDimensions, NativeTypeEnum.Float);
+				original_image = clij2.push(originalImagePlus);
 			
-			original_image = clij2.create(originalDimensions, NativeTypeEnum.Float);
-			original_image = clij2.push(originalImagePlus);
+			}
 		}
 		
 		
@@ -93,43 +130,98 @@ public class BV_FlatFieldCorrection {
 			JOptionPane.showMessageDialog(null, "The flat field image is missing", "Image missing", JOptionPane.ERROR_MESSAGE);
 			return;
 		} else {
-			flatFieldDimensions = new long[]{(long)flatFieldImagePlus.getWidth(), (long)flatFieldImagePlus.getHeight(), (long)flatFieldImagePlus.getStackSize()};
 			
-			flat_field_image = clij2.create(originalDimensions, NativeTypeEnum.Float);
-			
-			if (originalDimensions[DEPTH] > 1 && flatFieldDimensions[DEPTH] == 1) {
+			if (flatFieldImagePlus.getBitDepth() == 24 && flatFieldImagePlus.isStack()) {
 				
-				ClearCLBuffer temp_flat_field = clij2.push(flatFieldImagePlus);
-
-				clij2.imageToStack(temp_flat_field, flat_field_image, originalDimensions[DEPTH]);
+				nonSupportedFormat(flatFieldImagePlus);
+				
+			} else if (flatFieldImagePlus.getBitDepth() == 24 && !flatFieldImagePlus.isStack()) {
+				
+				ImagePlus flatFieldBrightnessImagePlus = getBrightnessChannel(flatFieldImagePlus);
+				
+				flatFieldDimensions = new long[]{(long)flatFieldBrightnessImagePlus.getWidth(), (long)flatFieldBrightnessImagePlus.getHeight(), (long)flatFieldBrightnessImagePlus.getStackSize()};
+				
+				flat_field_image = clij2.create(flatFieldDimensions, NativeTypeEnum.Float);
+				flat_field_image = clij2.push(flatFieldBrightnessImagePlus);
 				
 			} else {
-				flat_field_image = clij2.push(flatFieldImagePlus);				
+				
+				flatFieldDimensions = new long[]{(long)flatFieldImagePlus.getWidth(), (long)flatFieldImagePlus.getHeight(), (long)flatFieldImagePlus.getStackSize()};
+				
+				flat_field_image = clij2.create(flatFieldDimensions, NativeTypeEnum.Float);
+				
+				if (originalDimensions[DEPTH] > 1 && flatFieldDimensions[DEPTH] == 1) {
+					
+					ClearCLBuffer temp_flat_field = clij2.push(flatFieldImagePlus);
+					
+					clij2.imageToStack(temp_flat_field, flat_field_image, originalDimensions[DEPTH]);
+					
+				} else {
+					flat_field_image = clij2.push(flatFieldImagePlus);				
+				}
+				
 			}
-			
-			
 		}
 		
 
 	
 		if (darkFieldImagePlus != null) {
-			darkFieldDimensions = new long[]{(long)darkFieldImagePlus.getWidth(), (long)darkFieldImagePlus.getHeight(), (long)darkFieldImagePlus.getStackSize()};
 			
-			dark_field_image = clij2.create(originalDimensions, NativeTypeEnum.Float);
-			
-			if (originalDimensions[DEPTH] > 1 && darkFieldDimensions[DEPTH] == 1) {
+			if (darkFieldImagePlus.getBitDepth() == 24 && darkFieldImagePlus.isStack()) {
 				
-				ClearCLBuffer temp_dark_field = clij2.push(darkFieldImagePlus);
-
-				clij2.imageToStack(temp_dark_field, dark_field_image, originalDimensions[DEPTH]);
+				nonSupportedFormat(darkFieldImagePlus);
+				
+			} else if (darkFieldImagePlus.getBitDepth() == 24 && !darkFieldImagePlus.isStack()) {
+				
+				ImagePlus darkFieldBrightnessImagePlus = getBrightnessChannel(darkFieldImagePlus);
+				
+				darkFieldDimensions = new long[]{(long)darkFieldBrightnessImagePlus.getWidth(), (long)darkFieldBrightnessImagePlus.getHeight(), (long)darkFieldBrightnessImagePlus.getStackSize()};
+				
+				dark_field_image = clij2.create(darkFieldDimensions, NativeTypeEnum.Float);
+				dark_field_image = clij2.push(darkFieldBrightnessImagePlus);
 				
 			} else {
-				dark_field_image = clij2.push(darkFieldImagePlus);				
+				
+				darkFieldDimensions = new long[]{(long)darkFieldImagePlus.getWidth(), (long)darkFieldImagePlus.getHeight(), (long)darkFieldImagePlus.getStackSize()};
+				
+				dark_field_image = clij2.create(originalDimensions, NativeTypeEnum.Float);
+				
+				if (originalDimensions[DEPTH] > 1 && darkFieldDimensions[DEPTH] == 1) {
+					
+					ClearCLBuffer temp_dark_field = clij2.push(darkFieldImagePlus);
+					
+					clij2.imageToStack(temp_dark_field, dark_field_image, originalDimensions[DEPTH]);
+					
+				} else {
+					dark_field_image = clij2.push(darkFieldImagePlus);				
+				}	
 			}
-		}
-		
-		
+		}	
 	}
+
+
+
+	private void nonSupportedFormat(ImagePlus image) {
+		log.debug(image.getTitle() + " is a non supported image format.");
+		JOptionPane.showMessageDialog(null, image.getTitle() + " is an RGB color image stack", "Not supported format", JOptionPane.ERROR_MESSAGE);
+		return;
+	}
+
+
+
+	private ImagePlus getBrightnessChannel(ImagePlus image) {
+		
+		ImagePlus duplicateImage = image.duplicate();
+		ImageConverter ic = new ImageConverter(duplicateImage);
+		ic.convertToHSB32();
+		duplicateImage.setSlice(3);
+		ImagePlus lightnessImagePlus = duplicateImage.crop("slice");
+		duplicateImage.changes = false;
+		duplicateImage.close();
+		return lightnessImagePlus;
+	}
+	
+	
 	
 	public void flatFieldCorrection() {
 		
@@ -159,13 +251,41 @@ public class BV_FlatFieldCorrection {
 			ClearCLBuffer divided_image = clij2.create(original_image.getDimensions(), NativeTypeEnum.Float);
 			clij2.divideImages(original_image, flat_field_image, divided_image);
 			
-			double meanOfFlatField = clij2.getMeanOfAllPixels(flat_field_image);		
+			double meanOfFlatField = clij2.getMeanOfAllPixels(flat_field_image);
+			log.debug("meanOfFlatField = " + meanOfFlatField);
 			
 			clij2.multiplyImageAndScalar(divided_image, corrected_image, meanOfFlatField);
 			divided_image.close();
 		}
 		
-		ImagePlus correctedImagePlus = clij2.pull(corrected_image);
+		
+		ImagePlus correctedImagePlus;
+		
+		if (originalImagePlus.getBitDepth() == 24 && !originalImagePlus.isStack()) {
+			
+			ImagePlus correctedLightnessImagePlus = clij2.pull(corrected_image);
+			
+			if (showDebugImages) {
+				
+				BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, corrected_image, false, LutNames.GRAY);
+				
+			}
+			
+			correctedImagePlus = originalImagePlus.duplicate();
+			ImageConverter ic = new ImageConverter(correctedImagePlus);
+			ic.convertToHSB32();
+			
+			correctedImagePlus.getStack().setProcessor(correctedLightnessImagePlus.getProcessor(), 3);
+			
+			ic.convertHSB32ToRGB();
+			
+		} else {
+			
+			correctedImagePlus = clij2.pull(corrected_image);
+					
+		}
+		corrected_image.close();
+		
 		correctedImagePlus.setTitle(WindowManager.getUniqueName("FFCorr_" + originalImagePlus.getTitle()));
 		correctedImagePlus.getProcessor().resetMinAndMax();
 		correctedImagePlus.show();

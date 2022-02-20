@@ -55,8 +55,11 @@ public class BV_NeighborAnalysisGUI implements Command {
 	@Parameter(label = "Method", choices = {"Objects", "Distance" })
 	String neighborDetectionMethod = "Objects";
 	
+	@Parameter(label = "Object size range")
+	String sizeRange = "0-infinity";
+	
 	@Parameter(label = "Distance range")
-	String distanceRange = "1-Infinity";
+	String distanceRange = "1-infinity";
 	
 	@Parameter(label = "Exclude edges from visualization")
 	Boolean excudeEdgeObjectsFromVisualization = false;
@@ -65,7 +68,7 @@ public class BV_NeighborAnalysisGUI implements Command {
 	Boolean plotNeighborCount = false;
 	
 	@Parameter(label = "Plot neighbor distribution")
-	Boolean plotNeighborDistribution = false;
+	Boolean plotNeighborDistribution = true;
 	
 	
 	
@@ -73,7 +76,7 @@ public class BV_NeighborAnalysisGUI implements Command {
 	public void run() {
 		BV_NeighborAnalysis neighborAnalysis = new BV_NeighborAnalysis(inputImagePlus);
 				
-		ClearCLBuffer neighbor_image = neighborAnalysis.getNeighborCountMap(neighborAnalysis.getConnectedComponentInput(), neighborDetectionMethod.toLowerCase(), distanceRange, excudeEdgeObjectsFromVisualization);
+		ClearCLBuffer neighbor_image = neighborAnalysis.getNeighborCountMap(neighborAnalysis.getConnectedComponentInput(), neighborDetectionMethod.toLowerCase(), sizeRange, distanceRange, excudeEdgeObjectsFromVisualization);
 		
 		ImagePlus neighborCountMapImp = BV3DBoxUtilities.pullImageFromGPU(neighborAnalysis.getCurrentCLIJ2Instance(), neighbor_image, false, LutNames.GEEN_FIRE_BLUE_LUT);
 		neighborCountMapImp.setTitle(WindowManager.getUniqueName("NeighborCount_" + inputImagePlus.getTitle()));

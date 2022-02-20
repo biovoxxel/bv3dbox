@@ -147,12 +147,9 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		} else {
 			stackStatistics = new StackStatistics(inputImagePlus);
 		}
-		System.out.println(stackStatistics);
-		
+				
 		double[] tempHistogram = stackStatistics.histogram();
-		
-		System.out.println(tempHistogram);
-		
+			
 		stackHistogram = new int[tempHistogram.length];
 		
 		for (int i = 0; i < tempHistogram.length; i++) {

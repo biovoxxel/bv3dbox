@@ -103,28 +103,23 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 		
 		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
 		
-		if (inputImagePlus.getProcessor().isBinary()) {
+		labelSplitter = new BV_LabelSplitter(inputImagePlus);
+		
+		outputImageName = WindowManager.getUniqueName("Split_" + inputImagePlus.getTitle());
+		System.out.println(outputImageName);
+		
+		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);
+		
+		if(inputImagePlus.isStack()) {
 			
-			labelSplitter = new BV_LabelSplitter(inputImagePlus);
-			
-			outputImageName = WindowManager.getUniqueName("Split_" + inputImagePlus.getTitle());
-			System.out.println(outputImageName);
-			
-			final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);
-			
-			if(inputImagePlus.isStack()) {
-				
-				stackSlice.setMaximumValue(inputImagePlus.getStackSize());	
-				
-			} else {
-				
-				stackSlice.setMaximumValue(1);
-				stackSlice.setValue(this, 1);
-			}
+			stackSlice.setMaximumValue(inputImagePlus.getStackSize());	
 			
 		} else {
-			cancel("The input image needs to be of type binary");
+			
+			stackSlice.setMaximumValue(1);
+			stackSlice.setValue(this, 1);
 		}
+			
 	}
 	
 	

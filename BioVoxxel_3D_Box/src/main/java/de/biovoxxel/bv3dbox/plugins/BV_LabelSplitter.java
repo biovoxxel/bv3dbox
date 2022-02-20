@@ -3,8 +3,6 @@
  */
 package de.biovoxxel.bv3dbox.plugins;
 
-import javax.swing.JOptionPane;
-
 import org.joml.Math;
 
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
@@ -63,20 +61,14 @@ public class BV_LabelSplitter {
 	 * Separates segmented labels 
 	 */
 	public BV_LabelSplitter(ImagePlus inputImagePlus) {
-		if (inputImagePlus.getProcessor().isBinary()) {
-			
-			clij2 = CLIJ2.getInstance();
-			clij2.clear();
-			
-			input_image = clij2.push(inputImagePlus);
-			
-			voxelRatios = BV3DBoxUtilities.getVoxelRelations(inputImagePlus);
+
+		clij2 = CLIJ2.getInstance();
+		clij2.clear();
 		
-		} else {
-			
-			JOptionPane.showMessageDialog(null, "The input image needs to be of type binary", "Wrong image type", 0);
-			return;
-		}
+		input_image = clij2.push(inputImagePlus);
+		
+		voxelRatios = BV3DBoxUtilities.getVoxelRelations(inputImagePlus);
+		
 	}
 
 	
@@ -85,7 +77,7 @@ public class BV_LabelSplitter {
 		ClearCLBuffer seedImage = clij2.create(input_image);
 		
 		ClearCLBuffer thresholdedImage = clij2.create(input_image);
-		clij2.threshold(input_image, thresholdedImage, 128);
+		clij2.threshold(input_image, thresholdedImage, 1);
 		
 		if (separationMethod.equals("Maxima")) {
 			seedImage = detectMaxima(input_image, spotSigma, maximaRadius);		

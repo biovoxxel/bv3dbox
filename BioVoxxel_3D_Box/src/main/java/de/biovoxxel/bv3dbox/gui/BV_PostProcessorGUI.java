@@ -67,10 +67,15 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 	
 	BV_PostProcessor bvpp;
 
-	private ImagePlus outputImagePlus;
-	private String outputImageName;
+	private ImagePlus outputImagePlus = null;
+	private String outputImageName = null;
 	
 	public void run() {
+		
+		if (WindowManager.getImage(outputImageName) == null) {
+			setupImage();
+			processImage();
+		}
 		
 		outputImagePlus.setTitle(WindowManager.getUniqueName(outputImagePlus.getTitle()));
 		bvpp.getInputBuffer().close();
@@ -80,7 +85,7 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 	}
 
 	
-	@SuppressWarnings("unused")
+	
 	private void setupImage() {
 		
 		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");

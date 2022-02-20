@@ -113,10 +113,6 @@ Parameter meaning and usage:
 ![Original-small](https://user-images.githubusercontent.com/10721817/154435398-b3a57ca1-6a88-499a-86d9-7c3d7a9d97de.gif)   ![Extracted-small](https://user-images.githubusercontent.com/10721817/154435426-957f4c4c-50ca-405d-a876-17d0a7fed78b.gif)
 
 
-
-
-
-
 ---
 
 ### Object Inspector
@@ -150,7 +146,7 @@ This tool is the new version of the [_Binary Feature Extractor_](https://imagej.
 ---
 
 ### Label Splitter
-The label splitter is the equivalent of a watershedding function for binary images. It will take a binary image as input and separate objects according to the following methods. The output image will be displayed as consecutive intensity labels (intensity = identifier).
+The label splitter is the equivalent of a watershedding function for binary images or images containing labeld objects already. It will separate objects according to the following methods. The output image will be displayed as consecutive intensity labels (intensity = identifier).
 This is the last part of the [Voronoi Threshold Labeler](Voronoi Threshold Labeler) processing.
 
 Methods:
@@ -185,6 +181,7 @@ Parameters:
 * `Method`: Neighbors are determined based on...
  * `Objects`: ...the voronoi drawn on basis of the original object outline
  * `Distance`: ...the distance range given calculated from the centroid of each object to the other centroids. Therefore, object shape is neglected. Only recommended for small and isotropic objects
+* `Object size range`: excludes objects with an area/volume outside the given range before the analysis
 * `Distance range`: centroids not reachable within the given distance range are not considered as neighbors.
 * `Exclude edges from visualization`: objects which directly touch the border or whos voronoi is touching imge edges are taken into account as neighbors of others but are finally not displayed since their own neighbor count is incorrect due to missing neighbors not part of the field of view. If the complete sample is imaged this option should not be used.
 * `Plot neighbour counts`: for each input label the number of neighbors will be plotted. Those are also indicated in the neighbor count map image.

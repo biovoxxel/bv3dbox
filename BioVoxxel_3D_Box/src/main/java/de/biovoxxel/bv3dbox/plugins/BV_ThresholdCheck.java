@@ -23,6 +23,7 @@ import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.WindowManager;
 import ij.process.AutoThresholder;
 import ij.process.ImageProcessor;
 import ij.process.LUT;
@@ -79,7 +80,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	LogService log;
 	
 	
-	@Parameter
+	@Parameter(label = "Input image", initializer = "imageSetup")
 	ImagePlus inputImagePlus;
 	
 	@Parameter(label = "Threshold library", choices = {"CLIJ2", "IJ"}, callback = "changeThresholdLibrary")
@@ -91,7 +92,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	@Parameter(label = "Contrast saturation (%)", min = "0.00", max = "100.00", stepSize = "0.05", style = NumberWidget.SLIDER_STYLE, callback = "thresholdCheck", persist = false, required = false)
 	Double saturation = 0.00;
 
-	@Parameter(label = "Stack slice", initializer = "imageSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
+	@Parameter(label = "Stack slice", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
 	Integer stackSlice;
 	
 	@Parameter(label = "Binary output style", choices = {"0/255", "Labels", "0/1"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE)
@@ -106,7 +107,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	byte[] green = new byte[bins];
 	byte[] blue = new byte[bins];
 
-	public double thresholdValue = 0.0;
+	//public double thresholdValue = 0.0;
 	private LUT originalLut;
 	private DecimalFormat df = new DecimalFormat("0.00000");
 		
@@ -115,11 +116,23 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	 */
 	
 	public void run() {
-		applyThreshold();
+		
+		double thresholdValue = getThreshold();
+		applyThreshold(thresholdValue);
 		
 	}
 	
+	
 	public void thresholdCheck() {
+		double thresholdValue = getThreshold();
+		
+		applyThresholdLUT(thresholdValue);
+		
+	}
+	
+	public double getThreshold() {
+		double thresholdValue = 0.0;
+		
 		if (thresholdLibrary.equals("CLIJ2")) {
 			
 			thresholdValue = clij2.getAutomaticThreshold(inputImage, thresholdMethod);	
@@ -129,19 +142,30 @@ public class BV_ThresholdCheck extends DynamicCommand {
 			AutoThresholder autoThresholder = new AutoThresholder();
 			int[] histogram = inputImagePlus.getProcessor().getHistogram(256);
 			thresholdValue = (double) autoThresholder.getThreshold(thresholdMethod, histogram);
-			
+
 		}
+		
+		log.debug(thresholdMethod + " with value = " + thresholdValue + " displayed");
+		return thresholdValue;
 			
-		LUT thresholdLUT = createLUT();
+	}
+
+
+	public void applyThresholdLUT(double thresholdValue) {
+		
+		LUT thresholdLUT = createLUT(thresholdValue);
 		
 		inputImagePlus.setLut(thresholdLUT);
 		
-		log.debug(thresholdMethod + " with value = " + thresholdValue + " displayed");
-	}
-	
-	public LUT createLUT() {
 		
-		double saturatedIntensity = saturation > 0.00 ? getSaturatedMaxIntentsity(saturation) : 255.0;
+	}
+
+	
+	
+	
+	public LUT createLUT(double thresholdValue) {
+		
+		double saturatedIntensity = saturation > 0.00 ? getSaturatedMaxIntentsity(saturation, thresholdValue) : 255.0;
 		
 		for (int v = 0; v < bins; v++) {
 			
@@ -162,23 +186,32 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	}
 
 	
-	public void applyThreshold() {
+	public void applyThreshold(double thresholdValue) {
 		
 		ClearCLBuffer outputImage = clij2.create(inputImage);
 		clij2.threshold(inputImage, outputImage, thresholdValue);
 		
+		String outputImageName = WindowManager.getUniqueName(thresholdMethod + "_" + inputImagePlus.getTitle());
+		
 		if (outputImageStyle.equals("0/255")) {
-			ImagePlus outputImagePlus = clij2.pullBinary(outputImage);
-			outputImagePlus.setTitle(thresholdMethod + "_" + inputImagePlus.getTitle());
-			outputImagePlus.show();
-		} else if (outputImageStyle.equals("0/1")) {
-			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, outputImage, true, LutNames.GRAY);
-		} else {
-			ClearCLBuffer labelOutputImage = clij2.create(outputImage.getDimensions(), NativeTypeEnum.Float);
 			
+			ImagePlus outputImagePlus = clij2.pullBinary(outputImage);
+			outputImagePlus.setTitle(outputImageName);
+			outputImagePlus.show();
+			
+		} else if (outputImageStyle.equals("0/1")) {
+			
+			outputImage.setName(outputImageName);
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, outputImage, true, LutNames.GRAY);
+			
+		} else {
+			
+			ClearCLBuffer labelOutputImage = clij2.create(outputImage.getDimensions(), NativeTypeEnum.Float);
 			clij2.connectedComponentsLabelingBox(outputImage, labelOutputImage);
+			labelOutputImage.setName(outputImageName);
 			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, labelOutputImage, true, LutNames.GLASBEY_LUT);
 			labelOutputImage.close();
+			
 		}
 		
 		inputImagePlus.setLut(originalLut);
@@ -247,13 +280,13 @@ public class BV_ThresholdCheck extends DynamicCommand {
 			stackSlice.setValue(this, 1);
 		}
 	
-		thresholdCheck();
+		//thresholdCheck();
 
 	}
 
 
 	
-	public double getSaturatedMaxIntentsity(double percentSaturation) {
+	public double getSaturatedMaxIntentsity(double percentSaturation, double thresholdValue) {
 		
 		percentSaturation = percentSaturation > 100 ? 100 : percentSaturation;
 		

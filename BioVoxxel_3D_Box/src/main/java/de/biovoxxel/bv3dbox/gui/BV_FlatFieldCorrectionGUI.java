@@ -13,7 +13,6 @@ import de.biovoxxel.bv3dbox.plugins.BV_FlatFieldCorrection;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import ij.ImagePlus;
 import ij.WindowManager;
-import ij.process.ColorSpaceConverter;
 import net.imagej.updater.UpdateService;
 
 /*

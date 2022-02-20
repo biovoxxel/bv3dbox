@@ -67,8 +67,8 @@ public class BV_FlatFieldCorrection {
 	private ClearCLBuffer flat_field_image = null;
 	private ClearCLBuffer dark_field_image = null;
 	
-	private final int WIDTH = 0;
-	private final int HEIGHT = 1;
+	//private final int WIDTH = 0;
+	//private final int HEIGHT = 1;
 	private final int DEPTH = 2;
 	
 	public BV_FlatFieldCorrection() {

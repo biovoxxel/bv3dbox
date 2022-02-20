@@ -107,18 +107,23 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	
 	
 	public void run() {
-				
+						
 		if (inputImagePlus.getRoi() != null && applyOnCompleteImage) {
+			
 			bvvtl.getOutputImage().close();
 			inputImagePlus.killRoi();
 			setupImage();
 			processImage();
-			bvvtl.getInputImageAsClearClBuffer().close();
-			bvvtl.getCurrentCLIJ2Instance().close();
+			
 		} else {
-			bvvtl.getInputImageAsClearClBuffer().close();
-			bvvtl.getCurrentCLIJ2Instance().close();
+			
+			setupImage();
+			processImage();
+			
 		}
+		
+		bvvtl.getInputImageAsClearClBuffer().close();
+		bvvtl.getCurrentCLIJ2Instance().close();
 	}
 	
 	

@@ -76,7 +76,9 @@ public class BV_FilterCheck extends DynamicCommand {
 	ClearCLBuffer inputImage;
 	
 	private ImagePlus outputImagePlus;
+	@SuppressWarnings("unused")
 	private double x_y_ratio;
+	@SuppressWarnings("unused")
 	private double z_x_ratio;
 	
 	

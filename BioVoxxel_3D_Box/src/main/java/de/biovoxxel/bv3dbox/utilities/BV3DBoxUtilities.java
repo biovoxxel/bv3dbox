@@ -52,8 +52,7 @@ import net.imagej.updater.UpdateSite;
 public class BV3DBoxUtilities {
 	
 	private static LogService log = new StderrLogService();
-	
-	
+		
 	public static void main(String[] args) {
 		System.out.println(BV3DBoxUtilities.class.getClassLoader().getResourceAsStream("/plugins.config"));
 		
@@ -132,13 +131,18 @@ public class BV3DBoxUtilities {
 		imagePlusToBePulled.setTitle(imageToShow.getName());
 		
 		
-		LUT outputLut;
+		LUT outputLut = null;
 		if (lutName.equals(LutNames.GRAY)) {
+			
 			outputLut = createGrayLUT();
 		} else {
+			
+		
 			outputLut = LutLoader.openLut(IJ.getDirectory("luts") + lutName.lutName + ".lut");			
 		}
-		imagePlusToBePulled.setLut(outputLut);
+		
+		if (outputLut != null) { imagePlusToBePulled.setLut(outputLut); }
+		
 
 		if (autoContrast) {
 			double max_int = clij2.maximumOfAllPixels(imageToShow);
@@ -162,7 +166,8 @@ public class BV3DBoxUtilities {
 		} else {
 			outputLut = LutLoader.openLut(IJ.getDirectory("luts") + lutName.lutName + ".lut");		
 		}
-		imagePlusToBePulled.setLut(outputLut);
+		
+		if (outputLut != null) { imagePlusToBePulled.setLut(outputLut); }
 
 		if (autoContrast) {
 			double max_int = clij2.maximumOfAllPixels(imageToShow);

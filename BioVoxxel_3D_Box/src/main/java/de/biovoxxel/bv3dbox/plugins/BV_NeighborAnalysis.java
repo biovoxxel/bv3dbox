@@ -113,14 +113,16 @@ public class BV_NeighborAnalysis {
 		
 		if (!sizeRange.equalsIgnoreCase("0-infinity")) {
 			
-			log.debug("Running size excludion with range = " + sizeRange);
+			log.debug("Running size exclusion with range = " + sizeRange);
 			
 			ClearCLBuffer size_limited_label_image = clij2.create(input_image.getDimensions(), NativeTypeEnum.Float);
 			
 			clij2.copy(input_image, size_limited_label_image);
 			
-			double minSize = (double) BV3DBoxUtilities.getMinFromRange(distanceRange);
-			double maxSize = (double) BV3DBoxUtilities.getMaxFromRange(distanceRange);
+			double minSize = (double) BV3DBoxUtilities.getMinFromRange(sizeRange);
+			log.debug("minSize = " + minSize);
+			double maxSize = (double) BV3DBoxUtilities.getMaxFromRange(sizeRange);
+			log.debug("maxSize = " + maxSize);
 			
 			clij2.excludeLabelsOutsideSizeRange(size_limited_label_image, input_image, minSize, maxSize);
 			

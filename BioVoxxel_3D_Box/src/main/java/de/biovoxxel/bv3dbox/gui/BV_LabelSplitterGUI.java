@@ -75,10 +75,23 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 	Integer stackSlice;
 	
 	private BV_LabelSplitter labelSplitter;
-	private String outputImageName; 
+	private String outputImageName = null; 
 	
 	
 	public void run() {
+		
+		if (WindowManager.getImage(outputImageName) == null) {
+			setupImage();
+			ClearCLBuffer splitted_label_image = labelSplitter.splitLabels(separationMethod, spotSigma, maximaRadius);
+			
+			ImagePlus outputImagePlus = BV3DBoxUtilities.pullImageFromGPU(labelSplitter.getCurrentCLIJ2Instance(), splitted_label_image, false, LutNames.GLASBEY_LUT);
+			splitted_label_image.close();
+			
+			outputImagePlus.setTitle(outputImageName);
+			outputImagePlus.show();
+		}
+		
+		
 		if (labelSplitter != null) {
 			labelSplitter.getCurrentCLIJ2Instance().close();			
 		}

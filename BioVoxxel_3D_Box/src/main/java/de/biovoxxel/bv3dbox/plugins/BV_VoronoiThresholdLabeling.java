@@ -205,21 +205,7 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 	}
 	
 	
-	
-	public ClearCLBuffer getInputImageAsClearClBuffer() {
-		
-		return input_image;
-		
-	}
-	
-	
-	public ImagePlus getOutputImage() {
-		
-		return outputImagePlus;
-		
-	}
-	
-	
+
 	/**
 	 * Complete processing sequence with either the default input values or the given ones (via Constructor)
 	 */
@@ -501,6 +487,15 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 	
 	public String getOutputImageName() {
 		return outputImageName;
+	}
+	
+	public ClearCLBuffer getInputImageAsClearClBuffer() {
+		return input_image;	
+	}
+	
+	
+	public ImagePlus getOutputImage() {
+		return outputImagePlus;
 	}
 	
 	public CLIJ2 getCurrentCLIJ2Instance() {

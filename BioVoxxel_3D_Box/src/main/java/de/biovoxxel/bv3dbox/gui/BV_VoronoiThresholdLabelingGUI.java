@@ -117,8 +117,12 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			
 		} else {
 			
-			setupImage();
-			processImage();
+			if (bvvtl.getOutputImage() == null) {
+				setupImage();
+				processImage();				
+			} else {
+				//just keep the output image open without further action
+			}
 			
 		}
 		
@@ -129,7 +133,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	
 	private void setupImage() {
 		
-		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
+		//BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
 		
 		bvvtl.setupInputImage(inputImagePlus);
 		input_image = bvvtl.getInputImageAsClearClBuffer();

@@ -105,7 +105,7 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 		
 		labelSplitter = new BV_LabelSplitter(inputImagePlus);
 		
-		outputImageName = WindowManager.getUniqueName("Split_" + inputImagePlus.getTitle());
+		outputImageName = WindowManager.getUniqueName("BVLS_" + inputImagePlus.getTitle());
 		System.out.println(outputImageName);
 		
 		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);

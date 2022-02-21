@@ -117,22 +117,11 @@ public class BV_PostProcessor extends DynamicCommand {
 	
 		
 		switch (method) {
-			case "Median (sphere, max r=15)":
-				iteration = iteration > 15 ? 15 : iteration;
-				if (is3D) {
-					clij2.median3DSliceBySliceSphere(input_image, output_image, iteration, iteration);
-				} else {
-					clij2.median2DSphere(input_image, output_image, iteration, iteration);
-				}
+			case "Separate Labels":
+				
+				new BV_LabelSeparator().splitLabels(clij2, input_image, output_image);
 				break;
-			case "Median (box, max r=15)":
-				iteration = iteration > 15 ? 15 : iteration;
-				if (is3D) {
-					clij2.median3DSliceBySliceBox(input_image, output_image, iteration, iteration);
-				} else {
-					clij2.median2DBox(input_image, output_image, iteration, iteration);
-				}
-				break;
+				
 			case "Erode (sphere)":
 				if (is3D) {
 					clij2.minimum3DSphere(input_image, output_image, iteration, iteration, iteration);					
@@ -225,6 +214,24 @@ public class BV_PostProcessor extends DynamicCommand {
 				clij2.binaryFillHoles(input_image, output_image);
 				break;
 			
+			case "Median (sphere, max r=15)":
+				iteration = iteration > 15 ? 15 : iteration;
+				if (is3D) {
+					clij2.median3DSliceBySliceSphere(input_image, output_image, iteration, iteration);
+				} else {
+					clij2.median2DSphere(input_image, output_image, iteration, iteration);
+				}
+				break;
+				
+			case "Median (box, max r=15)":
+				iteration = iteration > 15 ? 15 : iteration;
+				if (is3D) {
+					clij2.median3DSliceBySliceBox(input_image, output_image, iteration, iteration);
+				} else {
+					clij2.median2DBox(input_image, output_image, iteration, iteration);
+				}
+				break;
+				
 			case "Variance (sphere)":
 				if (is3D) {
 					clij2.varianceSphere(input_image, output_image, iteration, iteration, iteration);
@@ -249,6 +256,18 @@ public class BV_PostProcessor extends DynamicCommand {
 		
 	}
 	
+	
+	
+//	public void splitLabels(ClearCLBuffer label_image, ClearCLBuffer splitted_label_image) {
+//		
+//		ClearCLBuffer edge_image = clij2.create(label_image);
+//		clij2.reduceLabelsToLabelEdges(label_image, edge_image);
+//		
+//		clij2.subtractImages(label_image, edge_image, splitted_label_image);
+//		edge_image.close();
+//	
+//	}
+//	
 	
 	public ImagePlus getImagePlus(ClearCLBuffer buffer) {
 		return clij2.pull(buffer);

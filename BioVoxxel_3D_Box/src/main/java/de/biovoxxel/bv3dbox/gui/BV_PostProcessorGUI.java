@@ -9,6 +9,7 @@ import org.scijava.widget.NumberWidget;
 
 import de.biovoxxel.bv3dbox.plugins.BV_PostProcessor;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
 import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
@@ -56,7 +57,7 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 	@Parameter(required = true, initializer = "setupImage")
 	ImagePlus inputImagePlus;
 	
-	@Parameter(label = "Processing method", choices = {"Median (sphere, max r=15)", "Median (box, max r=15)", "Erode (sphere)", "Erode (box)", "Dilate (sphere)", "Dilate (box)", "Open (sphere)", "Open (box)", "Close (sphere)", "Close (box)", "Fill holes (labels)", "Variance (sphere)", "Variance (box)"}, callback = "processImage")
+	@Parameter(label = "Processing method", choices = {"Erode (sphere)", "Erode (box)", "Dilate (sphere)", "Dilate (box)", "Open (sphere)", "Open (box)", "Close (sphere)", "Close (box)", "Fill holes (labels)", "Median (sphere, max r=15)", "Median (box, max r=15)", "Variance (sphere)", "Variance (box)"}, callback = "processImage")
 	String method = "Erode";
 	
 	@Parameter(label = "Iterations", min = "0", stepSize = "1", callback = "processImage")
@@ -88,7 +89,7 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 	
 	private void setupImage() {
 		
-		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
+		//BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
 		
 		bvpp = new BV_PostProcessor(inputImagePlus);
 		
@@ -111,7 +112,7 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 		
 		ClearCLBuffer outputBuffer = bvpp.postProcessor(method, iterations);
 		
-		ImagePlus tempImagePlus = bvpp.getImagePlus(outputBuffer);
+		ImagePlus tempImagePlus = BV3DBoxUtilities.pullImageFromGPU(bvpp.getCLIJ2Instance(), outputBuffer, true, LutNames.GLASBEY_LUT);
 		outputBuffer.close();
 		
 		outputImagePlus = WindowManager.getImage(outputImageName);

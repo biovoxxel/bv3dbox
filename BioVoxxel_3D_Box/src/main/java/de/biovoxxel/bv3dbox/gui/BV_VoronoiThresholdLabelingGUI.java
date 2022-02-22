@@ -77,10 +77,13 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(label = "Threshold method", initializer = "thresholdMethodList", callback = "processImage")
 	private String thresholdMethod = "Default";
 	
+	@Parameter(label = "Histogram usage", choices = {"full", "ignore black", "ignore white", "ignore both"}, callback = "processImage")
+	private String histogramUsage = "full";
+	
 	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded box", "Eroded sphere"}, callback = "processImage")
 	private String separationMethod = "Maxima";
 	
-	@Parameter(label = "Spot sigma", min = "0f", callback = "processImage")
+	@Parameter(label = "Spot sigma / Erosion", min = "0f", callback = "processImage")
 	private Float spotSigma;
 	
 	@Parameter(label = "Maxima detection radius", min = "0f", callback = "processImage")
@@ -133,7 +136,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	
 	private void setupImage() {
 		
-		//BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
 		
 		bvvtl.setupInputImage(inputImagePlus);
 		input_image = bvvtl.getInputImageAsClearClBuffer();
@@ -150,6 +153,11 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		}
 		
 		
+		stackHistogram = getHistogram();
+	}
+
+
+	public int[] getHistogram() {
 		StackStatistics stackStatistics = new StackStatistics(inputImagePlus);
 		if (inputImagePlus.getRoi() != null) {
 			stackStatistics = new StackStatistics(inputImagePlus.duplicate());
@@ -159,13 +167,40 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 				
 		double[] tempHistogram = stackStatistics.histogram();
 			
-		stackHistogram = new int[tempHistogram.length];
+		int[] finalHistogram = new int[tempHistogram.length];
 		
 		for (int i = 0; i < tempHistogram.length; i++) {
-			stackHistogram[i] = (int) tempHistogram[i];
+			finalHistogram[i] = (int) tempHistogram[i];
 		}
+		
+		return finalHistogram;
 	}
 	
+	
+//	public int[] getLimitedHistogram(int[] histogram, int min, int max) {
+//		
+//		int[] limitedHistogram = new int[histogram.length]; 
+//		
+//		min = (min < 0) ? 0 : min;
+//		min = (min > histogram.length-1) ? histogram.length-1 : min;
+//		
+//		max = (max < 0) ? 0 : max;
+//		max = (max > histogram.length-1) ? histogram.length-1 : max;
+//		
+//		for (int i = 0; i < histogram.length; i++) {
+//									
+//			if (i < min) {
+//				limitedHistogram[i] = 0; 
+//			} else if ((histogram.length - 1 - i) > max) {
+//				limitedHistogram[i] = 0; 
+//			} else {
+//				limitedHistogram[i] = histogram[i];
+//			}
+//		}
+//		
+//		return limitedHistogram;
+//	}
+
 	
 	
 	@SuppressWarnings("unused")
@@ -227,8 +262,30 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		ClearCLBuffer filteredImage = bvvtl.filterImage(input_image, filterMethod, filterRadius);
 		ClearCLBuffer backgroundSubtractedImage = bvvtl.backgroundSubtraction(filteredImage, backgroundSubtractionMethod, backgroundRadius);
 		filteredImage.close();
+		
+		
+		int[] finalHistogram = stackHistogram.clone();
+		System.out.println("initial stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
+		
+		switch(histogramUsage) {
+			
+			case "ignore black":
+				finalHistogram[0] = 0;
 				
-		int thresholdValue = bvvtl.getThresholdValue(thresholdMethod, stackHistogram);
+				break;
+				
+			case "ignore white":
+				finalHistogram[stackHistogram.length-1] = 0;
+				break;
+				
+			case "ignore both":
+				finalHistogram[0] = 0;
+				finalHistogram[stackHistogram.length-1] = 0;
+				break;
+		}
+		System.out.println("final stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
+				
+		int thresholdValue = bvvtl.getThresholdValue(thresholdMethod, finalHistogram);
 		
 		ClearCLBuffer thresholdedImage = bvvtl.thresholdImage(backgroundSubtractedImage, thresholdValue);
 				

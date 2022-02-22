@@ -211,7 +211,11 @@ public class BV_PostProcessor extends DynamicCommand {
 				break;
 				
 			case "Fill holes (labels)":
-				clij2.binaryFillHoles(input_image, output_image);
+				ClearCLBuffer filled_holes_image = clij2.create(input_image);
+				clij2.binaryFillHoles(input_image, filled_holes_image);
+				clij2.connectedComponentsLabelingDiamond(filled_holes_image, output_image);
+				filled_holes_image.close();
+				
 				break;
 			
 			case "Median (sphere, max r=15)":

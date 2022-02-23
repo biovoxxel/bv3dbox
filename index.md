@@ -199,6 +199,9 @@ Further separation methods are planned to be added, so stay tuned!
 
 The label separator takes a label image and places a separation in form of background pixels between touching labels. This can be considered the equivalent of the standard binary watershed function in ImageJ / Fiji. This can influence further post processing such as erosion or opening functions from the Post Processor.
 
+![image](https://user-images.githubusercontent.com/10721817/155353310-c66c9f86-cbe2-4c3a-9cfa-99a2a2a70c0d.png)
+
+
 ---
 
 ### Post Processor

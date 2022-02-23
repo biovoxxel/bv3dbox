@@ -13,44 +13,9 @@ Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Too
 ![image](https://user-images.githubusercontent.com/10721817/152758424-ec724aa7-7202-4047-a530-8420b87f38c9.png)
 
 
-## Functionalities
+# Functionalities
 
-### Threshold Check: 
-A helping tool to better identify suitable histogram-based automatic intensity thresholds, compare them qualitatively and quantitatively. This is based on the publication: [Qualitative and Quantitative Evaluation of Two New Histogram Limiting Binarization Algorithms](https://www.cscjournals.org/library/manuscriptinfo.php?mc=IJIP-829), Brocher J., IJIP (2014).
-
-The Threshold Check allows to compare all implemented [Auto Thresholds](https://imagej.net/plugins/auto-threshold) from ImageJ (by [Gabriel Landini](https://github.com/landinig)) and its counterparts from the CLIJ2 library (by [Robert Haase](https://github.com/haesleinhuepf)). It uses false color to indicate the following:
-
-* `blue`: non-extracted pixels which are also not part of the ground truth (_true negative_)
-* `cyan`: non-extracted pixels which are part of the ground truth (_false negative_)
-* `orange` to `red`: extracted pixels which are NOT overlapping with the ground truth (_false positive_)
-* `orange` to `yellow`: extracted pixels which are part of the ground truth (_true positive_)
-
-The ground truth is in this case NOT the perfect, desired outcome but rather the next best estimation. It will also contain unspecific objects (or generally pixels) if the underlying image is not pre-processed by image filtering and/or background subtraction. It just serves as the quickest and direct way of comparing the extraction to an approximation of an acceptable outcome!
-
-The following example image without preprocessing in which the segmentation result according to jaccard and dice indices are good but the segmentation would also contain a lot of noise still.
-
-![image](https://user-images.githubusercontent.com/10721817/152508569-d8537d3d-6152-47a7-bcde-062d2034cd9a.png)
-
-After image filtering using a recursive median filter with a radius = 2 and 30 iterations the indicated quality is slightly below 1 but the subjective outcome is better due to lower noise extraction. So, one should aim for high jaccard and dice values without ignoring the real (subjective) object recognition.
-
-![image](https://user-images.githubusercontent.com/10721817/152510105-bd53d30a-18da-416b-b593-07598fbdc2cc.png)
-
-
-The `Contrast saturation (%)` slider serves to highlight brighter image content and "add" it to the ground truth. Objects of interest should in the best case therefore appear completely in yellow. If parts are highlighted in `cyan` they are not recognized by the current threshold even though being of interest, while if they show up in `orange` or `red` they are picked up by the threshold but are rather undesired.
-
-In the ImageJ main window, the status bar shows the corresponding [Jaccard Index](https://en.wikipedia.org/wiki/Jaccard_index) and [Dice Coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) values for the current setup and comparison of approximated ground truth versus segmentation result are displayed. The closer to 1.0 they are the more more accurate the segmentation will be (in context of the approximated ground truth). The lower they are the lower the relative "segmentation quality".
-
-
-If the saturation is kept fixed a more objective and quantitative comparison of the performance of individual Auto Thresholds can be achieved. 
-
-![image](https://user-images.githubusercontent.com/10721817/152512052-fa834e26-6933-4d97-92c6-cd8e7e13574a.png)
-
-If the user finds a useful threshold the output can be set to either binary with the values 0/255 (ImageJ binary standard), binary 0/1 (CLIJ2 standard) or "Labels" which extracts the the objects filled with unique intensity values to be used as labeled connected components for further analysis (recommended setup).
-
-![image](https://user-images.githubusercontent.com/10721817/151660615-ea6ae986-f0b3-4c9b-b3b8-c9f30e6c09ce.png)
-
----
-
+## Filtering
 
 ### Flat Field Correction
 The flat field correction allows to correct for uneven illumination including a dark-field (dark current) image subtraction. The dark-field image can also be ommited if unavailable. If the original image which sould be corrected for uneven illumination is a stack, flat-field as well as dark-field images can also be provided as single images. Those will be adapted to the original stack slice number. Otherwise, if they are not single slices, dark-field and flat-field need to have the same dimensions as the image to be corrected. 
@@ -86,6 +51,45 @@ A recursive filter repetitively applies the same filter on the previously filter
 
 ---
 
+## Segmentation
+
+### Threshold Check: 
+A helping tool to better identify suitable histogram-based automatic intensity thresholds, compare them qualitatively and quantitatively. This is based on the publication: [Qualitative and Quantitative Evaluation of Two New Histogram Limiting Binarization Algorithms](https://www.cscjournals.org/library/manuscriptinfo.php?mc=IJIP-829), Brocher J., IJIP (2014).
+
+The Threshold Check allows to compare all implemented [Auto Thresholds](https://imagej.net/plugins/auto-threshold) from ImageJ (by [Gabriel Landini](https://github.com/landinig)) and its counterparts from the CLIJ2 library (by [Robert Haase](https://github.com/haesleinhuepf)). It uses false color to indicate the following:
+
+* `blue`: non-extracted pixels which are also not part of the ground truth (_true negative_)
+* `cyan`: non-extracted pixels which are part of the ground truth (_false negative_)
+* `orange` to `red`: extracted pixels which are NOT overlapping with the ground truth (_false positive_)
+* `orange` to `yellow`: extracted pixels which are part of the ground truth (_true positive_)
+
+The ground truth is in this case NOT the perfect, desired outcome but rather the next best estimation. It will also contain unspecific objects (or generally pixels) if the underlying image is not pre-processed by image filtering and/or background subtraction. It just serves as the quickest and direct way of comparing the extraction to an approximation of an acceptable outcome!
+
+The following example image which the segmentation result according to Jaccard and Dice indices in Fiji's main window are ok but indicate the slight over-segmentation (red pixels) with the chosen Threshold.
+
+![image](https://user-images.githubusercontent.com/10721817/155275761-c6ded9a8-5b1f-432c-9b17-ff77bc2f527e.png)
+
+The `Contrast saturation (%)` slider serves to highlight brighter image content and "add" it to the ground truth. Objects of interest should in the best case therefore appear completely in yellow. If parts are highlighted in `cyan` they are not recognized by the current threshold even though being of interest, while if they show up in `orange` or `red` they are picked up by the threshold but are rather undesired.
+
+The `Histogram usage` field allows to restrict the histogram during threshold calculation by ignoring black or white pixels or both. This can avoid that a big amount of saturated pixels contributes oversized to the final threshold. If "full" is chosen the original histogram is taken into account. The latter is the default setting.
+
+In the ImageJ main window, the status bar shows the corresponding [Jaccard Index](https://en.wikipedia.org/wiki/Jaccard_index) and [Dice Coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) values for the current setup and comparison of approximated ground truth versus segmentation result are displayed. The closer to 1.0 they are the more more accurate the segmentation will be (in context of the approximated ground truth). The lower they are the lower the relative "segmentation quality".
+
+If the `Contrast saturation`value is kept fixed a more objective and quantitative comparison of the performance of individual Auto Thresholds can be achieved. 
+
+![image](https://user-images.githubusercontent.com/10721817/152512052-fa834e26-6933-4d97-92c6-cd8e7e13574a.png)
+
+If the user finds a useful threshold the output can be set to either binary with the values 0/255 (ImageJ binary standard), binary 0/1 (CLIJ2 standard) or "Labels" which extracts the the objects filled with unique intensity values to be used as labeled connected components for further analysis (recommended setup).
+
+![image](https://user-images.githubusercontent.com/10721817/151660615-ea6ae986-f0b3-4c9b-b3b8-c9f30e6c09ce.png)
+
+Currently, stacks will automatically be considered as volume and thresholding is done on the stack histogram to achieve consistent results over the complete stack.
+
+Slice-by-slice thresholding might come up in a future release.
+
+---
+
+
 ### Voronoi Threshold Labeler
 The labeler is meant to be used as a image segmentation tool combining image pre-processing using a variety of convolition filters, background subtraction methods, auto thresholding and intensity maxima detection. The latter allows object separation similar to the a watershed algorithm, but will be only effective if _Labels_ is chosen as output. Dependent on the combination of pre-processing. background subtraction, threshold and maxima detection quite variable objects can be extracted from an image.
 
@@ -97,6 +101,7 @@ Parameter meaning and usage:
 * `Filter radius`: strength of filtering. Bigger radii homogenize more but increase processing time. _Hint: the median filter has a maximum radius of 15_
 * `Background subtraction`: Diverse options to reduce unspecific signal. _TopHat_ is comparable with ImageJ's Rolling Ball method (>Process >Subtract Background). 
 * `Background radius`: Strength of background homogenization. One can orient on a certain prinziple like, the bigger the objects, the bigger the radius needed.
+* `Histogram usage`: either the complete histogram can be handed to the thresholding algorithm or a limited one by ignoring black or white or both (black and white) pixels to achive better segmentation results.
 * `Threshold method`: Automatic intensity threshold to extract basic object areas after the upper pre-processing steps
 * `Separation method`: There are 3 different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are
   * `Maxima`: intensity maxima are determined on the original image in a square/box neighborhood defined by the `Maxima detection radius` after applying a gaussian blur on the original image in a neighborhood defined by the `Spot sigma`. The detected maxima are the seeds from which the objects are filled via a masked voronoi extension.
@@ -118,6 +123,8 @@ Parameter meaning and usage:
 
 
 ---
+
+## Analysis
 
 ### Object Inspector
 The _Object Inspector_ is the new version of the [_Speckle Inspector_](https://imagej.net/plugins/biovoxxel-toolbox#speckle-inspector). It analyzes (secondary) objects inside (primary) objects.
@@ -149,6 +156,25 @@ This tool is the new version of the [_Binary Feature Extractor_](https://imagej.
 
 ---
 
+### 3D Neighbor Analysis
+The neighbor analysis allows to analyze how many neighbor objects a specific labeled object has (intensity values in objects indicate neighbor count). In addition, the neighbor counts as well as the count distribution can be plotted.
+
+Parameters:
+* `Method`: Neighbors are determined based on...
+ * `Objects`: ...the voronoi drawn on basis of the original object outline
+ * `Distance`: ...the distance range given calculated from the centroid of each object to the other centroids. Therefore, object shape is neglected. Only recommended for small and isotropic objects
+* `Object size range`: excludes objects with an area/volume outside the given range before the analysis
+* `Distance range`: centroids not reachable within the given distance range are not considered as neighbors.
+* `Exclude edges from visualization`: objects which directly touch the border or whos voronoi is touching imge edges are taken into account as neighbors of others but are finally not displayed since their own neighbor count is incorrect due to missing neighbors not part of the field of view. If the complete sample is imaged this option should not be used.
+* `Plot neighbour counts`: for each input label the number of neighbors will be plotted. Those are also indicated in the neighbor count map image.
+* `Plot neighbor distribution`: the distribution of neighbor frequencies is plotted. The value plotted for zero neighbors are excluded objects (due to edge exclusion).
+
+![image](https://user-images.githubusercontent.com/10721817/152757955-fad1f18e-ccad-409c-8d8d-6b706fe25607.png)
+
+---
+
+## Labels
+
 ### Label Splitter
 The label splitter is the equivalent of a watershedding function for binary images or images containing labeld objects already. It will separate objects according to the following methods. The output image will be displayed as consecutive intensity labels (intensity = identifier).
 This is the last part of the [Voronoi Threshold Labeler](Voronoi Threshold Labeler) processing.
@@ -169,6 +195,12 @@ Further separation methods are planned to be added, so stay tuned!
 
 ---
 
+### Separate Labels
+
+The label separator takes a label image and places a separation in form of background pixels between touching labels. This can be considered the equivalent of the standard binary watershed function in ImageJ / Fiji. This can influence further post processing such as erosion or opening functions from the Post Processor.
+
+---
+
 ### Post Processor
 This tool is meant to be used on binary images or labels but can be used for most functions also as a normal image filter tool. This way, is partially the counter part of the [Filter Check](https://imagej.net/plugins/biovoxxel-toolbox#filter-check)
 
@@ -178,27 +210,14 @@ _Ongoing development: more filter functions will be added in future_
 
 ---
 
-### 3D Neighbor Analysis
-The neighbor analysis allows to analyze how many neighbor objects a specific labeled object has (intensity values in objects indicate neighbor count). In addition, the neighbor counts as well as the count distribution can be plotted.
-
-Parameters:
-* `Method`: Neighbors are determined based on...
- * `Objects`: ...the voronoi drawn on basis of the original object outline
- * `Distance`: ...the distance range given calculated from the centroid of each object to the other centroids. Therefore, object shape is neglected. Only recommended for small and isotropic objects
-* `Object size range`: excludes objects with an area/volume outside the given range before the analysis
-* `Distance range`: centroids not reachable within the given distance range are not considered as neighbors.
-* `Exclude edges from visualization`: objects which directly touch the border or whos voronoi is touching imge edges are taken into account as neighbors of others but are finally not displayed since their own neighbor count is incorrect due to missing neighbors not part of the field of view. If the complete sample is imaged this option should not be used.
-* `Plot neighbour counts`: for each input label the number of neighbors will be plotted. Those are also indicated in the neighbor count map image.
-* `Plot neighbor distribution`: the distribution of neighbor frequencies is plotted. The value plotted for zero neighbors are excluded objects (due to edge exclusion).
-
-![image](https://user-images.githubusercontent.com/10721817/152757955-fad1f18e-ccad-409c-8d8d-6b706fe25607.png)
-
----
+## Additional Functions
 
 ### Add Labels to 3D ROI Manager
 This adds all 2D or 3D labels as ROIs to the 3D ROI Manager from the magnificent [3D Suite](https://mcib3d.frama.io/3d-suite-imagej/) by [Thomas Boudier](url)
 
 ![image](https://user-images.githubusercontent.com/10721817/152698429-62a83164-01b1-40bc-a4ca-a24b8e977db0.png)
+
+In some cases this function might run a little unstable and ROIs might not directly be visible in the ROI Manager. Either try again or play with the Live ROI activation in the 3D ROI Manager.
 
 ---
 

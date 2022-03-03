@@ -65,13 +65,13 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(label = "Image filter", choices = {"None", "Gaussian", "DoG", "Median", "Mean", "Open", "Close", "Variance"}, callback = "adaptFilter")
 	private String filterMethod = "Gaussian";
 	
-	@Parameter(label = "Filter radius", min = "0f", max = "100f", callback = "adaptFilter")
+	@Parameter(label = "Filter radius", min = "0f", max = "1000f", callback = "adaptFilter")
 	private Float filterRadius = 1.0f;
 	
 	@Parameter(label = "Background subtraction", choices = {"None", "DoG", "DoM", "TopHat", "BottomHat"}, callback = "adaptBackground")
 	private String backgroundSubtractionMethod;
 	
-	@Parameter(label = "Background radius", min = "0f", max = "100f", callback = "adaptBackground")
+	@Parameter(label = "Background radius", min = "0f", max = "1000f", callback = "adaptBackground")
 	private Float backgroundRadius = 1.0f;
 	
 	@Parameter(label = "Threshold method", initializer = "thresholdMethodList", callback = "processImage")
@@ -143,6 +143,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		
 		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);
 		
+		stackSlice.setValue(this, 1);
 		if(inputImagePlus.isStack()) {
 			
 			stackSlice.setMaximumValue(inputImagePlus.getStackSize());

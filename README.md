@@ -1,5 +1,3 @@
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
-
 # BioVoxxel 3D Box (bv3dbox)
 
 **REMARK: This is currently still in alpha release stage and should be handled with care when creating results. Please inform me about any [issues](https://github.com/biovoxxel/bv3dbox/issues) you encounter!**
@@ -24,7 +22,7 @@ The Output image is always 32-bit to account for correct float-point values afte
 
 Formula:
 
-$$result = { original - darkfield \over flatfield - darkfield } * { average\;of\;(flatfield - darkfield) }$$
+result = (original - darkfield) / (flatfield - darkfield) *  (average of (flatfield - darkfield))
 
 
 ![image](https://user-images.githubusercontent.com/10721817/151598573-534b8f3f-99bd-4bb7-b420-140ca8f94ef7.png)

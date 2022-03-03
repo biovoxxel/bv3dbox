@@ -27,7 +27,6 @@ import ij.process.LUT;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
-import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
 
 
 /*
@@ -361,27 +360,7 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 	}
 
 	
-	public ClearCLBuffer thresholdImage(ClearCLBuffer background_subtracted_image, int threshold) {
-		
-		log.debug("threshold = " + threshold);
-		
-		ClearCLBuffer thresholded_image = clij2.create(background_subtracted_image);
-		
-		clij2.threshold(background_subtracted_image, thresholded_image, threshold);
-		
-		return thresholded_image;
-		
-	}
-	
-	
-	public int getThresholdValue(String thresholdMethod, int[] histogram) {
-		
-		AutoThresholderImageJ1 autoThresholderIJ1 = new AutoThresholderImageJ1();
-		
-		return autoThresholderIJ1.getThreshold(thresholdMethod, histogram);
-		
-	}
-	
+
 
 	public ClearCLBuffer detectMaxima(ClearCLBuffer input_image, Float spotSigma, Float maximaRadius) {
 		

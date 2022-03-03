@@ -153,53 +153,9 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		}
 		
 		
-		stackHistogram = getHistogram();
+		stackHistogram = BV3DBoxUtilities.getHistogram(inputImagePlus);
 	}
 
-
-	public int[] getHistogram() {
-		StackStatistics stackStatistics = new StackStatistics(inputImagePlus);
-		if (inputImagePlus.getRoi() != null) {
-			stackStatistics = new StackStatistics(inputImagePlus.duplicate());
-		} else {
-			stackStatistics = new StackStatistics(inputImagePlus);
-		}
-				
-		double[] tempHistogram = stackStatistics.histogram();
-			
-		int[] finalHistogram = new int[tempHistogram.length];
-		
-		for (int i = 0; i < tempHistogram.length; i++) {
-			finalHistogram[i] = (int) tempHistogram[i];
-		}
-		
-		return finalHistogram;
-	}
-	
-	
-//	public int[] getLimitedHistogram(int[] histogram, int min, int max) {
-//		
-//		int[] limitedHistogram = new int[histogram.length]; 
-//		
-//		min = (min < 0) ? 0 : min;
-//		min = (min > histogram.length-1) ? histogram.length-1 : min;
-//		
-//		max = (max < 0) ? 0 : max;
-//		max = (max > histogram.length-1) ? histogram.length-1 : max;
-//		
-//		for (int i = 0; i < histogram.length; i++) {
-//									
-//			if (i < min) {
-//				limitedHistogram[i] = 0; 
-//			} else if ((histogram.length - 1 - i) > max) {
-//				limitedHistogram[i] = 0; 
-//			} else {
-//				limitedHistogram[i] = histogram[i];
-//			}
-//		}
-//		
-//		return limitedHistogram;
-//	}
 
 	
 	
@@ -265,7 +221,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		
 		
 		int[] finalHistogram = stackHistogram.clone();
-		System.out.println("initial stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
+		//System.out.println("initial stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
 		
 		switch(histogramUsage) {
 			
@@ -283,11 +239,11 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 				finalHistogram[stackHistogram.length-1] = 0;
 				break;
 		}
-		System.out.println("final stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
+		//System.out.println("final stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
 				
-		int thresholdValue = bvvtl.getThresholdValue(thresholdMethod, finalHistogram);
+		double thresholdValue = BV3DBoxUtilities.getThresholdValue(thresholdMethod, finalHistogram);
 		
-		ClearCLBuffer thresholdedImage = bvvtl.thresholdImage(backgroundSubtractedImage, thresholdValue);
+		ClearCLBuffer thresholdedImage = BV3DBoxUtilities.thresholdImage(bvvtl.getCurrentCLIJ2Instance(), backgroundSubtractedImage, thresholdValue);
 				
 		backgroundSubtractedImage.close();
 		

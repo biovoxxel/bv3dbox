@@ -86,6 +86,9 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	@Parameter(label = "Threshold library", choices = {"CLIJ2", "IJ"}, callback = "changeThresholdLibrary")
 	String thresholdLibrary = "CLIJ2";
 	
+	@Parameter(label = "Histogram usage", choices = {"full (default)", "ignore black", "ignore white", "ignore both"}, callback = "thresholdCheck")
+	private String histogramUsage = "full";
+	
 	@Parameter(label = "Auto Threshold", initializer = "thresholdMethodList", callback = "thresholdCheck", persist = true)
 	String thresholdMethod = "Default";
 	
@@ -131,17 +134,42 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	}
 	
 	public double getThreshold() {
+		
+		int[] stackHistogram = BV3DBoxUtilities.getHistogram(inputImagePlus);
+		
+		int[] finalHistogram = stackHistogram.clone();
+		//System.out.println("initial stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
+		
+		switch(histogramUsage) {
+			
+			case "ignore black":
+				finalHistogram[0] = 0;
+				
+				break;
+				
+			case "ignore white":
+				finalHistogram[stackHistogram.length-1] = 0;
+				break;
+				
+			case "ignore both":
+				finalHistogram[0] = 0;
+				finalHistogram[stackHistogram.length-1] = 0;
+				break;
+		}
+		//System.out.println("final stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
+		
 		double thresholdValue = 0.0;
 		
 		if (thresholdLibrary.equals("CLIJ2")) {
 			
-			thresholdValue = clij2.getAutomaticThreshold(inputImage, thresholdMethod);	
+			thresholdValue = BV3DBoxUtilities.getThresholdValue(thresholdMethod, finalHistogram);
+			//thresholdValue = clij2.getAutomaticThreshold(inputImage, thresholdMethod);	
 			
 		} else if (thresholdLibrary.equals("IJ")) {
 			
 			AutoThresholder autoThresholder = new AutoThresholder();
-			int[] histogram = inputImagePlus.getProcessor().getHistogram(256);
-			thresholdValue = (double) autoThresholder.getThreshold(thresholdMethod, histogram);
+			//int[] histogram = inputImagePlus.getProcessor().getHistogram(256);
+			thresholdValue = (double) autoThresholder.getThreshold(thresholdMethod, finalHistogram);
 
 		}
 		

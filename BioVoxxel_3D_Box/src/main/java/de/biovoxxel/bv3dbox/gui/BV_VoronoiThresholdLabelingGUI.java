@@ -187,7 +187,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			mutableFilterRadius.setMaximumValue(15f);
 			
 		} else {
-			mutableFilterRadius.setMaximumValue(200f);
+			mutableFilterRadius.setMaximumValue(1000f);
 		}
 		
 		processImage();
@@ -207,7 +207,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		if (backgroundSubtractionMethod.equals("DoM")) {
 			mutableBackgroundRadius.setMaximumValue(15f);
 		} else {
-			mutableBackgroundRadius.setMaximumValue(200f);
+			mutableBackgroundRadius.setMaximumValue(1000f);
 		}
 		
 		processImage();

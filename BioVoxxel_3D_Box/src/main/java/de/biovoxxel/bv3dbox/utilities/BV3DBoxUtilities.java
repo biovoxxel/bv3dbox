@@ -9,8 +9,10 @@ import ij.WindowManager;
 import ij.measure.Calibration;
 import ij.plugin.LutLoader;
 import ij.process.LUT;
+import ij.process.StackStatistics;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
+import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
 import net.imagej.updater.UpdateService;
 import net.imagej.updater.UpdateSite;
 
@@ -203,6 +205,75 @@ public class BV3DBoxUtilities {
 		return connectedComponentLabels;
 	}
 	
+	
+	public static int[] getHistogram(ImagePlus image) {
+		StackStatistics stackStatistics = new StackStatistics(image);
+		if (image.getRoi() != null) {
+			stackStatistics = new StackStatistics(image.duplicate());
+		} else {
+			stackStatistics = new StackStatistics(image);
+		}
+				
+		//double[] histogram = stackStatistics.histogram();
+ 	
+		double[] tempHistogram = stackStatistics.histogram();
+		
+		int[] finalHistogram = new int[tempHistogram.length];
+		
+		for (int i = 0; i < tempHistogram.length; i++) {
+			finalHistogram[i] = (int) Math.round(tempHistogram[i]);
+		}
+		
+		return finalHistogram;
+	}
+	
+	
+	public static int[] getLimitedHistogram(int[] histogram, int min, int max) {
+	
+		int[] limitedHistogram = new int[histogram.length]; 
+		
+		min = (min < 0) ? 0 : min;
+		min = (min > histogram.length-1) ? histogram.length-1 : min;
+		
+		max = (max < 0) ? 0 : max;
+		max = (max > histogram.length-1) ? histogram.length-1 : max;
+		
+		for (int i = 0; i < histogram.length; i++) {
+									
+			if (i < min) {
+				limitedHistogram[i] = 0; 
+			} else if ((histogram.length - 1 - i) > max) {
+				limitedHistogram[i] = 0; 
+			} else {
+				limitedHistogram[i] = histogram[i];
+			}
+		}
+		
+		return limitedHistogram;
+	}
+	
+	
+	
+	public static int getThresholdValue(String thresholdMethod, int[] histogram) {
+		
+		AutoThresholderImageJ1 autoThresholderIJ1 = new AutoThresholderImageJ1();
+		
+		return autoThresholderIJ1.getThreshold(thresholdMethod, histogram);
+		
+	}
+	
+	
+	public static ClearCLBuffer thresholdImage(CLIJ2 clij2, ClearCLBuffer background_subtracted_image, double threshold) {
+		
+		log.debug("threshold = " + threshold);
+		
+		ClearCLBuffer thresholded_image = clij2.create(background_subtracted_image);
+		
+		clij2.threshold(background_subtracted_image, thresholded_image, threshold);
+		
+		return thresholded_image;
+		
+	}
 	
 	
 	public static float getMinFromRange(String range) throws NumberFormatException {

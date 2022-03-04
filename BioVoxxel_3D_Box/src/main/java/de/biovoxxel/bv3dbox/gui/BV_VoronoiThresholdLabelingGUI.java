@@ -80,7 +80,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(label = "Histogram usage", choices = {"full", "ignore black", "ignore white", "ignore both"}, callback = "processImage")
 	private String histogramUsage = "full";
 	
-	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded box", "Eroded sphere"}, callback = "processImage")
+	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded Maxima", "Eroded box", "Eroded sphere"}, callback = "processImage")
 	private String separationMethod = "Maxima";
 	
 	@Parameter(label = "Spot sigma / Erosion", min = "0f", callback = "processImage")
@@ -251,6 +251,8 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		ClearCLBuffer seedImage = bvvtl.getCurrentCLIJ2Instance().create(input_image);
 		if (separationMethod.equals("Maxima")) {
 			seedImage = bvvtl.detectMaxima(input_image, spotSigma, maximaRadius);		
+		} else if (separationMethod.equals("Eroded Maxima")) {
+			seedImage = bvvtl.detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
 		} else {
 			seedImage = bvvtl.createErodedSeeds(thresholdedImage, Math.round(spotSigma), separationMethod);
 		}

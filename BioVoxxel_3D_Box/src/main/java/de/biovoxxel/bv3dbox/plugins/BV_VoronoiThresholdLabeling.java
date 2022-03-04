@@ -415,6 +415,15 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 	}
 	
 	
+	public ClearCLBuffer detectErodedMaxima(ClearCLBuffer input_image, Integer erode_iteration, Float maximaRadius) {
+		
+		ClearCLBuffer eroded_seeds = createErodedSeeds(input_image, erode_iteration, "Eroded sphere");
+		
+		ClearCLBuffer eroded_maxima = detectMaxima(eroded_seeds, 0f, maximaRadius);
+		
+		return eroded_maxima;
+	}
+	
 	public ClearCLBuffer createLabels(ClearCLBuffer seed_image, ClearCLBuffer thresholded_image) {
 		// mask spots
 		ClearCLBuffer masked_spots = clij2.create(seed_image);

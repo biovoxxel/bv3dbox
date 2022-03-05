@@ -81,6 +81,8 @@ public class BV_LabelSplitter {
 		
 		if (separationMethod.equals("Maxima")) {
 			seedImage = detectMaxima(input_image, spotSigma, maximaRadius);		
+		} else if (separationMethod.equals("Eroded Maxima")) {
+			seedImage = detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
 		} else {
 			seedImage = createErodedSeeds(thresholdedImage, Math.round(spotSigma), separationMethod);
 		}
@@ -108,6 +110,16 @@ public class BV_LabelSplitter {
 		return maxima_image;
 	}
 
+	
+	public ClearCLBuffer detectErodedMaxima(ClearCLBuffer input_image, Integer erode_iteration, Float maximaRadius) {
+		
+		ClearCLBuffer eroded_seeds = createErodedSeeds(input_image, erode_iteration, "Eroded sphere");
+		
+		ClearCLBuffer eroded_maxima = detectMaxima(eroded_seeds, 0f, maximaRadius);
+		
+		return eroded_maxima;
+	}
+	
 	public ClearCLBuffer createErodedSeeds(ClearCLBuffer input_image, Integer erode_iteration, String erosion_method) {
 		
 		boolean is3D = input_image.getDimension() > 2 ? true : false;

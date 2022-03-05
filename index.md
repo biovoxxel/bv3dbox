@@ -105,6 +105,7 @@ Parameter meaning and usage:
 * `Threshold method`: Automatic intensity threshold to extract basic object areas after the upper pre-processing steps
 * `Separation method`: There are 3 different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are
   * `Maxima`: intensity maxima are determined on the original image in a square/box neighborhood defined by the `Maxima detection radius` after applying a gaussian blur on the original image in a neighborhood defined by the `Spot sigma`. The detected maxima are the seeds from which the objects are filled via a masked voronoi extension.
+  * `Eroded Maxima`: takes the input image and erodes the objects using the `Spot sigma` as erosion iterations. Then it identifies intensity maxima on the eroded objects using the `Maxima detection radius`. 
   * `Eroded box`: The extracted objects/areas are eroded in a square/box neighborhood defined by the `Spot sigma` and used as a seed for the same voronoi filling of the objects.
   * `Eroded sphere`: The extracted objects/areas are eroded in a circle/sphere neighborhood defined by the `Spot sigma` and used as seeds.
   
@@ -182,7 +183,8 @@ This is the last part of the [Voronoi Threshold Labeler](Voronoi Threshold Label
 Methods:
 * `Separation method`: There are 3 different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are
   * `Maxima`: intensity maxima are determined on the original image in a square/box neighborhood defined by the `Maxima detection radius` after applying a gaussian blur on the original image in a neighborhood defined by the `Spot sigma`. The detected maxima are the seeds from which the objects are filled via a masked voronoi extension.
-  * `Eroded box`: The extracted objects/areas are eroded in a square/box neighborhood defined by the `Spot sigma` and used as a seed for the same voronoi filling of the objects.
+  * `Eroded Maxima`: takes the input image and erodes the objects using the `Spot sigma` as erosion iterations. Then it identifies intensity maxima on the eroded objects using the `Maxima detection radius`.
+  *  `Eroded box`: The extracted objects/areas are eroded in a square/box neighborhood defined by the `Spot sigma` and used as a seed for the same voronoi filling of the objects.
   * `Eroded sphere`: The extracted objects/areas are eroded in a circle/sphere neighborhood defined by the `Spot sigma` and used as seeds.
   
   The erosion methods are useful for bigger and irregularly shaped objects, while the maxima method performs better for smaller objects. The erosion-based methods ignore the field `Maxima detection radius`. Too high spot sigmas will delete smaller objects from the image.

@@ -16,7 +16,6 @@ import de.biovoxxel.bv3dbox.plugins.BV_VoronoiThresholdLabeling;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import ij.ImagePlus;
 import ij.WindowManager;
-import ij.process.StackStatistics;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
 import net.imagej.updater.UpdateService;

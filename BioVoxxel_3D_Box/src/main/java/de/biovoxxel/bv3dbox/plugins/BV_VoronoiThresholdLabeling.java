@@ -1,6 +1,3 @@
-/**
- * 
- */
 package de.biovoxxel.bv3dbox.plugins;
 
 import java.awt.Rectangle;

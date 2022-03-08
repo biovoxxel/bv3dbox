@@ -6,10 +6,12 @@ package de.biovoxxel.bv3dbox.plugins;
 import org.joml.Math;
 
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
+import net.haesleinhuepf.clijx.plugins.FindMaximaPlateaus;
 
 /*
  * BSD 3-Clause License
@@ -60,6 +62,16 @@ public class BV_LabelSplitter {
 	/**
 	 * Separates segmented labels 
 	 */
+	
+	public BV_LabelSplitter() {
+		clij2 = CLIJ2.getInstance();
+		clij2.clear();
+	}
+	
+	/**
+	 * 
+	 * @param inputImagePlus
+	 */
 	public BV_LabelSplitter(ImagePlus inputImagePlus) {
 
 		clij2 = CLIJ2.getInstance();
@@ -71,7 +83,13 @@ public class BV_LabelSplitter {
 		
 	}
 
-	
+	/**
+	 * 
+	 * @param separationMethod
+	 * @param spotSigma
+	 * @param maximaRadius
+	 * @return
+	 */
 	public ClearCLBuffer splitLabels(String separationMethod, Float spotSigma, Float maximaRadius) {
 		
 		ClearCLBuffer seedImage = clij2.create(input_image);
@@ -79,18 +97,35 @@ public class BV_LabelSplitter {
 		ClearCLBuffer thresholdedImage = clij2.create(input_image);
 		clij2.threshold(input_image, thresholdedImage, 1);
 		
-		if (separationMethod.equals("Maxima")) {
-			seedImage = detectMaxima(input_image, spotSigma, maximaRadius);		
-		} else if (separationMethod.equals("Eroded Maxima")) {
+		switch (separationMethod) {
+		case "Maxima":
+			seedImage = detectMaxima(input_image, spotSigma, maximaRadius);
+			break;
+
+		case "Eroded Maxima":
 			seedImage = detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
-		} else {
+			break;
+		
+		//experimental
+		case "Maxima Plateaus":
+			seedImage = detectPlateaus(input_image, spotSigma);
+			break;
+		
+		default:
 			seedImage = createErodedSeeds(thresholdedImage, Math.round(spotSigma), separationMethod);
+			break;
 		}
 		
 		return createLabels(seedImage, thresholdedImage);
 	}
 	
-	
+	/**
+	 * 
+	 * @param input_image
+	 * @param spotSigma
+	 * @param maximaRadius
+	 * @return
+	 */
 	public ClearCLBuffer detectMaxima(ClearCLBuffer input_image, Float spotSigma, Float maximaRadius) {
 			
 		double y_filter_sigma = spotSigma * voxelRatios[0];
@@ -110,7 +145,13 @@ public class BV_LabelSplitter {
 		return maxima_image;
 	}
 
-	
+	/**
+	 * 
+	 * @param input_image
+	 * @param erode_iteration
+	 * @param maximaRadius
+	 * @return
+	 */
 	public ClearCLBuffer detectErodedMaxima(ClearCLBuffer input_image, Integer erode_iteration, Float maximaRadius) {
 		
 		ClearCLBuffer eroded_seeds = createErodedSeeds(input_image, erode_iteration, "Eroded sphere");
@@ -120,6 +161,13 @@ public class BV_LabelSplitter {
 		return eroded_maxima;
 	}
 	
+	/**
+	 * 
+	 * @param input_image
+	 * @param erode_iteration
+	 * @param erosion_method
+	 * @return
+	 */
 	public ClearCLBuffer createErodedSeeds(ClearCLBuffer input_image, Integer erode_iteration, String erosion_method) {
 		
 		boolean is3D = input_image.getDimension() > 2 ? true : false;
@@ -145,10 +193,33 @@ public class BV_LabelSplitter {
 		}
 		
 		return eroded_image;
-		
 	}
 	
+	
+	//experimental
+	public ClearCLBuffer detectPlateaus(ClearCLBuffer input_image, Float spotSigma) {
 		
+		double y_filter_sigma = spotSigma * voxelRatios[0];
+		double z_filter_sigma = spotSigma / voxelRatios[1];
+			
+		ClearCLBuffer temp = clij2.create(input_image);
+		clij2.gaussianBlur3D(input_image, temp, spotSigma, y_filter_sigma, z_filter_sigma);
+				
+		ClearCLBuffer plateaus_image = clij2.create(temp);
+		FindMaximaPlateaus.findMaximaPlateaus(clij2, temp, plateaus_image);	//not possible to use via clij2 instance since currently deactivated 
+		temp.close();	
+	
+		//BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, plateaus_image, false, LutNames.GLASBEY_LUT);
+		
+		return plateaus_image;
+	}
+	
+	/**
+	 * 
+	 * @param seed_image
+	 * @param thresholded_image
+	 * @return
+	 */
 	public ClearCLBuffer createLabels(ClearCLBuffer seed_image, ClearCLBuffer thresholded_image) {
 		// mask spots
 		ClearCLBuffer masked_spots = clij2.create(seed_image);
@@ -160,8 +231,13 @@ public class BV_LabelSplitter {
 		return output_image;
 	}
 	
+	
 	public CLIJ2 getCurrentCLIJ2Instance() {
 		return clij2;
 	}
 	
+	
+	public void setVoxelRatios(double[] voxelRatios) {
+		this.voxelRatios = voxelRatios;
+	}
 }

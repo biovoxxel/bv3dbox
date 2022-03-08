@@ -56,7 +56,7 @@ public class BV3DBoxUtilities {
 	private static LogService log = new StderrLogService();
 		
 	public static void main(String[] args) {
-		System.out.println(BV3DBoxUtilities.class.getClassLoader().getResourceAsStream("/plugins.config"));
+		//System.out.println(BV3DBoxUtilities.class.getClassLoader().getResourceAsStream("/plugins.config"));
 		
 	}
 	
@@ -99,12 +99,22 @@ public class BV3DBoxUtilities {
 		
 		double voxelWidth = cal.pixelWidth;
 		double voxelHeight = cal.pixelHeight;
-		double voxelDepth = cal.pixelDepth;
+		double voxelDepth;
+		
+		if (image.isStack()) {
+			voxelDepth = cal.pixelDepth;
+		} else {
+			voxelDepth = 0.0;
+		}
+		
+		System.out.println("voxelWidth=" + voxelWidth + "/voxelHeight=" + voxelHeight + "/voxelDepth=" + voxelDepth);
 		
 		double width_height_ratio = voxelWidth / voxelHeight;
 		double depth_width_ratio = voxelDepth / voxelWidth;
 		
 		double[] voxelRatios = new double[] { width_height_ratio, depth_width_ratio };
+		
+		System.out.println("voxelRatios = " + voxelRatios[0] + "/" + voxelRatios[1]);
 		
 		return voxelRatios;
 	}

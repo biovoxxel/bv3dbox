@@ -108,7 +108,6 @@ public class BV_PostProcessor extends DynamicCommand {
 	public ClearCLBuffer postProcessor(String method, int iteration) {
 
 		ClearCLBuffer output_image = clij2.create(input_image);
-		
 			
 		boolean is3D = input_image.getDimension() > 2 ? true : false;
 		
@@ -117,12 +116,28 @@ public class BV_PostProcessor extends DynamicCommand {
 	
 		
 		switch (method) {
-			case "Separate Labels":
+//			case "Separate Labels":
+//				
+//				new BV_LabelSeparator().splitLabels(clij2, input_image, output_image);
+//				break;
+//			
 				
-				new BV_LabelSeparator().splitLabels(clij2, input_image, output_image);
+			case "Erode Label":
+				clij2.erodeLabels(input_image, output_image, iteration, true);
 				break;
 				
-			case "Erode (sphere)":
+			case "Dilate Label":
+				clij2.dilateLabels(input_image, output_image, iteration);
+				break;
+				
+			case "Open Label":
+				ClearCLBuffer temp_eroded = clij2.create(input_image);
+				clij2.erodeLabels(input_image, temp_eroded, iteration, true);
+				clij2.dilateLabels(temp_eroded, output_image, iteration);
+				temp_eroded.close();
+				break;
+							
+			case "Minimum (sphere)":
 				if (is3D) {
 					clij2.minimum3DSphere(input_image, output_image, iteration, iteration, iteration);					
 				} else {
@@ -130,7 +145,7 @@ public class BV_PostProcessor extends DynamicCommand {
 				}
 				break;
 				
-			case "Erode (box)":
+			case "Minimum (box)":
 				if (is3D) {
 					clij2.minimum3DBox(input_image, output_image, iteration, iteration, iteration);					
 				} else {
@@ -138,7 +153,7 @@ public class BV_PostProcessor extends DynamicCommand {
 				}
 				break;
 				
-			case "Dilate (sphere)":
+			case "Maximum (sphere)":
 				if (is3D) {
 					clij2.maximum3DSphere(input_image, output_image, iteration, iteration, iteration);					
 				} else {
@@ -146,7 +161,7 @@ public class BV_PostProcessor extends DynamicCommand {
 				}
 				break;
 				
-			case "Dilate (box)":
+			case "Maximum (box)":
 				if (is3D) {
 					clij2.maximum3DBox(input_image, output_image, iteration, iteration, iteration);					
 				} else {
@@ -210,7 +225,7 @@ public class BV_PostProcessor extends DynamicCommand {
 				temp_dilated_box.close();
 				break;
 				
-			case "Fill holes (labels)":
+			case "Fill holes":
 				ClearCLBuffer filled_holes_image = clij2.create(input_image);
 				clij2.binaryFillHoles(input_image, filled_holes_image);
 				clij2.connectedComponentsLabelingDiamond(filled_holes_image, output_image);
@@ -236,21 +251,21 @@ public class BV_PostProcessor extends DynamicCommand {
 				}
 				break;
 				
-			case "Variance (sphere)":
-				if (is3D) {
-					clij2.varianceSphere(input_image, output_image, iteration, iteration, iteration);
-				} else {
-					clij2.varianceSphere(input_image, output_image, iteration, iteration, 0);
-				}
-				break;
-			
-			case "Variance (box)":
-				if (is3D) {
-					clij2.varianceBox(input_image, output_image, iteration, iteration, iteration);
-				} else {
-					clij2.varianceBox(input_image, output_image, iteration, iteration, 0);
-				}
-				break;
+//			case "Variance (sphere)":
+//				if (is3D) {
+//					clij2.varianceSphere(input_image, output_image, iteration, iteration, iteration);
+//				} else {
+//					clij2.varianceSphere(input_image, output_image, iteration, iteration, 0);
+//				}
+//				break;
+//			
+//			case "Variance (box)":
+//				if (is3D) {
+//					clij2.varianceBox(input_image, output_image, iteration, iteration, iteration);
+//				} else {
+//					clij2.varianceBox(input_image, output_image, iteration, iteration, 0);
+//				}
+//				break;
 				
 			default:
 				break;

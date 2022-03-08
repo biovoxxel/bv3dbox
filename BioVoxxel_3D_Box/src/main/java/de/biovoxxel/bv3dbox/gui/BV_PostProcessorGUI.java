@@ -57,7 +57,7 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 	@Parameter(required = true, initializer = "setupImage")
 	ImagePlus inputImagePlus;
 	
-	@Parameter(label = "Processing method", choices = {"Erode (sphere)", "Erode (box)", "Dilate (sphere)", "Dilate (box)", "Open (sphere)", "Open (box)", "Close (sphere)", "Close (box)", "Fill holes (labels)", "Median (sphere, max r=15)", "Median (box, max r=15)", "Variance (sphere)", "Variance (box)"}, callback = "processImage")
+	@Parameter(label = "Processing method", choices = {"Erode Label", "Dilate Label", "Open Label", "Minimum (sphere)", "Minimum (box)", "Maximum (sphere)", "Maximum (box)", "Open (sphere)", "Open (box)", "Close (sphere)", "Close (box)", "Fill holes", "Median (sphere, max r=15)", "Median (box, max r=15)"}, callback = "processImage")
 	String method = "Erode";
 	
 	@Parameter(label = "Iterations", min = "0", stepSize = "1", callback = "processImage")

@@ -14,7 +14,6 @@ import ij.ImagePlus;
 import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
-import net.imagej.updater.UpdateService;
 
 /*
  * BSD 3-Clause License

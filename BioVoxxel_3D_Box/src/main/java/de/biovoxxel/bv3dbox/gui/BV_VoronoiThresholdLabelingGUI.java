@@ -3,7 +3,6 @@ package de.biovoxxel.bv3dbox.gui;
 import java.util.Arrays;
 import java.util.List;
 
-import org.joml.Math;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
@@ -12,6 +11,7 @@ import org.scijava.plugin.Plugin;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
+import de.biovoxxel.bv3dbox.plugins.BV_LabelSplitter;
 import de.biovoxxel.bv3dbox.plugins.BV_VoronoiThresholdLabeling;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import ij.ImagePlus;
@@ -99,6 +99,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	
 	
 	BV_VoronoiThresholdLabeling bvvtl = new BV_VoronoiThresholdLabeling();
+	BV_LabelSplitter labelSplitter;
 	
 	private ClearCLBuffer input_image;
 	
@@ -139,6 +140,9 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		
 		bvvtl.setupInputImage(inputImagePlus);
 		input_image = bvvtl.getInputImageAsClearClBuffer();
+		
+		
+		labelSplitter = new BV_LabelSplitter(bvvtl.getCurrentCLIJ2Instance());
 		
 		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);
 		
@@ -215,9 +219,9 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	
 	
 	private void processImage() {
-		ClearCLBuffer filteredImage = bvvtl.filterImage(input_image, filterMethod, filterRadius);
-		ClearCLBuffer backgroundSubtractedImage = bvvtl.backgroundSubtraction(filteredImage, backgroundSubtractionMethod, backgroundRadius);
-		filteredImage.close();
+		ClearCLBuffer filtered_image = bvvtl.filterImage(input_image, filterMethod, filterRadius);
+		ClearCLBuffer background_subtracted_image = bvvtl.backgroundSubtraction(filtered_image, backgroundSubtractionMethod, backgroundRadius);
+		filtered_image.close();
 		
 		
 		int[] finalHistogram = stackHistogram.clone();
@@ -243,23 +247,23 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 				
 		double thresholdValue = BV3DBoxUtilities.getThresholdValue(thresholdMethod, finalHistogram);
 		
-		ClearCLBuffer thresholdedImage = BV3DBoxUtilities.thresholdImage(bvvtl.getCurrentCLIJ2Instance(), backgroundSubtractedImage, thresholdValue);
+		ClearCLBuffer thresholded_image = BV3DBoxUtilities.thresholdImage(bvvtl.getCurrentCLIJ2Instance(), background_subtracted_image, thresholdValue);		
+		background_subtracted_image.close();
 				
-		backgroundSubtractedImage.close();
-		
-		ClearCLBuffer seedImage = bvvtl.getCurrentCLIJ2Instance().create(input_image);
+		ClearCLBuffer seed_image = bvvtl.getCurrentCLIJ2Instance().create(input_image);
 		if (separationMethod.equals("Maxima")) {
-			seedImage = bvvtl.detectMaxima(input_image, spotSigma, maximaRadius);		
+			seed_image = labelSplitter.detectMaxima(input_image, spotSigma, maximaRadius);		
 		} else if (separationMethod.equals("Eroded Maxima")) {
-			seedImage = bvvtl.detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
+			seed_image = labelSplitter.detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
 		} else {
-			seedImage = bvvtl.createErodedSeeds(thresholdedImage, Math.round(spotSigma), separationMethod);
+			seed_image = labelSplitter.createErodedSeeds(thresholded_image, Math.round(spotSigma), separationMethod);
 		}
-		ClearCLBuffer outputImage = bvvtl.createLabels(seedImage, thresholdedImage);
-		thresholdedImage.close();
-		seedImage.close();
-		bvvtl.createOutputImage(outputImage, outputType);
-		outputImage.close();
+		ClearCLBuffer output_image = labelSplitter.createLabels(seed_image, thresholded_image);
+		
+		thresholded_image.close();
+		seed_image.close();
+		bvvtl.createOutputImage(output_image, outputType);
+		output_image.close();
 	}
 	
 	

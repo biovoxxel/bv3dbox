@@ -2,7 +2,6 @@ package de.biovoxxel.bv3dbox.plugins;
 
 import java.awt.Rectangle;
 
-import org.joml.Math;
 import org.scijava.Cancelable;
 import org.scijava.log.LogLevel;
 import org.scijava.log.LogService;
@@ -22,7 +21,6 @@ import ij.measure.Calibration;
 import ij.plugin.LutLoader;
 import ij.process.LUT;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
-import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
 
 
@@ -218,16 +216,14 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		backgroundSubtractedImage.close();
 		IJ.showProgress(0.6);
 		
-		if (separationMethod.equals("Maxima")) {
-			seedImage = detectMaxima(input_image, spotSigma, maximaRadius);		
-		} else {
-			seedImage = createErodedSeeds(input_image, Math.round(spotSigma), separationMethod);
-		}
+		BV_LabelSplitter labelSplitter = new BV_LabelSplitter(clij2);
+		
+		seedImage = labelSplitter.splitLabels(thresholdedImage, separationMethod, spotSigma, maximaRadius);
+		outputImage = labelSplitter.createLabels(seedImage, thresholdedImage);
 		IJ.showProgress(0.8);
 		
-		outputImage = createLabels(seedImage, thresholdedImage);
-		seedImage.close();
 		thresholdedImage.close();
+		seedImage.close();
 		IJ.showProgress(0.9);
 		
 		createOutputImage(outputImage, outputType);
@@ -357,82 +353,6 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 	}
 
 	
-
-
-	public ClearCLBuffer detectMaxima(ClearCLBuffer input_image, Float spotSigma, Float maximaRadius) {
-		
-		ClearCLBuffer temp = clij2.create(input_image);
-		
-		double y_filter_sigma = spotSigma * x_y_ratio;
-		double z_filter_sigma = spotSigma / z_x_ratio;
-		
-		
-		clij2.gaussianBlur3D(input_image, temp, spotSigma, y_filter_sigma, z_filter_sigma);
-		//alternative
-		//double offsetDoG = 2.0d;
-		//clij2.differenceOfGaussian3D(input_image, temp, filterRadius, y_filter_sigma, z_filter_sigma, spotSigma + offsetDoG, ((spotSigma + offsetDoG) * x_y_ratio), ((spotSigma + offsetDoG) / z_x_ratio));
-		
-		ClearCLBuffer maxima_image = clij2.create(input_image);
-		
-		double y_maxima_radius = maximaRadius * x_y_ratio;
-		double z_maxima_radius = maximaRadius / z_x_ratio;
-		
-		clij2.detectMaxima3DBox(temp, maxima_image, maximaRadius, y_maxima_radius, z_maxima_radius);
-		temp.close();
-		
-		return maxima_image;
-	}
-
-	public ClearCLBuffer createErodedSeeds(ClearCLBuffer input_image, Integer erode_iteration, String erosion_method) {
-		
-		boolean is3D = input_image.getDimension() > 2 ? true : false;
-		
-		ClearCLBuffer eroded_image = clij2.create(input_image);
-		
-		if (is3D) {
-			if (erosion_method.equals("Eroded box")) {
-				clij2.minimum3DBox(input_image, eroded_image, erode_iteration, erode_iteration, erode_iteration);
-			}
-			
-			if (erosion_method.equals("Eroded sphere")) {
-				clij2.minimum3DSphere(input_image, eroded_image, erode_iteration, erode_iteration, erode_iteration);
-			}
-		} else {
-			if (erosion_method.equals("Eroded box")) {
-				clij2.minimum2DBox(input_image, eroded_image, erode_iteration, erode_iteration);
-			}
-			
-			if (erosion_method.equals("Eroded sphere")) {
-				clij2.minimum2DSphere(input_image, eroded_image, erode_iteration, erode_iteration);
-			}
-		}
-		
-		return eroded_image;
-		
-	}
-	
-	
-	public ClearCLBuffer detectErodedMaxima(ClearCLBuffer input_image, Integer erode_iteration, Float maximaRadius) {
-		
-		ClearCLBuffer eroded_seeds = createErodedSeeds(input_image, erode_iteration, "Eroded sphere");
-		
-		ClearCLBuffer eroded_maxima = detectMaxima(eroded_seeds, 0f, maximaRadius);
-		
-		return eroded_maxima;
-	}
-	
-	public ClearCLBuffer createLabels(ClearCLBuffer seed_image, ClearCLBuffer thresholded_image) {
-		// mask spots
-		ClearCLBuffer masked_spots = clij2.create(seed_image);
-		clij2.binaryAnd(seed_image, thresholded_image, masked_spots);
-		
-		ClearCLBuffer output_image = clij2.create(seed_image.getDimensions(), NativeTypeEnum.Float);
-		clij2.maskedVoronoiLabeling(masked_spots, thresholded_image, output_image);
-		
-		masked_spots.close();
-		
-		return output_image;
-	}
 
 	//TODO: Outlines does not work as intended, since the gray LUT is not applied to the output image
 	public void createOutputImage(ClearCLBuffer output_image, String outputType) {

@@ -6,7 +6,6 @@ package de.biovoxxel.bv3dbox.plugins;
 import org.joml.Math;
 
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
-import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
@@ -55,17 +54,22 @@ import net.haesleinhuepf.clijx.plugins.FindMaximaPlateaus;
 public class BV_LabelSplitter {
 
 	private CLIJ2 clij2;
-	private ClearCLBuffer input_image;
 	
-	private double[] voxelRatios;
+	private double[] voxelRatios = {1.0, 1.0};
 		
-	/**
-	 * Separates segmented labels 
-	 */
+	
 	
 	public BV_LabelSplitter() {
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
+	}
+	
+	/**
+	 * 
+	 * @param clij2
+	 */
+	public BV_LabelSplitter(CLIJ2 clij2) {
+		this.clij2 = clij2;
 	}
 	
 	/**
@@ -76,10 +80,8 @@ public class BV_LabelSplitter {
 
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
-		
-		input_image = clij2.push(inputImagePlus);
-		
-		voxelRatios = BV3DBoxUtilities.getVoxelRelations(inputImagePlus);
+						
+		setVoxelRatios(inputImagePlus);
 		
 	}
 
@@ -90,11 +92,12 @@ public class BV_LabelSplitter {
 	 * @param maximaRadius
 	 * @return
 	 */
-	public ClearCLBuffer splitLabels(String separationMethod, Float spotSigma, Float maximaRadius) {
+	public ClearCLBuffer splitLabels(ClearCLBuffer input_image, String separationMethod, Float spotSigma, Float maximaRadius) {
 		
 		ClearCLBuffer seedImage = clij2.create(input_image);
 		
 		ClearCLBuffer thresholdedImage = clij2.create(input_image);
+				
 		clij2.threshold(input_image, thresholdedImage, 1);
 		
 		switch (separationMethod) {
@@ -104,11 +107,6 @@ public class BV_LabelSplitter {
 
 		case "Eroded Maxima":
 			seedImage = detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
-			break;
-		
-		//experimental
-		case "Maxima Plateaus":
-			seedImage = detectPlateaus(input_image, spotSigma);
 			break;
 		
 		default:
@@ -237,7 +235,12 @@ public class BV_LabelSplitter {
 	}
 	
 	
+	
 	public void setVoxelRatios(double[] voxelRatios) {
 		this.voxelRatios = voxelRatios;
+	}
+	
+	public void setVoxelRatios(ImagePlus imagePlus) {
+		this.voxelRatios = BV3DBoxUtilities.getVoxelRelations(imagePlus);
 	}
 }

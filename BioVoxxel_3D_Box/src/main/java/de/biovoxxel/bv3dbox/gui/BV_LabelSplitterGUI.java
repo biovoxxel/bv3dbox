@@ -16,6 +16,7 @@ import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
 import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
+import net.haesleinhuepf.clij2.CLIJ2;
 import net.imagej.updater.UpdateService;
 
 /*
@@ -66,23 +67,28 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 	private String separationMethod = "Maxima";
 	
 	@Parameter(label = "Spot sigma", min = "0f", callback = "processImage")
-	private Float spotSigma;
+	private Float spotSigma = 1f;
 	
 	@Parameter(label = "Maxima detection radius", min = "0f", callback = "processImage")
-	private Float maximaRadius;
+	private Float maximaRadius = 1f;
 	
 	@Parameter(label = "Stack slice", initializer = "imageSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
 	Integer stackSlice;
 	
+	private CLIJ2 clij2 = CLIJ2.getInstance();
+	
 	private BV_LabelSplitter labelSplitter;
-	private String outputImageName = null; 
+	
+	private ClearCLBuffer input_image;
+	private String outputImageName = null;
 	
 	
 	public void run() {
 		
 		if (WindowManager.getImage(outputImageName) == null) {
+			
 			setupImage();
-			ClearCLBuffer splitted_label_image = labelSplitter.splitLabels(separationMethod, spotSigma, maximaRadius);
+			ClearCLBuffer splitted_label_image = labelSplitter.splitLabels(input_image, separationMethod, spotSigma, maximaRadius);
 			
 			ImagePlus outputImagePlus = BV3DBoxUtilities.pullImageFromGPU(labelSplitter.getCurrentCLIJ2Instance(), splitted_label_image, false, LutNames.GLASBEY_LUT);
 			splitted_label_image.close();
@@ -92,9 +98,10 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 		}
 		
 		
-		if (labelSplitter != null) {
-			labelSplitter.getCurrentCLIJ2Instance().close();			
+		if (clij2 != null) {
+			clij2.close();			
 		}
+		
 	}
 	
 	
@@ -103,7 +110,11 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 		
 		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
 		
-		labelSplitter = new BV_LabelSplitter(inputImagePlus);
+		input_image = clij2.push(inputImagePlus);
+		System.out.println(input_image);
+		
+		labelSplitter = new BV_LabelSplitter(clij2);
+		labelSplitter.setVoxelRatios(inputImagePlus);
 		
 		outputImageName = WindowManager.getUniqueName("BVLS_" + inputImagePlus.getTitle());
 		System.out.println(outputImageName);
@@ -125,7 +136,7 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 	
 	public void processImage() {
 		
-		ClearCLBuffer splitted_label_image = labelSplitter.splitLabels(separationMethod, spotSigma, maximaRadius);
+		ClearCLBuffer splitted_label_image = labelSplitter.splitLabels(input_image, separationMethod, spotSigma, maximaRadius);
 		
 		ImagePlus outputImagePlus = BV3DBoxUtilities.pullImageFromGPU(labelSplitter.getCurrentCLIJ2Instance(), splitted_label_image, false, LutNames.GLASBEY_LUT);
 		splitted_label_image.close();

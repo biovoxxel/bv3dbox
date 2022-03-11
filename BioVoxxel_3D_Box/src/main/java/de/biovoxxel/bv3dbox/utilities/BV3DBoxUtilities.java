@@ -8,6 +8,7 @@ import ij.ImagePlus;
 import ij.WindowManager;
 import ij.measure.Calibration;
 import ij.plugin.LutLoader;
+import ij.process.ImageConverter;
 import ij.process.LUT;
 import ij.process.StackStatistics;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
@@ -345,6 +346,24 @@ public class BV3DBoxUtilities {
 		return grayLUT;
 	}
 	
+	
+	public static ImagePlus convertToGray8(ImagePlus image) {
+		if (image.getProcessor().getBitDepth() > 8) {
+
+			ImagePlus byteTypeInputImage = image.duplicate();
+			ImageConverter ic = new ImageConverter(byteTypeInputImage);
+			ImageConverter.setDoScaling(true);
+			ic.convertToGray8();
+			log.debug("input image converted to byte processor");
+			
+			return byteTypeInputImage;
+			
+		} else {
+			
+			return image;
+			
+		}
+	}
 	
 	
 }

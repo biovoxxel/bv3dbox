@@ -217,6 +217,14 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	public void applyThreshold(double thresholdValue) {
 		
 		ClearCLBuffer outputImage = clij2.create(inputImage);
+		
+//		if (inputImagePlus.getBitDepth() == 16) {
+//			double minInt = inputImagePlus.getProcessor().getMin();
+//			double maxInt = inputImagePlus.getProcessor().getMax();
+//			thresholdValue = minInt + (thresholdValue * maxInt / 255.0);
+//		}
+//		log.debug("thresholdValue = " + thresholdValue);
+		
 		clij2.threshold(inputImage, outputImage, thresholdValue);
 		
 		String outputImageName = WindowManager.getUniqueName(thresholdMethod + "_" + inputImagePlus.getTitle());
@@ -289,12 +297,18 @@ public class BV_ThresholdCheck extends DynamicCommand {
 				
 		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO));
 		
+		ImageProcessor inputImageProcessor = inputImagePlus.getProcessor();
+		if (inputImageProcessor.getBitDepth() == 24) {
+			cancel("RGB images are not supported by auto thresholding");
+		}
+
+		originalLut = inputImagePlus.getProcessor().getLut();
+
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
 		
-		originalLut = inputImagePlus.getProcessor().getLut();
-				
-		inputImage = clij2.push(inputImagePlus);
+		inputImage = clij2.push(BV3DBoxUtilities.convertToGray8(inputImagePlus));
+					
 		log.debug(inputImagePlus.getTitle() + "pushed to GPU");
 		
 		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);

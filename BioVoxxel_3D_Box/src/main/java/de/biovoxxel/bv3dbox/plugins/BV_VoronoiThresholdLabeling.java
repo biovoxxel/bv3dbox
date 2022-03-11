@@ -170,13 +170,17 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			
 			ImagePlus tempImagePlus = new ImagePlus("tempImage", croppedStack);
 			log.debug("tempImagePlus = " + tempImagePlus);
-			
-			input_image = clij2.push(tempImagePlus);
+
+			input_image = clij2.push(BV3DBoxUtilities.convertToGray8(tempImagePlus));
 			
 		} else {
-			input_image = clij2.push(inputImagePlus);			
+			
+			input_image = clij2.push(BV3DBoxUtilities.convertToGray8(inputImagePlus));
+			
 		}
 	}
+	
+	
 	
 	
 	public void setParameters(String filterMethod, Float filterRadius, String backgroundSubtractionMethod, Float backgroundRadius, String thresholdMethod, String separationMethod, Float spotSigma, Float maximaRadius, String outputType) {

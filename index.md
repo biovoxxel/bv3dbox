@@ -237,6 +237,7 @@ The BioVoxxel 3D Box are distributed via the [BioVoxxel 3D Box update site]()
 ### Dependencies (ImageJ update sites)
 The following update sites need to be minimally active to be able to use all functionalities of the BioVoxxel 3D Box
 
+* bv3dbox
 * CLIJ2
 * CLIJx
 * 3D ImageJ Suite

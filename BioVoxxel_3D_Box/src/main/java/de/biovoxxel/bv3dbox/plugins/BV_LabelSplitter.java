@@ -6,6 +6,7 @@ package de.biovoxxel.bv3dbox.plugins;
 import org.joml.Math;
 
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
@@ -99,21 +100,28 @@ public class BV_LabelSplitter {
 		ClearCLBuffer thresholdedImage = clij2.create(input_image);
 				
 		clij2.threshold(input_image, thresholdedImage, 1);
-		
+						
 		switch (separationMethod) {
 		case "Maxima":
 			seedImage = detectMaxima(input_image, spotSigma, maximaRadius);
 			break;
-
+			
 		case "Eroded Maxima":
 			seedImage = detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
 			break;
 		
+		case "DoG Seeds":
+			ClearCLBuffer binary_8_bit_image = clij2.create(thresholdedImage);
+			clij2.replaceIntensity(thresholdedImage, binary_8_bit_image, 1, 255);
+			seedImage = detectDoGSeeds(binary_8_bit_image, spotSigma, maximaRadius);
+			binary_8_bit_image.close();
+			break;
+			
 		default:
 			seedImage = createErodedSeeds(thresholdedImage, Math.round(spotSigma), separationMethod);
 			break;
 		}
-		
+				
 		return createLabels(seedImage, thresholdedImage);
 	}
 	
@@ -161,6 +169,38 @@ public class BV_LabelSplitter {
 	
 	/**
 	 * 
+	 * @param input_image -	must be a binary image
+	 * @param sigma
+	 * @param threshold
+	 * @return
+	 */
+	public ClearCLBuffer detectDoGSeeds(ClearCLBuffer input_image, Float sigma, Float threshold) {
+		
+		ClearCLBuffer dog_image = clij2.create(input_image);
+		boolean is3D = input_image.getDimension() > 2 ? true : false;
+		
+		double y_filter_sigma = sigma * voxelRatios[0];
+		double z_filter_sigma = sigma / voxelRatios[1];
+		
+		if (is3D) {
+			
+			clij2.differenceOfGaussian3D(input_image, dog_image, 0, 0, 0, sigma, y_filter_sigma, z_filter_sigma);
+			
+		} else {
+			
+			clij2.differenceOfGaussian2D(input_image, dog_image, 0, 0, sigma, y_filter_sigma);
+			
+		}
+		
+		ClearCLBuffer dog_seed_image = clij2.create(dog_image);
+		clij2.different(input_image, dog_image, dog_seed_image, threshold);
+				
+		return dog_seed_image;
+	}
+	
+	
+	/**
+	 * 
 	 * @param input_image
 	 * @param erode_iteration
 	 * @param erosion_method
@@ -194,7 +234,7 @@ public class BV_LabelSplitter {
 	}
 	
 	
-	//experimental
+	//experimental / seem to not really work well --> not implemented via GUI
 	public ClearCLBuffer detectPlateaus(ClearCLBuffer input_image, Float spotSigma) {
 		
 		double y_filter_sigma = spotSigma * voxelRatios[0];
@@ -225,6 +265,8 @@ public class BV_LabelSplitter {
 		
 		ClearCLBuffer output_image = clij2.create(seed_image.getDimensions(), NativeTypeEnum.Float);
 		clij2.maskedVoronoiLabeling(masked_spots, thresholded_image, output_image);
+		
+		masked_spots.close();
 		
 		return output_image;
 	}

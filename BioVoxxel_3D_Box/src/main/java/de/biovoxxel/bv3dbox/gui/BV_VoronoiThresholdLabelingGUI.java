@@ -14,9 +14,11 @@ import org.scijava.widget.NumberWidget;
 import de.biovoxxel.bv3dbox.plugins.BV_LabelSplitter;
 import de.biovoxxel.bv3dbox.plugins.BV_VoronoiThresholdLabeling;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
 import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
+import net.haesleinhuepf.clij2.CLIJ2;
 import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
 import net.imagej.updater.UpdateService;
 
@@ -79,7 +81,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(label = "Histogram usage", choices = {"full", "ignore black", "ignore white", "ignore both"}, callback = "processImage")
 	private String histogramUsage = "full";
 	
-	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded Maxima", "Eroded box", "Eroded sphere"}, callback = "processImage")
+	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded Maxima", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
 	private String separationMethod = "Maxima";
 	
 	@Parameter(label = "Spot sigma / Erosion", min = "0f", callback = "processImage")
@@ -255,6 +257,12 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			seed_image = labelSplitter.detectMaxima(input_image, spotSigma, maximaRadius);		
 		} else if (separationMethod.equals("Eroded Maxima")) {
 			seed_image = labelSplitter.detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
+		} else if (separationMethod.equals("DoG Seeds")) {
+			CLIJ2 clij2 = bvvtl.getCurrentCLIJ2Instance();
+			ClearCLBuffer binary_8_bit_image = clij2.create(thresholded_image);
+			clij2.replaceIntensity(thresholded_image, binary_8_bit_image, 1, 255);
+			seed_image = labelSplitter.detectDoGSeeds(binary_8_bit_image, spotSigma, maximaRadius);
+			binary_8_bit_image.close();
 		} else {
 			seed_image = labelSplitter.createErodedSeeds(thresholded_image, Math.round(spotSigma), separationMethod);
 		}

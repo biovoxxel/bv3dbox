@@ -102,6 +102,11 @@ public class BV_LabelSplitter {
 		clij2.threshold(input_image, thresholdedImage, 1);
 						
 		switch (separationMethod) {
+		
+		case "None":
+			seedImage = thresholdedImage;
+			break;
+		
 		case "Maxima":
 			seedImage = detectMaxima(input_image, spotSigma, maximaRadius);
 			break;

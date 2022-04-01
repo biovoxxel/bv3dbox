@@ -74,14 +74,14 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	
 	@Parameter(label = "Background radius", min = "0f", max = "1000f", callback = "adaptBackground")
 	private Float backgroundRadius = 1.0f;
-	
+		
 	@Parameter(label = "Threshold method", initializer = "thresholdMethodList", callback = "processImage")
 	private String thresholdMethod = "Default";
 	
 	@Parameter(label = "Histogram usage", choices = {"full", "ignore black", "ignore white", "ignore both"}, callback = "processImage")
 	private String histogramUsage = "full";
 	
-	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded Maxima", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
+	@Parameter(label = "Separation method", choices = {"None", "Maxima", "Eroded Maxima", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
 	private String separationMethod = "Maxima";
 	
 	@Parameter(label = "Spot sigma / Erosion", min = "0f", callback = "processImage")

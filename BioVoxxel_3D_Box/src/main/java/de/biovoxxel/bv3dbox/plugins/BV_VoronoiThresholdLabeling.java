@@ -219,11 +219,10 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		thresholdedImage = thresholdImage(backgroundSubtractedImage, thresholdMethod);
 		backgroundSubtractedImage.close();
 		IJ.showProgress(0.6);
-		
+				
 		BV_LabelSplitter labelSplitter = new BV_LabelSplitter(clij2);
 		
-		seedImage = labelSplitter.splitLabels(thresholdedImage, separationMethod, spotSigma, maximaRadius);
-		outputImage = labelSplitter.createLabels(seedImage, thresholdedImage);
+		outputImage = labelSplitter.splitLabels(thresholdedImage, separationMethod, spotSigma, maximaRadius);
 		IJ.showProgress(0.8);
 		
 		thresholdedImage.close();

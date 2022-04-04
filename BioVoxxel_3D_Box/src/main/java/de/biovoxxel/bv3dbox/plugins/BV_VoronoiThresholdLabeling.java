@@ -17,7 +17,6 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
 import ij.gui.Roi;
-import ij.measure.Calibration;
 import ij.plugin.LutLoader;
 import ij.process.LUT;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
@@ -86,8 +85,7 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 	private Float maximaRadius = 0.0f;
 	private String outputType = "Labels";
 	
-	private double x_y_ratio;
-	private double z_x_ratio;
+	private double [] calibration;
 	
 	LUT grays = BV3DBoxUtilities.createGrayLUT();
 	LUT glasbey = LutLoader.openLut(IJ.getDirectory("luts") + LutNames.GLASBEY_LUT.lutName + ".lut");
@@ -152,7 +150,7 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		outputImageName = WindowManager.getUniqueName(OUTPUT_PREFIX + inputImagePlus.getTitle());
 		log.debug("outputImageName = " + outputImageName);
 		
-		readCalibration();
+		calibration = BV3DBoxUtilities.readCalibration(image);
 		
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
@@ -195,12 +193,6 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		this.outputType = outputType;
 	}
 	
-	private void readCalibration() {
-		Calibration cal = inputImagePlus.getCalibration();
-		x_y_ratio = cal.pixelWidth / cal.pixelHeight;
-		z_x_ratio = cal.pixelDepth / cal.pixelWidth;
-			
-	}
 	
 	
 
@@ -242,8 +234,8 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 					
 		ClearCLBuffer filtered_image = clij2.create(input_image);
 		
-		double y_filter_radius = filterRadius * x_y_ratio;
-		double z_filter_radius = filterRadius / z_x_ratio;
+		double y_filter_radius = filterRadius * calibration[1];
+		double z_filter_radius = filterRadius / calibration[2];
 		
 		long stackSize = input_image.getDepth();
 		
@@ -261,7 +253,7 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		
 		if (filterMethod.equals("DoG")) {
 			double dogFilterRadius = filterRadius + 2d;
-			clij2.differenceOfGaussian3D(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius, dogFilterRadius, (dogFilterRadius * x_y_ratio), (dogFilterRadius / z_x_ratio));
+			clij2.differenceOfGaussian3D(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius, dogFilterRadius, (dogFilterRadius * calibration[1]), (dogFilterRadius / calibration[2]));
 		}
 		
 		if (filterMethod.equals("Median")) {
@@ -300,8 +292,8 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		
 		ClearCLBuffer background_subtracted_image = clij2.create(filtered_image);
 		
-		double y_bckgr_radius = backgroundRadius * x_y_ratio;
-		double z_bckgr_radius = backgroundRadius / z_x_ratio;
+		double y_bckgr_radius = backgroundRadius * calibration[1];
+		double z_bckgr_radius = backgroundRadius / calibration[2];
 		
 		long zSlices = filtered_image.getDepth();
 		
@@ -330,11 +322,11 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		}
 		
 		if (backgroundSubtractionMethod.equals("TopHat")) {
-			clij2.topHatSphere(filtered_image, background_subtracted_image, backgroundRadius, y_bckgr_radius, z_bckgr_radius);
+			clij2.topHatBox(filtered_image, background_subtracted_image, backgroundRadius, y_bckgr_radius, z_bckgr_radius);
 		}
 		
 		if (backgroundSubtractionMethod.equals("BottomHat")) {
-			clij2.bottomHatSphere(filtered_image, background_subtracted_image, backgroundRadius, y_bckgr_radius, z_bckgr_radius);
+			clij2.bottomHatBox(filtered_image, background_subtracted_image, backgroundRadius, y_bckgr_radius, z_bckgr_radius);
 		}
 		
 		return background_subtracted_image;

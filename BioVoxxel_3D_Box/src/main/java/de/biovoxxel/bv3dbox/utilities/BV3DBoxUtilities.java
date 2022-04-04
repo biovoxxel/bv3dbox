@@ -127,6 +127,26 @@ public class BV3DBoxUtilities {
 		
 	}
 	
+	
+	/**
+	 * 
+	 * @param image
+	 * @return	double[] with first index 0 = pixel width, index 1 = width / height ratio, index 2 = width/ depth 
+	 */
+	public static double[] readCalibration(ImagePlus image) {
+		
+		double[] calibration = new double[3];
+		
+		Calibration cal = image.getCalibration();
+		calibration[0] = cal.pixelWidth;
+		calibration[1] = cal.pixelWidth / cal.pixelHeight;
+		calibration[2] = cal.pixelDepth / cal.pixelWidth;
+		
+		return calibration;
+			
+	}
+	
+	
 	public static String[] extendImageTitleListWithNone() {
 		String[] allImageNames = WindowManager.getImageTitles();
 		String[] imageNames = new String[allImageNames.length + 1];
@@ -264,6 +284,31 @@ public class BV3DBoxUtilities {
 	}
 	
 	
+	public static double getThresholdValue(CLIJ2 clij2, String thresholdMethod, ClearCLBuffer image, String limitation) {
+		
+		double min = 0;
+		double max = 255;
+		
+		switch (limitation) {
+		case "full":
+			break;
+		case "ignore black":
+			min = 1;
+			break;
+		case "ignore white":
+			max = 254;
+			break;
+		case "ignore both":
+			min = 1;
+			max = 254;
+			break;
+		default:
+			break;
+		}
+			
+		return clij2.getAutomaticThreshold(image, thresholdMethod, min, max, 256);
+	}
+	
 	
 	public static int getThresholdValue(String thresholdMethod, int[] histogram) {
 		
@@ -274,13 +319,13 @@ public class BV3DBoxUtilities {
 	}
 	
 	
-	public static ClearCLBuffer thresholdImage(CLIJ2 clij2, ClearCLBuffer background_subtracted_image, double threshold) {
+	public static ClearCLBuffer thresholdImage(CLIJ2 clij2, ClearCLBuffer input_image, double threshold) {
 		
 		log.debug("threshold = " + threshold);
 		
-		ClearCLBuffer thresholded_image = clij2.create(background_subtracted_image);
+		ClearCLBuffer thresholded_image = clij2.create(input_image);
 		
-		clij2.threshold(background_subtracted_image, thresholded_image, threshold);
+		clij2.threshold(input_image, thresholded_image, threshold);
 		
 		return thresholded_image;
 		
@@ -328,6 +373,20 @@ public class BV3DBoxUtilities {
 			 this.lutName = lutName;
 		}
 	}
+	
+	
+//	public enum HistogramLimit {
+//		FULL("full"),
+//		IGNORE_BLACK("ignore black"),
+//		IGNORE_WHITE("ignore white"),
+//		IGNORE_BOTH("ignore both");
+//		
+//		public final String limit;
+//		
+//		HistogramLimit(String limit) {
+//			 this.limit = limit;
+//		}
+//	}
 	
 	public static LUT createGrayLUT() {
 		

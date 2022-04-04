@@ -14,7 +14,6 @@ import org.scijava.widget.NumberWidget;
 import de.biovoxxel.bv3dbox.plugins.BV_LabelSplitter;
 import de.biovoxxel.bv3dbox.plugins.BV_VoronoiThresholdLabeling;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
-import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
 import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
@@ -158,8 +157,9 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			stackSlice.setMaximumValue(1);
 		}
 		
-		
-		stackHistogram = BV3DBoxUtilities.getHistogram(inputImagePlus);
+		if (inputImagePlus.getRoi() != null) {
+			stackHistogram = BV3DBoxUtilities.getHistogram(inputImagePlus);			
+		}
 	}
 
 
@@ -225,15 +225,21 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		ClearCLBuffer background_subtracted_image = bvvtl.backgroundSubtraction(filtered_image, backgroundSubtractionMethod, backgroundRadius);
 		filtered_image.close();
 		
+		double thresholdValue = 0.0;
 		
-		int[] finalHistogram = stackHistogram.clone();
-		//System.out.println("initial stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
-		
-		switch(histogramUsage) {
+		if (inputImagePlus.getRoi() == null) {
+			
+			thresholdValue = BV3DBoxUtilities.getThresholdValue(bvvtl.getCurrentCLIJ2Instance(), thresholdMethod, background_subtracted_image, histogramUsage);
+			
+		} else {
+			
+			int[] finalHistogram = stackHistogram.clone();
+			//System.out.println("initial stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
+			
+			switch(histogramUsage) {
 			
 			case "ignore black":
 				finalHistogram[0] = 0;
-				
 				break;
 				
 			case "ignore white":
@@ -244,16 +250,25 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 				finalHistogram[0] = 0;
 				finalHistogram[stackHistogram.length-1] = 0;
 				break;
-		}
-		//System.out.println("final stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
 				
-		double thresholdValue = BV3DBoxUtilities.getThresholdValue(thresholdMethod, finalHistogram);
+			default:
+				break;
+			}
+			//System.out.println("final stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
+			
+			thresholdValue = BV3DBoxUtilities.getThresholdValue(thresholdMethod, finalHistogram);
+		}
+		
+		
 		
 		ClearCLBuffer thresholded_image = BV3DBoxUtilities.thresholdImage(bvvtl.getCurrentCLIJ2Instance(), background_subtracted_image, thresholdValue);		
 		background_subtracted_image.close();
 				
 		ClearCLBuffer seed_image = bvvtl.getCurrentCLIJ2Instance().create(input_image);
-		if (separationMethod.equals("Maxima")) {
+		
+		if (separationMethod.equals("None")) {
+			seed_image = thresholded_image;
+		} else if (separationMethod.equals("Maxima")) {
 			seed_image = labelSplitter.detectMaxima(input_image, spotSigma, maximaRadius);		
 		} else if (separationMethod.equals("Eroded Maxima")) {
 			seed_image = labelSplitter.detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
@@ -266,6 +281,8 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		} else {
 			seed_image = labelSplitter.createErodedSeeds(thresholded_image, Math.round(spotSigma), separationMethod);
 		}
+		
+		
 		ClearCLBuffer output_image = labelSplitter.createLabels(seed_image, thresholded_image);
 		
 		thresholded_image.close();
@@ -293,6 +310,8 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		if (outputImagePlus != null) {
 			outputImagePlus.close();
 		}
+		
+		bvvtl.getCurrentCLIJ2Instance().close();
 		
 	}
 

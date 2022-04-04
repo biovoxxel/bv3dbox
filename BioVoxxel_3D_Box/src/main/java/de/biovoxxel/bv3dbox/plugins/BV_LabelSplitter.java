@@ -126,8 +126,13 @@ public class BV_LabelSplitter {
 			seedImage = createErodedSeeds(thresholdedImage, Math.round(spotSigma), separationMethod);
 			break;
 		}
-				
-		return createLabels(seedImage, thresholdedImage);
+		
+		ClearCLBuffer label_image = createLabels(seedImage, thresholdedImage);
+		
+		seedImage.close();
+		thresholdedImage.close();
+		
+		return label_image;
 	}
 	
 	/**
@@ -169,6 +174,8 @@ public class BV_LabelSplitter {
 		
 		ClearCLBuffer eroded_maxima = detectMaxima(eroded_seeds, 0f, maximaRadius);
 		
+		eroded_seeds.close();
+		
 		return eroded_maxima;
 	}
 	
@@ -199,7 +206,9 @@ public class BV_LabelSplitter {
 		
 		ClearCLBuffer dog_seed_image = clij2.create(dog_image);
 		clij2.different(input_image, dog_image, dog_seed_image, threshold);
-				
+		
+		dog_image.close();
+		
 		return dog_seed_image;
 	}
 	

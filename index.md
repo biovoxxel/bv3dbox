@@ -125,7 +125,7 @@ Parameter meaning and usage:
 
 ### Label Splitter
 The label splitter is the equivalent of a watershedding function for binary images or images containing labeld objects already. It will separate objects according to the following methods. The output image will be displayed as consecutive intensity labels (intensity = identifier).
-This is the last part of the [Voronoi Threshold Labeler](Voronoi Threshold Labeler) processing.
+This is the last part of the [Voronoi Threshold Labeler](#voronoi-threshold-labeler) processing.
 
 Methods:
 * `Separation method`: There are 3 different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are

@@ -10,7 +10,7 @@
 
 Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) functions now for 2D and 3D images in one place. All functions are heavily based on GPU computing via the fabulous [CLIJ2 library](https://clij.github.io/). Segmentation output is based stronger on labels (intensity coding of objects) instead of ROIs. Those labels can be equivalently used like ROIs with many CLIJ2 functions. Also label images created via other tools such as [MorphoLibJ](https://imagej.net/plugins/morpholibj) are suitable inputs for any plugin using labels.
 
-![image](https://user-images.githubusercontent.com/10721817/152758424-ec724aa7-7202-4047-a530-8420b87f38c9.png)
+![image](https://user-images.githubusercontent.com/10721817/161776889-5ff12148-fe8c-4b12-a8a1-f46d14b7fa0b.png)
 
 
 # Functionalities
@@ -103,11 +103,8 @@ Parameter meaning and usage:
 * `Background radius`: Strength of background homogenization. One can orient on a certain prinziple like, the bigger the objects, the bigger the radius needed.
 * `Histogram usage`: either the complete histogram can be handed to the thresholding algorithm or a limited one by ignoring black or white or both (black and white) pixels to achive better segmentation results.
 * `Threshold method`: Automatic intensity threshold to extract basic object areas after the upper pre-processing steps
-* `Separation method`: There are 3 different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are
-  * `Maxima`: intensity maxima are determined on the original image in a square/box neighborhood defined by the `Maxima detection radius` after applying a gaussian blur on the original image in a neighborhood defined by the `Spot sigma`. The detected maxima are the seeds from which the objects are filled via a masked voronoi extension.
-  * `Eroded Maxima`: takes the input image and erodes the objects using the `Spot sigma` as erosion iterations. Then it identifies intensity maxima on the eroded objects using the `Maxima detection radius`. 
-  * `Eroded box`: The extracted objects/areas are eroded in a square/box neighborhood defined by the `Spot sigma` and used as a seed for the same voronoi filling of the objects.
-  * `Eroded sphere`: The extracted objects/areas are eroded in a circle/sphere neighborhood defined by the `Spot sigma` and used as seeds.
+* `Separation method`: There are different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are explained below in the section [Label Splitter](#label-splitter)
+ 
   
   The erosion methods are useful for bigger and irregularly shaped objects, while the maxima method performs better for smaller objects. The erosion-based methods ignore the field `Maxima detection radius`. Too high spot sigmas will delete smaller objects from the image.
 * `Spot sigma`: Blurring strength for maxima detection OR neighborhood definition for the ersosion methods.
@@ -122,6 +119,47 @@ Parameter meaning and usage:
 
 ![Original-small](https://user-images.githubusercontent.com/10721817/154435398-b3a57ca1-6a88-499a-86d9-7c3d7a9d97de.gif)   ![Extracted-small](https://user-images.githubusercontent.com/10721817/154435426-957f4c4c-50ca-405d-a876-17d0a7fed78b.gif)
 
+---
+
+## Labels
+
+### Label Splitter
+The label splitter is the equivalent of a watershedding function for binary images or images containing labeld objects already. It will separate objects according to the following methods. The output image will be displayed as consecutive intensity labels (intensity = identifier).
+This is the last part of the [Voronoi Threshold Labeler](Voronoi Threshold Labeler) processing.
+
+Methods:
+* `Separation method`: There are 3 different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are
+  * `Maxima`: intensity maxima are determined on the original image in a square/box neighborhood defined by the `Maxima detection radius` after applying a gaussian blur on the original image in a neighborhood defined by the `Spot sigma`. The detected maxima are the seeds from which the objects are filled via a masked voronoi extension.
+  * `Eroded Maxima`: takes the input image and erodes the objects using the `Spot sigma` as erosion iterations. Then it identifies intensity maxima on the eroded objects using the `Maxima detection radius`.
+  * `DoG Seeds`: There will be a difference of gausian (DoG) filter be applied on the segmented binary objects which leads to smooth seed objects still dependent on the original object size bit with less smaller fragmented seeds. This does not work well on big connections/bridges between objects but has advantages on fairly irregularly shaped objects.
+  *  `Eroded box`: The extracted objects/areas are eroded in a square/box neighborhood defined by the `Spot sigma` and used as a seed for the same voronoi filling of the objects.
+  * `Eroded sphere`: The extracted objects/areas are eroded in a circle/sphere neighborhood defined by the `Spot sigma` and used as seeds.
+  
+  The erosion methods are useful for bigger and irregularly shaped objects, while the maxima method performs better for smaller objects. The erosion-based methods ignore the field `Maxima detection radius`. Too high spot sigmas will delete smaller objects from the image.
+* `Spot sigma`: Blurring strength for maxima detection OR neighborhood definition for the ersosion methods.
+* `Maxima detection radius`: Defines the box neighborhood in which unique maxima are detected. 
+
+![image](https://user-images.githubusercontent.com/10721817/152409487-3cfd3313-90ff-4004-871f-48b91eba554a.png)
+
+Further separation methods are planned to be added, so stay tuned!
+
+---
+
+### Separate Labels
+
+The label separator takes a label image and places a separation in form of background pixels between touching labels. This can be considered the equivalent of the standard binary watershed function in ImageJ / Fiji. This can influence further post processing such as erosion or opening functions from the Post Processor.
+
+![image](https://user-images.githubusercontent.com/10721817/155353310-c66c9f86-cbe2-4c3a-9cfa-99a2a2a70c0d.png)
+
+
+---
+
+### Post Processor
+This tool is meant to be used on binary images or labels but can be used for most functions also as a normal image filter tool. This way, is partially the counter part of the [Filter Check](https://imagej.net/plugins/biovoxxel-toolbox#filter-check)
+
+![image](https://user-images.githubusercontent.com/10721817/151672895-30af6deb-67b4-45fb-ac6d-5deb9777c8a7.png)
+
+_Ongoing development: more filter functions will be added in future_
 
 ---
 
@@ -174,47 +212,6 @@ Parameters:
 
 ---
 
-## Labels
-
-### Label Splitter
-The label splitter is the equivalent of a watershedding function for binary images or images containing labeld objects already. It will separate objects according to the following methods. The output image will be displayed as consecutive intensity labels (intensity = identifier).
-This is the last part of the [Voronoi Threshold Labeler](Voronoi Threshold Labeler) processing.
-
-Methods:
-* `Separation method`: There are 3 different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are
-  * `Maxima`: intensity maxima are determined on the original image in a square/box neighborhood defined by the `Maxima detection radius` after applying a gaussian blur on the original image in a neighborhood defined by the `Spot sigma`. The detected maxima are the seeds from which the objects are filled via a masked voronoi extension.
-  * `Eroded Maxima`: takes the input image and erodes the objects using the `Spot sigma` as erosion iterations. Then it identifies intensity maxima on the eroded objects using the `Maxima detection radius`.
-  *  `Eroded box`: The extracted objects/areas are eroded in a square/box neighborhood defined by the `Spot sigma` and used as a seed for the same voronoi filling of the objects.
-  * `Eroded sphere`: The extracted objects/areas are eroded in a circle/sphere neighborhood defined by the `Spot sigma` and used as seeds.
-  
-  The erosion methods are useful for bigger and irregularly shaped objects, while the maxima method performs better for smaller objects. The erosion-based methods ignore the field `Maxima detection radius`. Too high spot sigmas will delete smaller objects from the image.
-* `Spot sigma`: Blurring strength for maxima detection OR neighborhood definition for the ersosion methods.
-* `Maxima detection radius`: Defines the box neighborhood in which unique maxima are detected. 
-
-![image](https://user-images.githubusercontent.com/10721817/152409487-3cfd3313-90ff-4004-871f-48b91eba554a.png)
-
-Further separation methods are planned to be added, so stay tuned!
-
----
-
-### Separate Labels
-
-The label separator takes a label image and places a separation in form of background pixels between touching labels. This can be considered the equivalent of the standard binary watershed function in ImageJ / Fiji. This can influence further post processing such as erosion or opening functions from the Post Processor.
-
-![image](https://user-images.githubusercontent.com/10721817/155353310-c66c9f86-cbe2-4c3a-9cfa-99a2a2a70c0d.png)
-
-
----
-
-### Post Processor
-This tool is meant to be used on binary images or labels but can be used for most functions also as a normal image filter tool. This way, is partially the counter part of the [Filter Check](https://imagej.net/plugins/biovoxxel-toolbox#filter-check)
-
-![image](https://user-images.githubusercontent.com/10721817/151672895-30af6deb-67b4-45fb-ac6d-5deb9777c8a7.png)
-
-_Ongoing development: more filter functions will be added in future_
-
----
-
 ## Additional Functions
 
 ### Add Labels to 3D ROI Manager
@@ -223,6 +220,16 @@ This adds all 2D or 3D labels as ROIs to the 3D ROI Manager from the magnificent
 ![image](https://user-images.githubusercontent.com/10721817/152698429-62a83164-01b1-40bc-a4ca-a24b8e977db0.png)
 
 In some cases this function might run a little unstable and ROIs might not directly be visible in the ROI Manager. Either try again or play with the Live ROI activation in the 3D ROI Manager.
+
+---
+
+### Add Labels to 2D ROI Manager
+This is based on a Groovy script from Bram van den Broek (@bramvdbroek) shown and discused [here](https://forum.image.sc/t/clij-label-map-to-roi-fast-version/51356/34)
+
+---
+
+### Make 3D Image Isotropic
+For some operations, isotropic voxels create better segmentation results due to how the individual methods are applied to the image. Therefore, it can be advantages to convert the image into one having isotropic voxels. This function is considering the actual calibration of the image e.g. in µm and reslices the volume to create those isotropic voxels. This however will apply liniear interpolation to the intensity values and change those. So, one needs to choose between best segmentation result or most original intensity values in some cases.
 
 ---
 

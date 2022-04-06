@@ -12,6 +12,7 @@ import org.scijava.prefs.PrefService;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxSettings;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
+import features.TubenessProcessor;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -69,6 +70,8 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 	LogService log = new StderrLogService();
 			
 	private CLIJ2 clij2;
+	private TubenessProcessor tubenessProcessor = new TubenessProcessor(false);
+	ImagePlus tubenessImagePlus;
 	
 	private ImagePlus inputImagePlus;
 	private ClearCLBuffer input_image;
@@ -243,45 +246,45 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			z_filter_radius = 0;
 		}
 		
-		if (filterMethod.equals("None")) {
-			clij2.copy(input_image, filtered_image);
-		}
-		
-		if (filterMethod.equals("Gaussian")) {
+		switch (filterMethod) {
+		case "Gaussian":
 			clij2.gaussianBlur3D(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius);
-		}
-		
-		if (filterMethod.equals("DoG")) {
+			break;
+		case "DoG":
 			double dogFilterRadius = filterRadius + 2d;
 			clij2.differenceOfGaussian3D(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius, dogFilterRadius, (dogFilterRadius * calibration[1]), (dogFilterRadius / calibration[2]));
-		}
-		
-		if (filterMethod.equals("Median")) {
+			break;
+		case "Median":
 			if (stackSize == 1) {
 				clij2.median2DSphere(input_image, filtered_image, filterRadius, y_filter_radius);	
 			} else {
 				clij2.median3DSliceBySliceSphere(input_image, filtered_image, filterRadius, y_filter_radius);
 			}
-		}
-		
-		if (filterMethod.equals("Mean")) {
+			break;
+		case "Mean":
 			if (stackSize == 1) {
 				clij2.mean2DSphere(input_image, filtered_image, filterRadius, y_filter_radius);	
 			} else {
 				clij2.mean3DSphere(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius);				
 			}
-		}
-		
-		if (filterMethod.equals("Open")) {
+			break;
+		case "Open":
 			clij2.greyscaleOpeningSphere(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius);
-		}
-		
-		if (filterMethod.equals("Close")) {
+			break;
+		case "Close":
 			clij2.greyscaleClosingSphere(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius);
-		}
-		
-		if (filterMethod.equals("Variance")) {
+			break;
+		case "Variance":
 			clij2.varianceSphere(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius);
+			break;
+		case "Tubeness":
+			tubenessProcessor.setSigma(filterRadius);
+			tubenessImagePlus = tubenessProcessor.generateImage(inputImagePlus);
+			filtered_image = clij2.push(tubenessImagePlus);
+			break;
+		default:
+			clij2.copy(input_image, filtered_image);
+			break;
 		}
 		
 		return filtered_image;

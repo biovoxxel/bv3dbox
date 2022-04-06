@@ -174,9 +174,9 @@ Input parameters are:
 * `Primary original image`: The original image related to the primary objects. This has to be provided only if pixel intensity-related values should be analyzed
 * `Secondary original image`: The original image related to the secondary objects. This has to be provided only if pixel intensity-related values should be analyzed
 * `Primary volume limitation`: all primary objects inside this 2D area / 3D volume range will be analyzed. All others will be excluded from analysis
-* `Primary MMDTC ratio`: This refers to the **M**ean / **M**ax **D**istance **T**o **C**entroid ratio (ratio between the average and maximum distance of the objects' border to the centroid). This is used to exclude objects of similar size but difference in shape (similar to the circularity in the standard ImageJ `Analyze Particles...`function.
+* `Primary mean/max extension ratio`: This refers to the **M**ean / **M**ax **E**xtension **R**atio (ratio between the average and maximum distance of the objects' border to the centroid). This is used to exclude objects of similar size but difference in shape (similar to the circularity in the standard ImageJ `Analyze Particles...`function.
 * `Secondary volume limitation`: equivalent of the above for the secondary objects.
-* `Secondary MMDTC ratio`: equivalent of the above for the secondary objects.
+* `Secondary mean/max extension ratio`: equivalent of the above for the secondary objects.
 * `Exclude primary edge objects`: All objects which touch the image border or in 3D the image borders and the upper and lower stack slice will be excluded. All secondary objects contained in those objects will also be removed from the nalysis and output image
 * `Pad stack tops`: if active it will add a black slice before the first and after the last stack slice. This avoids removing primary objects still visible in the first and last slice if _Exclude primary edge objects_ is active. To achieve proper measurements, however, it is recommended to avoid this function and acquire objects completely during imaging.
 * `Show analysis label maps`: will display the analyzed objects as intensity coded labels (with new consecutive numbering)

@@ -74,14 +74,14 @@ public class BV_ObjectInspectorGUI extends DynamicCommand {
 	@Parameter(required = true, label = "Primary volume limitation", description = "")
 	private String primary_volume_range = "0-Infinity";
 	
-	@Parameter(required = true, label = "Primary MMDTC ratio", description = "")
-	private String primary_MMDTCR_range = "0.00-1.00";
+	@Parameter(required = true, label = "Primary mean/max extension ratio", description = "")
+	private String primary_MMER_range = "0.00-1.00";
 	
 	@Parameter(required = true, label = "Secondary volume limitation", description = "")
 	private String secondary_volume_range = "0-Infinity";
 	
-	@Parameter(required = true, label = "Secondary MMDTC ratio", description = "")
-	private String secondary_MMDTCR_range = "0.00-1.00";
+	@Parameter(required = true, label = "Secondary mean/max extension ratio", description = "")
+	private String secondary_MMER_range = "0.00-1.00";
 	
 	@Parameter(required = false, label = "Exclude primary edge objects", description = "")
 	private Boolean exclude_primary_objects_on_edges = true;
@@ -133,9 +133,9 @@ public class BV_ObjectInspectorGUI extends DynamicCommand {
 		
 		bvoi.setOriginalImages(original_1_title, original_2_title);
 		bvoi.setPrimaryVolumeRange(primary_volume_range);
-		bvoi.setPrimaryMMDTCRRange(primary_MMDTCR_range);
+		bvoi.setPrimaryMMDTCRRange(primary_MMER_range);
 		bvoi.setSecondaryVolumeRange(secondary_volume_range);
-		bvoi.setSecondaryMMDTCRRange(secondary_MMDTCR_range);
+		bvoi.setSecondaryMMDTCRRange(secondary_MMER_range);
 		bvoi.setEdgeExclusion(exclude_primary_objects_on_edges);
 		bvoi.setOutputImageFlags(display_analyzed_label_maps, show_count_map);
 		

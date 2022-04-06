@@ -76,9 +76,9 @@ public class BV_ObjectInspector implements Cancelable {
 	private String original_1_title;
 	private String original_2_title;
 	private String primary_volume_range = "0-Infinity";
-	private String primary_MMDTCR_range = "0.00-1.00";
+	private String primary_MMER_range = "0.00-1.00";
 	private String secondary_volume_range = "0-Infinity";
-	private String secondary_MMDTCR_range = "0.00-1.00";
+	private String secondary_MMER_range = "0.00-1.00";
 	private Boolean exclude_primary_objects_on_edges = true;
 	private Boolean pad_stack_tops = false;
 	private Boolean display_analyzed_label_maps = false;
@@ -137,10 +137,10 @@ public class BV_ObjectInspector implements Cancelable {
 	 * 
 	 * This is still experimental and might change e.g. to mean-to-max-extension ratio.
 	 * 
-	 * @param primary_MMDTCR_range
+	 * @param primary_MMER_range
 	 */
-	public void setPrimaryMMDTCRRange(String primary_MMDTCR_range) {
-		this.primary_MMDTCR_range = primary_MMDTCR_range;
+	public void setPrimaryMMDTCRRange(String primary_MMER_range) {
+		this.primary_MMER_range = primary_MMER_range;
 	}
 	
 	/**
@@ -159,10 +159,10 @@ public class BV_ObjectInspector implements Cancelable {
 	 * 
 	 * This is still experimental and might change e.g. to mean-to-max-extension ratio.
 	 * 
-	 * @param secondary_MMDTCR_range
+	 * @param secondary_MMER_range
 	 */
-	public void setSecondaryMMDTCRRange(String secondary_MMDTCR_range) {
-		this.secondary_MMDTCR_range = secondary_MMDTCR_range;
+	public void setSecondaryMMDTCRRange(String secondary_MMER_range) {
+		this.secondary_MMER_range = secondary_MMER_range;
 	}
 	
 	/**
@@ -210,9 +210,9 @@ public class BV_ObjectInspector implements Cancelable {
 		log.debug("original_1_title = " + original_1_title);
 		log.debug("original_2_title = " + original_2_title);
 		log.debug("primary_volume_range = " + primary_volume_range);
-		log.debug("primary_MMDTCR_range = " + primary_MMDTCR_range);
+		log.debug("primary_MMDTCR_range = " + primary_MMER_range);
 		log.debug("secondary_volume_range = " + secondary_volume_range);
-		log.debug("secondary_MMDTCR_range = " + secondary_MMDTCR_range);
+		log.debug("secondary_MMDTCR_range = " + secondary_MMER_range);
 		log.debug("exclude_primary_objects_on_edges = " + exclude_primary_objects_on_edges);
 		log.debug("pad_stack_tops = " + pad_stack_tops);
 		log.debug("display_analyzed_label_maps = " + display_analyzed_label_maps);
@@ -405,7 +405,7 @@ public class BV_ObjectInspector implements Cancelable {
 		ResultsTable final_edge_analysis_table_1 = new ResultsTable();
 		
 		//TODO: test if min_max- or mean_max
-		labelExclusion(labels_1_gpu, primary_volume_range, primary_MMDTCR_range, final_edge_analysis_table_1, finalLabels_1);
+		labelExclusion(labels_1_gpu, primary_volume_range, primary_MMER_range, final_edge_analysis_table_1, finalLabels_1);
 
 		labels_1_gpu.close();
 		
@@ -435,7 +435,7 @@ public class BV_ObjectInspector implements Cancelable {
 		ResultsTable final_edge_analysis_table_2 = new ResultsTable();
 		
 		//TODO: test if min_max- or mean_max
-		labelExclusion(maskedLabels_2, secondary_volume_range, secondary_MMDTCR_range, final_edge_analysis_table_2, finalLabels_2);
+		labelExclusion(maskedLabels_2, secondary_volume_range, secondary_MMER_range, final_edge_analysis_table_2, finalLabels_2);
 
 		maskedLabels_2.close();
 				
@@ -707,7 +707,7 @@ public class BV_ObjectInspector implements Cancelable {
 	
 	}
 	
-	public void labelExclusion(ClearCLBuffer input, String volumeRange, String MMDTC_Range, ResultsTable final_edge_analysis_table, ClearCLBuffer output) throws NumberFormatException {
+	public void labelExclusion(ClearCLBuffer input, String volumeRange, String MMER_Range, ResultsTable final_edge_analysis_table, ClearCLBuffer output) throws NumberFormatException {
 		
 		log.debug("Starting label exclusion for " + input.getName());
 		//get minimum volume limiter
@@ -719,12 +719,12 @@ public class BV_ObjectInspector implements Cancelable {
 		log.debug("Max volume = " + maxVolume);
 
 		//get MAX_MIN_DISTANCE_TO_CENTROID_RATIO minimum limiter
-		float min_MMDTCR = BV3DBoxUtilities.getMinFromRange(MMDTC_Range);
-		log.debug("Min MMDTCR = " + min_MMDTCR);
+		float min_MMER = BV3DBoxUtilities.getMinFromRange(MMER_Range);
+		log.debug("Min MMDTCR = " + min_MMER);
 		
 		//get MAX_MIN_DISTANCE_TO_CENTROID_RATIO maximum limiter
-		float max_MMDTCR = BV3DBoxUtilities.getMaxFromRange(MMDTC_Range);
-		log.debug("Max MMDTCR = " + max_MMDTCR);
+		float max_MMER = BV3DBoxUtilities.getMaxFromRange(MMER_Range);
+		log.debug("Max MMDTCR = " + max_MMER);
 		
 			
 		ResultsTable inputStatisticsTable = new ResultsTable(); 
@@ -756,9 +756,9 @@ public class BV_ObjectInspector implements Cancelable {
 			log.debug("Object --> " + object + " Volume = " + volumeOfLabel[object] + "/ min-max-extension-ratio = " + min_max_extension_ratio[object]);
 			
 			mean_max_extension_ratio[object] = (max_extension[object] == 0) ? 0 : mean_extension[object] / max_extension[object];
-			log.debug("Object --> " + object + " --> mean-max-extension-ratio = " + min_max_extension_ratio[object]);
+			log.debug("Object --> " + object + " --> mean-max-extension-ratio = " + mean_max_extension_ratio[object]);
 			
-			if (volumeOfLabel[object] >= minVolume && volumeOfLabel[object] <= maxVolume && min_max_extension_ratio[object] >= min_MMDTCR && min_max_extension_ratio[object] <= max_MMDTCR) {
+			if (volumeOfLabel[object] >= minVolume && volumeOfLabel[object] <= maxVolume && mean_max_extension_ratio[object] >= min_MMER && mean_max_extension_ratio[object] <= max_MMER) {
 				
 				label_exclusion_vector[object + 1] = 0;	//keep label
 				keptObjects++;

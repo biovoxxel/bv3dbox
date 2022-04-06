@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.biovoxxel</groupId>
 	<artifactId>bv3dbox</artifactId>
-	<version>1.7.3</version>
+	<version>1.8.0</version>
   
 	<name>BioVoxxel 3D Box</name>
 	<inceptionYear>2021</inceptionYear>
@@ -116,6 +116,13 @@
 	    	<artifactId>mcib3d-core</artifactId>
 	    	<version>4.0.1</version>
 	    </dependency>
+	    <!-- https://mvnrepository.com/artifact/sc.fiji/Fiji_Plugins -->
+		<dependency>
+		    <groupId>sc.fiji</groupId>
+		    <artifactId>Fiji_Plugins</artifactId>
+		    <version>3.1.1</version>
+		</dependency>
+	    
 	</dependencies>
 	
 	<build>

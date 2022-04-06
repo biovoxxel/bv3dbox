@@ -15,7 +15,7 @@ import ij.measure.Calibration;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Segmentation>Make Isotropic Image")
+@Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Segmentation>Make 3D Image Isotropic")
 public class BV_MakeIsotropicImageGUI implements Command {
 
 	

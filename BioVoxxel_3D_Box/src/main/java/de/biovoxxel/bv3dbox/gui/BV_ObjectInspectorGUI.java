@@ -64,7 +64,7 @@ public class BV_ObjectInspectorGUI extends DynamicCommand {
 	private ImagePlus secondary_ImagePlus;
 	
 	
-	@Parameter(required = true, persist = true, label = "Primary original image", description = "", initializer = "initializeOriginalImageChoices")
+	@Parameter(required = true, persist = true, label = "Primary original image (gray)", description = "", initializer = "initializeOriginalImageChoices")
 	private String original_1_title;
 	
 	@Parameter(required = true, persist = true, label = "Secondary original image (gray)", description = "", initializer = "initializeOriginalImageChoices")

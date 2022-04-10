@@ -12,7 +12,6 @@ import org.scijava.prefs.PrefService;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxSettings;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
-import features.TubenessProcessor;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -21,7 +20,10 @@ import ij.gui.Roi;
 import ij.plugin.LutLoader;
 import ij.process.LUT;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
+import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
+import net.haesleinhuepf.clijx.CLIJx;
+import net.haesleinhuepf.clijx.imagej2.ImageJ2Tubeness;
 
 
 /*
@@ -70,8 +72,11 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 	LogService log = new StderrLogService();
 			
 	private CLIJ2 clij2;
-	private TubenessProcessor tubenessProcessor = new TubenessProcessor(false);
-	ImagePlus tubenessImagePlus;
+	private CLIJx clijx;
+	
+	ImageJ2Tubeness ij2Tubeness = new ImageJ2Tubeness();
+//	private TubenessProcessor tubenessProcessor = new TubenessProcessor(false);
+//	ImagePlus tubenessImagePlus;
 	
 	private ImagePlus inputImagePlus;
 	private ClearCLBuffer input_image;
@@ -158,6 +163,9 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
 		
+		clijx = CLIJx.getInstance();
+		clijx.clear();
+		
 		Roi currentRoi = inputImagePlus.getRoi();
 		log.debug("currentRoi = " + currentRoi);
 		
@@ -230,7 +238,10 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		
 	}
 
-
+	
+	public void invertImage(ClearCLBuffer input_image, ClearCLBuffer inverted_image) {
+		clij2.invert(input_image, inverted_image);
+	}
 	
 
 	public ClearCLBuffer filterImage(ClearCLBuffer input_image, String filterMethod, Float filterRadius) {
@@ -278,9 +289,18 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			clij2.varianceSphere(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius);
 			break;
 		case "Tubeness":
-			tubenessProcessor.setSigma(filterRadius);
-			tubenessImagePlus = tubenessProcessor.generateImage(inputImagePlus);
-			filtered_image = clij2.push(tubenessImagePlus);
+			ij2Tubeness.imageJ2Tubeness(clij2, input_image, filtered_image, filterRadius, 0f, 0f, 0f);
+//			tubenessProcessor.setSigma(filterRadius);
+//			tubenessImagePlus = tubenessProcessor.generateImage(inputImagePlus);
+//			tubenessImagePlus.getProcessor().invert();
+//			filtered_image = clij2.push(tubenessImagePlus);
+			break;
+		case "Inverted Tubeness":
+			ClearCLBuffer inverted_image = clij2.create(input_image.getDimensions(), NativeTypeEnum.Float);
+			clij2.invert(input_image, inverted_image);
+			//BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, inverted_image, false, LutNames.GRAY);
+			ij2Tubeness.imageJ2Tubeness(clij2, inverted_image, filtered_image, filterRadius, 0f, 0f, 0f);
+			inverted_image.close();
 			break;
 		default:
 			clij2.copy(input_image, filtered_image);
@@ -304,16 +324,14 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			z_bckgr_radius = 0;
 		}
 		
-		
-		if (backgroundSubtractionMethod.equals("None")) {
+		switch (backgroundSubtractionMethod) {
+		case "None":
 			clij2.copy(filtered_image, background_subtracted_image);
-		}
-		
-		if (backgroundSubtractionMethod.equals("DoG")) {
+			break;
+		case "DoG":
 			clij2.differenceOfGaussian3D(filtered_image, background_subtracted_image, 0, 0, 0, backgroundRadius, y_bckgr_radius, z_bckgr_radius);	
-		}
-
-		if (backgroundSubtractionMethod.equals("DoM")) {
+			break;
+		case "DoM":
 			ClearCLBuffer tempMedian = clij2.create(filtered_image);
 			if (zSlices == 1) {
 				clij2.median2DSphere(filtered_image, tempMedian, backgroundRadius, y_bckgr_radius);	
@@ -322,15 +340,55 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			}
 			clij2.subtractImages(filtered_image, tempMedian, background_subtracted_image);
 			tempMedian.close();
-		}
-		
-		if (backgroundSubtractionMethod.equals("TopHat")) {
+			break;
+		case "TopHat":
 			clij2.topHatBox(filtered_image, background_subtracted_image, backgroundRadius, y_bckgr_radius, z_bckgr_radius);
+			break;
+		case "BottomHat":
+			clij2.bottomHatBox(filtered_image, background_subtracted_image, backgroundRadius, y_bckgr_radius, z_bckgr_radius);
+			break;
+		case "Inverted Tubeness":
+			ClearCLBuffer temp_image = clij2.create(input_image.getDimensions(), NativeTypeEnum.Float);
+			ClearCLBuffer tubeness_image = clij2.create(input_image.getDimensions(), NativeTypeEnum.Float);
+			clij2.invert(filtered_image, temp_image);
+			ij2Tubeness.imageJ2Tubeness(clij2, temp_image, tubeness_image, backgroundRadius, 0f, 0f, 0f);
+//			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, tubeness_image, false, LutNames.GRAY);
+			clij2.multiplyImageAndScalar(tubeness_image, temp_image, 2.0);
+			clij2.subtractImages(filtered_image, temp_image, background_subtracted_image);
+			temp_image.close();
+			tubeness_image.close();
+			break;
+		default:
+			clij2.copy(input_image, filtered_image);
+			break;
 		}
 		
-		if (backgroundSubtractionMethod.equals("BottomHat")) {
-			clij2.bottomHatBox(filtered_image, background_subtracted_image, backgroundRadius, y_bckgr_radius, z_bckgr_radius);
-		}
+//		if (backgroundSubtractionMethod.equals("None")) {
+//			clij2.copy(filtered_image, background_subtracted_image);
+//		}
+//		
+//		if (backgroundSubtractionMethod.equals("DoG")) {
+//			clij2.differenceOfGaussian3D(filtered_image, background_subtracted_image, 0, 0, 0, backgroundRadius, y_bckgr_radius, z_bckgr_radius);	
+//		}
+//
+//		if (backgroundSubtractionMethod.equals("DoM")) {
+//			ClearCLBuffer tempMedian = clij2.create(filtered_image);
+//			if (zSlices == 1) {
+//				clij2.median2DSphere(filtered_image, tempMedian, backgroundRadius, y_bckgr_radius);	
+//			} else {
+//				clij2.median3DSliceBySliceSphere(filtered_image, tempMedian, backgroundRadius, y_bckgr_radius);				
+//			}
+//			clij2.subtractImages(filtered_image, tempMedian, background_subtracted_image);
+//			tempMedian.close();
+//		}
+//		
+//		if (backgroundSubtractionMethod.equals("TopHat")) {
+//			clij2.topHatBox(filtered_image, background_subtracted_image, backgroundRadius, y_bckgr_radius, z_bckgr_radius);
+//		}
+//		
+//		if (backgroundSubtractionMethod.equals("BottomHat")) {
+//			clij2.bottomHatBox(filtered_image, background_subtracted_image, backgroundRadius, y_bckgr_radius, z_bckgr_radius);
+//		}
 		
 		return background_subtracted_image;
 	}

@@ -62,13 +62,13 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(required = true, initializer = "setupImage")
 	private ImagePlus inputImagePlus;
 	
-	@Parameter(label = "Image filter", choices = { "None", "Gaussian", "DoG", "Median", "Mean", "Open", "Close", "Variance", "Tubeness" }, callback = "adaptFilter")
+	@Parameter(label = "Image filter", choices = { "None", "Gaussian", "DoG", "Median", "Mean", "Open", "Close", "Variance", "Tubeness", "Inverted Tubeness" }, callback = "adaptFilter")
 	private String filterMethod = "Gaussian";
 	
 	@Parameter(label = "Filter radius", min = "0f", max = "1000f", callback = "adaptFilter")
 	private Float filterRadius = 1.0f;
 	
-	@Parameter(label = "Background subtraction", choices = {"None", "DoG", "DoM", "TopHat", "BottomHat"}, callback = "adaptBackground")
+	@Parameter(label = "Background subtraction", choices = {"None", "DoG", "DoM", "TopHat", "BottomHat", "Inverted Tubeness"}, callback = "adaptBackground")
 	private String backgroundSubtractionMethod;
 	
 	@Parameter(label = "Background radius", min = "0f", max = "1000f", callback = "adaptBackground")
@@ -221,6 +221,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	
 	
 	private void processImage() {
+	
 		ClearCLBuffer filtered_image = bvvtl.filterImage(input_image, filterMethod, filterRadius);
 		ClearCLBuffer background_subtracted_image = bvvtl.backgroundSubtraction(filtered_image, backgroundSubtractionMethod, backgroundRadius);
 		filtered_image.close();

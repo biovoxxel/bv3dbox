@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.biovoxxel</groupId>
 	<artifactId>bv3dbox</artifactId>
-	<version>1.8.0</version>
+	<version>1.8.3</version>
   
 	<name>BioVoxxel 3D Box</name>
 	<inceptionYear>2021</inceptionYear>
@@ -120,9 +120,13 @@
 		<dependency>
 		    <groupId>sc.fiji</groupId>
 		    <artifactId>Fiji_Plugins</artifactId>
-		    <version>3.1.1</version>
 		</dependency>
-	    
+
+		<dependency>
+			<groupId>net.haesleinhuepf</groupId>
+			<artifactId>clijx-assistant-imagej2_</artifactId>
+			<version>0.6.0.1</version>
+		</dependency>
 	</dependencies>
 	
 	<build>

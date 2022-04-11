@@ -1,6 +1,8 @@
 package de.biovoxxel.bv3dbox.plugins;
 
+import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Window;
 
 import org.scijava.Cancelable;
 import org.scijava.log.LogLevel;
@@ -79,6 +81,10 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 //	ImagePlus tubenessImagePlus;
 	
 	private ImagePlus inputImagePlus;
+	private Window inputImageWindow;
+	private Rectangle displayedArea;
+	private Point windowLocation;
+	
 	private ClearCLBuffer input_image;
 	private ImagePlus outputImagePlus = null;
 	private String outputImageName = "";
@@ -159,6 +165,10 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		log.debug("outputImageName = " + outputImageName);
 		
 		calibration = BV3DBoxUtilities.readCalibration(image);
+		
+		displayedArea = inputImagePlus.getCanvas().getSrcRect();
+		inputImageWindow = inputImagePlus.getWindow();
+		windowLocation = inputImagePlus.getWindow().getLocation();
 		
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
@@ -420,6 +430,10 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		}
 		
 		outputImagePlus.show();
+		
+		outputImagePlus.getWindow().setLocation(windowLocation.x + inputImagePlus.getWindow().getWidth(), windowLocation.y);
+		outputImagePlus.getWindow().setSize(inputImageWindow.getSize());
+		outputImagePlus.getCanvas().setSourceRect(displayedArea);
 		
 	}
 	

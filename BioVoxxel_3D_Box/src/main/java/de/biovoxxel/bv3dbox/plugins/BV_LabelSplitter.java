@@ -6,7 +6,6 @@ package de.biovoxxel.bv3dbox.plugins;
 import org.joml.Math;
 
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
-import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
@@ -81,9 +80,9 @@ public class BV_LabelSplitter {
 
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
-						
-		setVoxelRatios(inputImagePlus);
 		
+		voxelRatios = BV3DBoxUtilities.getVoxelRatios(inputImagePlus);
+				
 	}
 
 	/**
@@ -120,6 +119,10 @@ public class BV_LabelSplitter {
 			clij2.replaceIntensity(thresholdedImage, binary_8_bit_image, 1, 255);
 			seedImage = detectDoGSeeds(binary_8_bit_image, spotSigma, maximaRadius);
 			binary_8_bit_image.close();
+			break;
+		
+		case "EDM Maxima":
+			seedImage = detectDistanceMapMaxima(thresholdedImage, maximaRadius);
 			break;
 			
 		default:
@@ -179,6 +182,27 @@ public class BV_LabelSplitter {
 		return eroded_maxima;
 	}
 	
+	
+	
+	public ClearCLBuffer detectDistanceMapMaxima(ClearCLBuffer binary_image, Float maximaRadius) {
+		
+		double y_maxima_radius = maximaRadius * voxelRatios[0];
+		double z_maxima_radius = maximaRadius / voxelRatios[1];
+		
+		ClearCLBuffer distance_map = clij2.create(binary_image.getDimensions(), NativeTypeEnum.Float);
+		
+		clij2.distanceMap(binary_image, distance_map);
+		
+		ClearCLBuffer maxima_image = clij2.create(binary_image);
+		
+		clij2.detectMaxima3DBox(distance_map, maxima_image, maximaRadius, y_maxima_radius, z_maxima_radius);
+		
+		distance_map.close();
+		
+		return maxima_image;
+	}
+	
+	
 	/**
 	 * 
 	 * @param input_image -	must be a binary image
@@ -205,7 +229,7 @@ public class BV_LabelSplitter {
 		}
 		
 		ClearCLBuffer dog_seed_image = clij2.create(dog_image);
-		clij2.different(input_image, dog_image, dog_seed_image, threshold);
+		clij2.different(input_image, dog_image, dog_seed_image, 255f - threshold);
 		
 		dog_image.close();
 		
@@ -297,6 +321,6 @@ public class BV_LabelSplitter {
 	}
 	
 	public void setVoxelRatios(ImagePlus imagePlus) {
-		this.voxelRatios = BV3DBoxUtilities.getVoxelRelations(imagePlus);
+		this.voxelRatios = BV3DBoxUtilities.getVoxelRatios(imagePlus);
 	}
 }

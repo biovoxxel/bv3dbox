@@ -63,7 +63,7 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 	@Parameter(required = true, initializer = "setupImage")
 	private ImagePlus inputImagePlus;
 	
-	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded Maxima", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
+	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded Maxima", "EDM Maxima", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
 	private String separationMethod = "Maxima";
 	
 	@Parameter(label = "Spot sigma", min = "0f", callback = "processImage")

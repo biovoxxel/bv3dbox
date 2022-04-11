@@ -94,7 +94,7 @@ public class BV3DBoxUtilities {
 	 * @param image
 	 * @return	double[] holding first (voxelWidth / voxelHeight) and second (voxelDepth / voxelWidth) ratios 
 	 */
-	public static double[] getVoxelRelations(ImagePlus image) {
+	public static double[] getVoxelRatios(ImagePlus image) {
 		
 		Calibration cal = image.getCalibration();
 		

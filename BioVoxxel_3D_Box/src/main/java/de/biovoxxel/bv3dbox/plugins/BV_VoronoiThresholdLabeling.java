@@ -191,7 +191,18 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 	
 	
 	
-	
+	/**
+	 * 
+	 * @param filterMethod
+	 * @param filterRadius
+	 * @param backgroundSubtractionMethod
+	 * @param backgroundRadius
+	 * @param thresholdMethod
+	 * @param separationMethod
+	 * @param spotSigma
+	 * @param maximaRadius
+	 * @param outputType
+	 */
 	public void setParameters(String filterMethod, Float filterRadius, String backgroundSubtractionMethod, Float backgroundRadius, String thresholdMethod, String separationMethod, Float spotSigma, Float maximaRadius, String outputType) {
 		this.filterMethod = filterMethod;
 		this.filterRadius = filterRadius;
@@ -290,10 +301,6 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			break;
 		case "Tubeness":
 			ij2Tubeness.imageJ2Tubeness(clij2, input_image, filtered_image, filterRadius, 0f, 0f, 0f);
-//			tubenessProcessor.setSigma(filterRadius);
-//			tubenessImagePlus = tubenessProcessor.generateImage(inputImagePlus);
-//			tubenessImagePlus.getProcessor().invert();
-//			filtered_image = clij2.push(tubenessImagePlus);
 			break;
 		case "Inverted Tubeness":
 			ClearCLBuffer inverted_image = clij2.create(input_image.getDimensions(), NativeTypeEnum.Float);
@@ -352,8 +359,7 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			ClearCLBuffer tubeness_image = clij2.create(input_image.getDimensions(), NativeTypeEnum.Float);
 			clij2.invert(filtered_image, temp_image);
 			ij2Tubeness.imageJ2Tubeness(clij2, temp_image, tubeness_image, backgroundRadius, 0f, 0f, 0f);
-//			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, tubeness_image, false, LutNames.GRAY);
-			clij2.multiplyImageAndScalar(tubeness_image, temp_image, 2.0);
+			clij2.multiplyImageAndScalar(tubeness_image, temp_image, 2.0);	//increase tube intensity to elivate the subtraction effect
 			clij2.subtractImages(filtered_image, temp_image, background_subtracted_image);
 			temp_image.close();
 			tubeness_image.close();
@@ -362,33 +368,6 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			clij2.copy(input_image, filtered_image);
 			break;
 		}
-		
-//		if (backgroundSubtractionMethod.equals("None")) {
-//			clij2.copy(filtered_image, background_subtracted_image);
-//		}
-//		
-//		if (backgroundSubtractionMethod.equals("DoG")) {
-//			clij2.differenceOfGaussian3D(filtered_image, background_subtracted_image, 0, 0, 0, backgroundRadius, y_bckgr_radius, z_bckgr_radius);	
-//		}
-//
-//		if (backgroundSubtractionMethod.equals("DoM")) {
-//			ClearCLBuffer tempMedian = clij2.create(filtered_image);
-//			if (zSlices == 1) {
-//				clij2.median2DSphere(filtered_image, tempMedian, backgroundRadius, y_bckgr_radius);	
-//			} else {
-//				clij2.median3DSliceBySliceSphere(filtered_image, tempMedian, backgroundRadius, y_bckgr_radius);				
-//			}
-//			clij2.subtractImages(filtered_image, tempMedian, background_subtracted_image);
-//			tempMedian.close();
-//		}
-//		
-//		if (backgroundSubtractionMethod.equals("TopHat")) {
-//			clij2.topHatBox(filtered_image, background_subtracted_image, backgroundRadius, y_bckgr_radius, z_bckgr_radius);
-//		}
-//		
-//		if (backgroundSubtractionMethod.equals("BottomHat")) {
-//			clij2.bottomHatBox(filtered_image, background_subtracted_image, backgroundRadius, y_bckgr_radius, z_bckgr_radius);
-//		}
 		
 		return background_subtracted_image;
 	}

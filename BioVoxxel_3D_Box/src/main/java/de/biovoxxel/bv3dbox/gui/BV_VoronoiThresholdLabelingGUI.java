@@ -80,7 +80,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(label = "Histogram usage", choices = {"full", "ignore black", "ignore white", "ignore both"}, callback = "processImage")
 	private String histogramUsage = "full";
 	
-	@Parameter(label = "Separation method", choices = {"None", "Maxima", "Eroded Maxima", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
+	@Parameter(label = "Separation method", choices = {"None", "Maxima", "Eroded Maxima", "EDM Maxima", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
 	private String separationMethod = "Maxima";
 	
 	@Parameter(label = "Spot sigma / Erosion", min = "0f", callback = "processImage")
@@ -267,22 +267,47 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 				
 		ClearCLBuffer seed_image = bvvtl.getCurrentCLIJ2Instance().create(input_image);
 		
-		if (separationMethod.equals("None")) {
+		switch (separationMethod) {
+		case "None":
 			seed_image = thresholded_image;
-		} else if (separationMethod.equals("Maxima")) {
-			seed_image = labelSplitter.detectMaxima(input_image, spotSigma, maximaRadius);		
-		} else if (separationMethod.equals("Eroded Maxima")) {
+			break;
+		case "Maxima":
+			seed_image = labelSplitter.detectMaxima(input_image, spotSigma, maximaRadius);
+			break;
+		case "Eroded Maxima":
 			seed_image = labelSplitter.detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
-		} else if (separationMethod.equals("DoG Seeds")) {
+			break;
+		case "EDM Maxima":
+			seed_image = labelSplitter.detectDistanceMapMaxima(thresholded_image, maximaRadius);
+			break;
+		case "DoG Seeds":
 			CLIJ2 clij2 = bvvtl.getCurrentCLIJ2Instance();
 			ClearCLBuffer binary_8_bit_image = clij2.create(thresholded_image);
 			clij2.replaceIntensity(thresholded_image, binary_8_bit_image, 1, 255);
 			seed_image = labelSplitter.detectDoGSeeds(binary_8_bit_image, spotSigma, maximaRadius);
 			binary_8_bit_image.close();
-		} else {
+			break;
+		default:
 			seed_image = labelSplitter.createErodedSeeds(thresholded_image, Math.round(spotSigma), separationMethod);
+			break;
 		}
 		
+//		if (separationMethod.equals("None")) {
+//			seed_image = thresholded_image;
+//		} else if (separationMethod.equals("Maxima")) {
+//			seed_image = labelSplitter.detectMaxima(input_image, spotSigma, maximaRadius);		
+//		} else if (separationMethod.equals("Eroded Maxima")) {
+//			seed_image = labelSplitter.detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
+//		} else if (separationMethod.equals("DoG Seeds")) {
+//			CLIJ2 clij2 = bvvtl.getCurrentCLIJ2Instance();
+//			ClearCLBuffer binary_8_bit_image = clij2.create(thresholded_image);
+//			clij2.replaceIntensity(thresholded_image, binary_8_bit_image, 1, 255);
+//			seed_image = labelSplitter.detectDoGSeeds(binary_8_bit_image, spotSigma, maximaRadius);
+//			binary_8_bit_image.close();
+//		} else {
+//			seed_image = labelSplitter.createErodedSeeds(thresholded_image, Math.round(spotSigma), separationMethod);
+//		}
+//		
 		
 		ClearCLBuffer output_image = labelSplitter.createLabels(seed_image, thresholded_image);
 		

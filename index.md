@@ -12,6 +12,27 @@ Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Too
 
 ![image](https://user-images.githubusercontent.com/10721817/161776889-5ff12148-fe8c-4b12-a8a1-f46d14b7fa0b.png)
 
+---
+
+# Installation
+The BioVoxxel 3D Box are distributed via the **BioVoxxel 3D Box** update site in Fiji.
+* `Run >Help >Update...`
+* Select `Manage update sites`
+* Activate the following update sites to be able to use the toolbox.
+
+## Dependencies (ImageJ update sites)
+The following update sites need to be minimally active to be able to use all functionalities of the BioVoxxel 3D Box
+
+* bv3dbox
+* CLIJ2
+* CLIJx
+* CLIJx-assistant
+* CLIJx-assistant-extensions
+* 3D ImageJ Suite
+
+---
+
+
 
 # Functionalities
 
@@ -235,19 +256,6 @@ For some operations, isotropic voxels create better segmentation results due to 
 
 ### Convoluted Background Subtraction
 The equivalent function to the original convoluted background subtraction is already on the todo list
-
----
-
-## Installation
-The BioVoxxel 3D Box are distributed via the [BioVoxxel 3D Box update site]()
-
-### Dependencies (ImageJ update sites)
-The following update sites need to be minimally active to be able to use all functionalities of the BioVoxxel 3D Box
-
-* bv3dbox
-* CLIJ2
-* CLIJx
-* 3D ImageJ Suite
 
 ---
 

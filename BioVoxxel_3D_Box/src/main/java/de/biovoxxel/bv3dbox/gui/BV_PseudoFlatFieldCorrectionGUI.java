@@ -56,7 +56,7 @@ public class BV_PseudoFlatFieldCorrectionGUI extends DynamicCommand {
 	@Parameter(persist = false, label = "Blurring radius (sigma)", min = "0f", callback = "run")
 	private Float flatFieldRadius = 0.0f;
 	
-	@Parameter(label = "Force 2D filter (saves memory)")
+	@Parameter(label = "Force 2D filter (e.g. time series)")
 	Boolean force2DFilter = true;
 	
 	@Parameter(label = "Show background image", callback = "run")

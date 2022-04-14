@@ -409,8 +409,6 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		} else if (outputType.equals("Labels")) {
 			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, output_image, true, LutNames.GLASBEY_LUT);
 		} else {
-//			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, output_image, true, LutNames.GLASBEY_LUT);
-//			ImageRoi imageRoi = new ImageRoi(0, 0, tempOutputImagePlus.getProcessor());
 			
 			ClearCLBuffer temp_output_image = clij2.create(input_image);
 			clij2.visualizeOutlinesOnOriginal(input_image, output_image, temp_output_image);

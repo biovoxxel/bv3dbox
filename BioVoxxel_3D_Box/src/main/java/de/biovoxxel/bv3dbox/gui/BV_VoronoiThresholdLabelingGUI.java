@@ -292,22 +292,6 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			break;
 		}
 		
-//		if (separationMethod.equals("None")) {
-//			seed_image = thresholded_image;
-//		} else if (separationMethod.equals("Maxima")) {
-//			seed_image = labelSplitter.detectMaxima(input_image, spotSigma, maximaRadius);		
-//		} else if (separationMethod.equals("Eroded Maxima")) {
-//			seed_image = labelSplitter.detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
-//		} else if (separationMethod.equals("DoG Seeds")) {
-//			CLIJ2 clij2 = bvvtl.getCurrentCLIJ2Instance();
-//			ClearCLBuffer binary_8_bit_image = clij2.create(thresholded_image);
-//			clij2.replaceIntensity(thresholded_image, binary_8_bit_image, 1, 255);
-//			seed_image = labelSplitter.detectDoGSeeds(binary_8_bit_image, spotSigma, maximaRadius);
-//			binary_8_bit_image.close();
-//		} else {
-//			seed_image = labelSplitter.createErodedSeeds(thresholded_image, Math.round(spotSigma), separationMethod);
-//		}
-//		
 		
 		ClearCLBuffer output_image = labelSplitter.createLabels(seed_image, thresholded_image);
 		

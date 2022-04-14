@@ -1,11 +1,16 @@
 package de.biovoxxel.bv3dbox.utilities;
 
+import java.awt.Point;
+import java.awt.Rectangle;
+
 import org.scijava.log.LogService;
 import org.scijava.log.StderrLogService;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageWindow;
 import ij.measure.Calibration;
 import ij.plugin.LutLoader;
 import ij.process.ImageConverter;
@@ -424,5 +429,24 @@ public class BV3DBoxUtilities {
 		}
 	}
 	
+	
+	public static void adaptImageDisplay(ImagePlus source, ImagePlus target) {
+		
+		ImageCanvas sourceCanvas = source.getCanvas();
+		ImageCanvas targetCanvas = target.getCanvas();
+		
+		ImageWindow sourceWindow = source.getWindow();
+		ImageWindow targetWindow = target.getWindow();
+		
+		Point sourceLocation = sourceWindow.getLocation();
+		Rectangle sourceRectangle = sourceCanvas.getSrcRect();
+		
+		targetCanvas.setSize(sourceCanvas.getSize());
+		targetCanvas.setMagnification(sourceCanvas.getMagnification());
+		targetCanvas.setSourceRect(sourceRectangle);
+		
+		targetWindow.setLocation(sourceLocation.x + sourceWindow.getWidth(), sourceLocation.y);
+		targetWindow.setSize(sourceWindow.getSize());
+	}
 	
 }

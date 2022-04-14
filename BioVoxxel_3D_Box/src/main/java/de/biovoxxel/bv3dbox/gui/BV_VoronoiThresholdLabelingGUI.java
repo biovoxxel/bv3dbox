@@ -74,12 +74,12 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(label = "Background radius", min = "0f", max = "1000f", callback = "adaptBackground")
 	private Float backgroundRadius = 1.0f;
 		
-	@Parameter(label = "Threshold method", initializer = "thresholdMethodList", callback = "processImage")
-	private String thresholdMethod = "Default";
-	
 	@Parameter(label = "Histogram usage", choices = {"full", "ignore black", "ignore white", "ignore both"}, callback = "processImage")
 	private String histogramUsage = "full";
 	
+	@Parameter(label = "Threshold method", initializer = "thresholdMethodList", callback = "processImage")
+	private String thresholdMethod = "Default";
+		
 	@Parameter(label = "Separation method", choices = {"None", "Maxima", "Eroded Maxima", "EDM Maxima", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
 	private String separationMethod = "Maxima";
 	
@@ -89,7 +89,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(label = "Maxima detection radius", min = "0f", callback = "processImage")
 	private Float maximaRadius;
 	
-	@Parameter(label = "Output type", choices = {"Labels", "Binary"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE, callback = "processImage")
+	@Parameter(label = "Output type", choices = {"Labels", "Binary", "Outlines"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE, callback = "processImage")
 	private String outputType;
 	
 	@Parameter(label = "Stack slice", initializer = "imageSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")

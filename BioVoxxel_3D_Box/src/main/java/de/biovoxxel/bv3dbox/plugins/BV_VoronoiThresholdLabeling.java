@@ -18,6 +18,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
+import ij.gui.ImageRoi;
 import ij.gui.Roi;
 import ij.plugin.LutLoader;
 import ij.process.LUT;
@@ -408,10 +409,13 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		} else if (outputType.equals("Labels")) {
 			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, output_image, true, LutNames.GLASBEY_LUT);
 		} else {
-//			ClearCLBuffer temp_output_image = clij2.create(input_image);
-//			clij2.visualizeOutlinesOnOriginal(input_image, output_image, temp_output_image);
-//			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, temp_output_image, true, LutNames.GRAY);
-//			output_image.close();
+//			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, output_image, true, LutNames.GLASBEY_LUT);
+//			ImageRoi imageRoi = new ImageRoi(0, 0, tempOutputImagePlus.getProcessor());
+			
+			ClearCLBuffer temp_output_image = clij2.create(input_image);
+			clij2.visualizeOutlinesOnOriginal(input_image, output_image, temp_output_image);
+			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, temp_output_image, true, LutNames.GRAY);
+			temp_output_image.close();
 		}
 						
 		outputImagePlus = WindowManager.getImage(outputImageName);			
@@ -423,7 +427,7 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		outputImagePlus.setImage(tempOutputImagePlus);
 		outputImagePlus.setTitle(outputImageName);
 		
-		if (outputType.equals("Binary")) {
+		if (outputType.equals("Binary") || outputType.equals("Outlines")) {
 			outputImagePlus.setLut(grays);
 		} else {
 			outputImagePlus.setLut(glasbey);
@@ -431,9 +435,7 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		
 		outputImagePlus.show();
 		
-		outputImagePlus.getWindow().setLocation(windowLocation.x + inputImagePlus.getWindow().getWidth(), windowLocation.y);
-		outputImagePlus.getWindow().setSize(inputImageWindow.getSize());
-		outputImagePlus.getCanvas().setSourceRect(displayedArea);
+		BV3DBoxUtilities.adaptImageDisplay(inputImagePlus, outputImagePlus);
 		
 	}
 	

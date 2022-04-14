@@ -78,13 +78,8 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 	private CLIJx clijx;
 	
 	ImageJ2Tubeness ij2Tubeness = new ImageJ2Tubeness();
-//	private TubenessProcessor tubenessProcessor = new TubenessProcessor(false);
-//	ImagePlus tubenessImagePlus;
 	
 	private ImagePlus inputImagePlus;
-	private Window inputImageWindow;
-	private Rectangle displayedArea;
-	private Point windowLocation;
 	
 	private ClearCLBuffer input_image;
 	private ImagePlus outputImagePlus = null;
@@ -166,10 +161,6 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		log.debug("outputImageName = " + outputImageName);
 		
 		calibration = BV3DBoxUtilities.readCalibration(image);
-		
-		displayedArea = inputImagePlus.getCanvas().getSrcRect();
-		inputImageWindow = inputImagePlus.getWindow();
-		windowLocation = inputImagePlus.getWindow().getLocation();
 		
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();

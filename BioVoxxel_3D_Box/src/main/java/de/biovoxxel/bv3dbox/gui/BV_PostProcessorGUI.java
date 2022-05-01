@@ -14,6 +14,7 @@ import ij.ImagePlus;
 import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
+import net.imagej.updater.UpdateService;
 
 /*
  * BSD 3-Clause License
@@ -88,8 +89,8 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 	
 	private void setupImage() {
 		
-		//BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
-		
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2,clijx-assistant,clijx-assistant-extensions,3D ImageJ Suite");
+				
 		bvpp = new BV_PostProcessor(inputImagePlus);
 		
 		outputImageName = "BVPP_" + inputImagePlus.getTitle();
@@ -123,6 +124,8 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 		outputImagePlus.setTitle("BVPP_" + inputImagePlus.getTitle());
 		outputImagePlus.getProcessor().resetMinAndMax();
 		outputImagePlus.show();
+		
+		BV3DBoxUtilities.adaptImageDisplay(inputImagePlus, outputImagePlus);
 	}
 	
 	@SuppressWarnings("unused")

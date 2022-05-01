@@ -62,6 +62,7 @@ public class BV_PostProcessor extends DynamicCommand {
 	private final PrefService prefs = new DefaultPrefService();
 	private static CLIJ2 clij2;
 	private ClearCLBuffer input_image;
+	private BV_LabelSeparator bvls = new BV_LabelSeparator();
 	
 	/**
 	 * 
@@ -136,7 +137,24 @@ public class BV_PostProcessor extends DynamicCommand {
 				clij2.dilateLabels(temp_eroded, output_image, iteration);
 				temp_eroded.close();
 				break;
-							
+			
+//			case "Close Label":
+//				ClearCLBuffer temp_dilated = clij2.create(input_image);
+//				
+//				clij2.dilateLabels(input_image, temp_dilated, iteration);
+//				
+//				ClearCLBuffer temp_splitted_labels = clij2.create(input_image);
+//				bvls.splitLabels(clij2, temp_dilated, temp_splitted_labels);
+//				temp_dilated.close();
+//				
+//				if (is3D) {
+//					clij2.minimum3DSphere(temp_splitted_labels, output_image, iteration, iteration, iteration);					
+//				} else {
+//					clij2.minimum2DSphere(temp_splitted_labels, output_image, iteration, iteration);
+//				}
+//				temp_splitted_labels.close();
+//				break;
+				
 			case "Minimum (sphere)":
 				if (is3D) {
 					clij2.minimum3DSphere(input_image, output_image, iteration, iteration, iteration);					

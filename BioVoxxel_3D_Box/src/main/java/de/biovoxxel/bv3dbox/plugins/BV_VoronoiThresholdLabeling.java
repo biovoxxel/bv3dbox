@@ -391,7 +391,6 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 
 	
 
-	//TODO: Outlines does not work as intended, since the gray LUT is not applied to the output image
 	public void createOutputImage(ClearCLBuffer output_image, String outputType) {
 		ImagePlus tempOutputImagePlus = null;
 		
@@ -403,7 +402,7 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			
 			ClearCLBuffer temp_output_image = clij2.create(input_image);
 			clij2.visualizeOutlinesOnOriginal(input_image, output_image, temp_output_image);
-			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, temp_output_image, true, LutNames.GRAY);
+			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, temp_output_image, true, LutNames.OUTLINE);
 			temp_output_image.close();
 		}
 						
@@ -415,13 +414,6 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		
 		outputImagePlus.setImage(tempOutputImagePlus);
 		outputImagePlus.setTitle(outputImageName);
-		
-		if (outputType.equals("Binary") || outputType.equals("Outlines")) {
-			outputImagePlus.setLut(grays);
-		} else {
-			outputImagePlus.setLut(glasbey);
-		}
-		
 		outputImagePlus.show();
 		
 		BV3DBoxUtilities.adaptImageDisplay(inputImagePlus, outputImagePlus);

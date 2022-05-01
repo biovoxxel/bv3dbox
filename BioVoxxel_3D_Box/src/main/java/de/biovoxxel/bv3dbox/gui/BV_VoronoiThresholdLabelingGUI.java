@@ -80,7 +80,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(label = "Threshold method", initializer = "thresholdMethodList", callback = "processImage")
 	private String thresholdMethod = "Default";
 		
-	@Parameter(label = "Separation method", choices = {"None", "Maxima", "Eroded Maxima", "EDM Maxima", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
+	@Parameter(label = "Separation method", choices = {"None", "Maxima", "Eroded Maxima", "EDM Maxima", "Maxima Spheres", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
 	private String separationMethod = "Maxima";
 	
 	@Parameter(label = "Spot sigma / Erosion", min = "0f", callback = "processImage")
@@ -137,7 +137,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	
 	private void setupImage() {
 		
-		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2,clijx-assistant,clijx-assistant-extensions,3D ImageJ Suite");
 		
 		bvvtl.setupInputImage(inputImagePlus);
 		input_image = bvvtl.getInputImageAsClearClBuffer();
@@ -279,6 +279,9 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			break;
 		case "EDM Maxima":
 			seed_image = labelSplitter.detectDistanceMapMaxima(thresholded_image, maximaRadius);
+			break;
+		case "Maxima Spheres":
+			seed_image = labelSplitter.createMaximaSpheres(thresholded_image, spotSigma, maximaRadius);
 			break;
 		case "DoG Seeds":
 			CLIJ2 clij2 = bvvtl.getCurrentCLIJ2Instance();

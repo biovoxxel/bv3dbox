@@ -149,6 +149,11 @@ Methods:
   * `Maxima`: intensity maxima are determined on the original image in a square/box neighborhood defined by the `Maxima detection radius` after applying a gaussian blur on the original image in a neighborhood defined by the `Spot sigma`. The detected maxima are the seeds from which the objects are filled via a masked voronoi extension.
   * `Eroded Maxima`: takes the input image and erodes the objects using the `Spot sigma` as erosion iterations. Then it identifies intensity maxima on the eroded objects using the `Maxima detection radius`.
   * `Maxima Spheres`: the EDM (euclidean distance map) is created from the binary segmentation result, then blurred with the `Spot sigma` and maxima are detected on the blurred EDM. The underlying EDM intensity of those maxima is measured and taken as a radius of a sphere. An image with those spheres serves as seeds for the label splitting (advantage is that the EDM info reflects to some extent the object size and adapts seeds accodingly which might achieves more accurate separation). 
+
+![3d_distance_map_animation](https://user-images.githubusercontent.com/10721817/166154878-9a79bf50-c7ea-4f22-995d-b2852a38e83a.gif)
+![3d_maxima_sphere_animation](https://user-images.githubusercontent.com/10721817/166154894-7ff41c7f-f667-4cf2-b46c-2a5cd9a006da.gif)
+
+
   * `DoG Seeds`: There will be a difference of gausian (DoG) filter be applied on the segmented binary objects which leads to smooth seed objects still dependent on the original object size bit with less smaller fragmented seeds. This does not work well on big connections/bridges between objects but has advantages on fairly irregularly shaped objects.
   *  `Eroded box`: The extracted objects/areas are eroded in a square/box neighborhood defined by the `Spot sigma` and used as a seed for the same voronoi filling of the objects.
   * `Eroded sphere`: The extracted objects/areas are eroded in a circle/sphere neighborhood defined by the `Spot sigma` and used as seeds.

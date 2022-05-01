@@ -7,6 +7,7 @@ import org.scijava.plugin.Plugin;
 
 import de.biovoxxel.bv3dbox.plugins.BV_RecursiveFilter;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
 import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
@@ -75,14 +76,14 @@ public class BV_RecursiveFilterGUI extends DynamicCommand {
 		
 		ClearCLBuffer output_image = bvrf.runRecursiveFilter(filter_method, recursiveRadius, iterations);
 		
-		ImagePlus outputImage = bvrf.getCurrentCLIJ2Instance().pull(output_image);
+		ImagePlus outputImage = BV3DBoxUtilities.pullImageFromGPU(bvrf.getCurrentCLIJ2Instance(), output_image, true, LutNames.GRAY);
 		outputImage.setTitle(WindowManager.getUniqueName(current_image_plus.getTitle() + "_" + recursiveRadius + "_" + iterations + "x"));
 		outputImage.show();
 		
 	}
 	
 	public void checkUpdateSites() {
-		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2,clijx-assistant,clijx-assistant-extensions,3D ImageJ Suite");
 	}
 	
 }

@@ -63,7 +63,7 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 	@Parameter(required = true, initializer = "setupImage")
 	private ImagePlus inputImagePlus;
 	
-	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded Maxima", "EDM Maxima", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
+	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded Maxima", "EDM Maxima", "Maxima Spheres", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
 	private String separationMethod = "Maxima";
 	
 	@Parameter(label = "Spot sigma", min = "0f", callback = "processImage")
@@ -95,6 +95,8 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 			
 			outputImagePlus.setTitle(outputImageName);
 			outputImagePlus.show();
+			
+			BV3DBoxUtilities.adaptImageDisplay(inputImagePlus, outputImagePlus);
 		}
 		
 		
@@ -108,7 +110,7 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 	
 	public void setupImage() {
 		
-		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2,clijx-assistant,clijx-assistant-extensions,3D ImageJ Suite");
 		
 		input_image = clij2.push(inputImagePlus);
 		System.out.println(input_image);
@@ -138,11 +140,11 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 		
 		ClearCLBuffer splitted_label_image = labelSplitter.splitLabels(input_image, separationMethod, spotSigma, maximaRadius);
 		
-		ImagePlus outputImagePlus = BV3DBoxUtilities.pullImageFromGPU(labelSplitter.getCurrentCLIJ2Instance(), splitted_label_image, false, LutNames.GLASBEY_LUT);
+		ImagePlus outputImagePlus = BV3DBoxUtilities.pullImageFromGPU(labelSplitter.getCurrentCLIJ2Instance(), splitted_label_image, true, LutNames.GLASBEY_LUT);
 		splitted_label_image.close();
 		
 		BV3DBoxUtilities.updateOutputImagePlus(outputImagePlus, outputImageName);
-		
+		//BV3DBoxUtilities.adaptImageDisplay(inputImagePlus, outputImagePlus);	//not working ???
 	}
 	
 	

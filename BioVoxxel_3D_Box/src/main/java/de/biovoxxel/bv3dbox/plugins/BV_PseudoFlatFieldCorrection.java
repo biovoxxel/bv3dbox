@@ -165,11 +165,11 @@ public class BV_PseudoFlatFieldCorrection implements Cancelable {
 		
 		outputImagePlus.setImage(tempOutputImagePlus);
 		outputImagePlus.setTitle(outputImageName);
-		ImageWindow inputImageWindow = inputImagePlus.getWindow();
-		Point inputImageLocation = inputImageWindow.getLocationOnScreen();
+		//ImageWindow inputImageWindow = inputImagePlus.getWindow();
+		//Point inputImageLocation = inputImageWindow.getLocationOnScreen();
 		outputImagePlus.show();
-		outputImagePlus.getWindow().setLocation(inputImageLocation.x + inputImageWindow.getWidth() + 10, inputImageLocation.y);
-		
+		//outputImagePlus.getWindow().setLocation(inputImageLocation.x + inputImageWindow.getWidth() + 10, inputImageLocation.y);
+		BV3DBoxUtilities.adaptImageDisplay(inputImagePlus, outputImagePlus);
 	}
 	
 	

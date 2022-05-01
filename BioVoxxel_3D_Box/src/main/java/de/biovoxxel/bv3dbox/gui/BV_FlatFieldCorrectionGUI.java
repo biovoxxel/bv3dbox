@@ -77,7 +77,7 @@ public class BV_FlatFieldCorrectionGUI extends DynamicCommand {
 	
 	public void initializeOriginalImageChoices() {
 		
-		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2,clijx-assistant,clijx-assistant-extensions,3D ImageJ Suite");
 		
 		List<String> extendedImageList = Arrays.asList(BV3DBoxUtilities.extendImageTitleListWithNone());
 		

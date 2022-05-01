@@ -111,8 +111,8 @@ public class BV_ObjectInspectorGUI extends DynamicCommand {
 	
 	public void initializeOriginalImageChoices() {
 		
-		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
-		
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2,clijx-assistant,clijx-assistant-extensions,3D ImageJ Suite");
+				
 		List<String> extendedImageList = imageListWithNoneOption();
 		
 		final MutableModuleItem<String> original_1_title = getInfo().getMutableInput("original_1_title", String.class);

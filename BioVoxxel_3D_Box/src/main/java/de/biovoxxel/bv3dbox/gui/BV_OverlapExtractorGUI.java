@@ -88,6 +88,7 @@ public class BV_OverlapExtractorGUI implements Command {
 	}	
 	
 	public void checkUpdateSites() {
-		BV3DBoxUtilities.displayMissingDependencyWarning(updateService, "clij,clij2");
+		BV3DBoxUtilities.displayMissingDependencyWarning(updateService, "clij,clij2,clijx-assistant,clijx-assistant-extensions,3D ImageJ Suite");
+		
 	}
 }

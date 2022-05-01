@@ -56,15 +56,17 @@ public class BV_LabelSeparator implements Command {
 	
 	public void splitLabels(CLIJ2 clij2, ClearCLBuffer label_image, ClearCLBuffer splitted_label_image) {
 		
-		boolean is3D = label_image.getDimension() > 2 ? true : false;
+//		boolean is3D = label_image.getDimension() > 2 ? true : false;
 		
 		ClearCLBuffer dilated_image = clij2.create(label_image);
 		
-		if (is3D) {
-			clij2.maximum3DSphere(label_image, dilated_image, 1, 1, 1);
-		} else {
-			clij2.maximum2DSphere(label_image, dilated_image, 1, 1);
-		}
+		clij2.dilateLabels(label_image, dilated_image, 1);
+		
+//		if (is3D) {
+//			clij2.maximum3DSphere(label_image, dilated_image, 1, 1, 1);
+//		} else {
+//			clij2.maximum2DSphere(label_image, dilated_image, 1, 1);
+//		}
 						
 		ClearCLBuffer edge_image = clij2.create(dilated_image);
 		clij2.reduceLabelsToLabelEdges(dilated_image, edge_image);

@@ -78,7 +78,8 @@ public class BV_PseudoFlatFieldCorrectionGUI extends DynamicCommand {
 	@SuppressWarnings("unused")
 	private void setupImage() {
 		
-		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2");
+		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2,clijx-assistant,clijx-assistant-extensions,3D ImageJ Suite");
+		
 				
 		bvpffc = new BV_PseudoFlatFieldCorrection(inputImagePlus);
 		

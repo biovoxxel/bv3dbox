@@ -1,5 +1,6 @@
 package de.biovoxxel.bv3dbox.utilities;
 
+import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 
@@ -11,6 +12,7 @@ import ij.ImagePlus;
 import ij.WindowManager;
 import ij.gui.ImageCanvas;
 import ij.gui.ImageWindow;
+import ij.gui.Roi;
 import ij.measure.Calibration;
 import ij.plugin.LutLoader;
 import ij.process.ImageConverter;
@@ -201,6 +203,8 @@ public class BV3DBoxUtilities {
 		LUT outputLut;
 		if (lutName.equals(LutNames.GRAY)) {
 			outputLut = createGrayLUT();
+		} else if (lutName.equals(LutNames.OUTLINE)) {
+			outputLut = createOutlineLUT();
 		} else {
 			outputLut = LutLoader.openLut(IJ.getDirectory("luts") + lutName.lutName + ".lut");		
 		}
@@ -370,6 +374,7 @@ public class BV3DBoxUtilities {
 		GRAY("Grays"),
 		GLASBEY_LUT("glasbey_on_dark"),
 		GEEN_FIRE_BLUE_LUT("Green Fire Blue"),
+		OUTLINE("outline"),
 		PHYSICS("physics");
 
 		public final String lutName;
@@ -407,9 +412,40 @@ public class BV3DBoxUtilities {
 		
 		LUT grayLUT = new LUT(red, green, blue);
 		
+		log.debug("Gray LUT created");
+		
 		return grayLUT;
 	}
 	
+	
+	public static LUT createOutlineLUT() {
+		
+		byte[] red = new byte[256];
+		byte[] green = new byte[256];
+		byte[] blue = new byte[256];
+		
+		for (int v = 0; v < 255; v++) {
+			red[v] = (byte) v;
+			green[v] = (byte) v;
+			blue[v] = (byte) v;
+		}
+		
+		Color roiColor = Roi.getColor();
+		
+		System.out.println(roiColor);
+		
+		red[255] = (byte)roiColor.getRed();
+		green[255] = (byte)roiColor.getGreen();
+		blue[255] = (byte)roiColor.getBlue();
+		
+		LUT outlineLUT = new LUT(red, green, blue);
+		
+		System.out.println(outlineLUT);
+		
+		log.debug("Outline LUT created");
+		
+		return outlineLUT;
+	}
 	
 	public static ImagePlus convertToGray8(ImagePlus image) {
 		if (image.getProcessor().getBitDepth() > 8) {
@@ -432,21 +468,23 @@ public class BV3DBoxUtilities {
 	
 	public static void adaptImageDisplay(ImagePlus source, ImagePlus target) {
 		
-		ImageCanvas sourceCanvas = source.getCanvas();
-		ImageCanvas targetCanvas = target.getCanvas();
-		
-		ImageWindow sourceWindow = source.getWindow();
-		ImageWindow targetWindow = target.getWindow();
-		
-		Point sourceLocation = sourceWindow.getLocation();
-		Rectangle sourceRectangle = sourceCanvas.getSrcRect();
-		
-		targetCanvas.setSize(sourceCanvas.getSize());
-		targetCanvas.setMagnification(sourceCanvas.getMagnification());
-		targetCanvas.setSourceRect(sourceRectangle);
-		
-		targetWindow.setLocation(sourceLocation.x + sourceWindow.getWidth(), sourceLocation.y);
-		targetWindow.setSize(sourceWindow.getSize());
+		if (source != null && target != null) {
+			ImageCanvas sourceCanvas = source.getCanvas();
+			ImageCanvas targetCanvas = target.getCanvas();
+			
+			ImageWindow sourceWindow = source.getWindow();
+			ImageWindow targetWindow = target.getWindow();
+			
+			Point sourceLocation = sourceWindow.getLocation();
+			Rectangle sourceRectangle = sourceCanvas.getSrcRect();
+			
+			targetCanvas.setSize(sourceCanvas.getSize());
+			targetCanvas.setMagnification(sourceCanvas.getMagnification());
+			targetCanvas.setSourceRect(sourceRectangle);
+			
+			targetWindow.setLocation(sourceLocation.x + sourceWindow.getWidth(), sourceLocation.y);
+			targetWindow.setSize(sourceWindow.getSize());
+		}
 	}
 	
 }

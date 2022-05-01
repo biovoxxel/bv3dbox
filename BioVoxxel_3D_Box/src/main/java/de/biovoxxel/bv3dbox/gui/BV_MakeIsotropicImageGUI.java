@@ -24,7 +24,7 @@ public class BV_MakeIsotropicImageGUI implements Command {
 	
 	@Override
 	public void run() {
-		
+				
 		if (inputImagePlus.isStack()) {
 			
 			CLIJ2 clij2 = CLIJ2.getInstance();
@@ -33,7 +33,7 @@ public class BV_MakeIsotropicImageGUI implements Command {
 			
 			double pixelSize = inputImagePlus.getCalibration().pixelWidth;
 			
-			ImagePlus isotropicImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, isotropic_image, false, LutNames.GRAY);
+			ImagePlus isotropicImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, isotropic_image, true, LutNames.GRAY);
 			
 			isotropicImagePlus.setTitle("iso_" + WindowManager.getUniqueName(inputImagePlus.getTitle()));
 			

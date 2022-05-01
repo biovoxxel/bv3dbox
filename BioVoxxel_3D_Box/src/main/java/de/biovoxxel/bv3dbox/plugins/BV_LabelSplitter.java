@@ -4,13 +4,19 @@
 package de.biovoxxel.bv3dbox.plugins;
 
 import org.joml.Math;
+import org.scijava.prefs.DefaultPrefService;
 
+
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxSettings;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
+import ij.WindowManager;
+import ij.measure.ResultsTable;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
-import net.haesleinhuepf.clijx.plugins.FindMaximaPlateaus;
+
 
 /*
  * BSD 3-Clause License
@@ -53,7 +59,9 @@ import net.haesleinhuepf.clijx.plugins.FindMaximaPlateaus;
  */
 public class BV_LabelSplitter {
 
+	private boolean showDebugImages = new DefaultPrefService().getBoolean(BV3DBoxSettings.class, "bv_3d_box_settings_display_debug_images", false);
 	private CLIJ2 clij2;
+	private BV_LabelSeparator labelSeparator = new BV_LabelSeparator();
 	
 	private double[] voxelRatios = {1.0, 1.0};
 		
@@ -114,15 +122,19 @@ public class BV_LabelSplitter {
 			seedImage = detectErodedMaxima(input_image, Math.round(spotSigma), maximaRadius);
 			break;
 		
+		case "EDM Maxima":
+			seedImage = detectDistanceMapMaxima(thresholdedImage, maximaRadius);
+			break;
+		
+		case "Maxima Spheres":	
+			seedImage = createMaximaSpheres(thresholdedImage, spotSigma, maximaRadius);
+			break;
+			
 		case "DoG Seeds":
 			ClearCLBuffer binary_8_bit_image = clij2.create(thresholdedImage);
 			clij2.replaceIntensity(thresholdedImage, binary_8_bit_image, 1, 255);
 			seedImage = detectDoGSeeds(binary_8_bit_image, spotSigma, maximaRadius);
 			binary_8_bit_image.close();
-			break;
-		
-		case "EDM Maxima":
-			seedImage = detectDistanceMapMaxima(thresholdedImage, maximaRadius);
 			break;
 			
 		default:
@@ -137,6 +149,7 @@ public class BV_LabelSplitter {
 		
 		return label_image;
 	}
+	
 	
 	/**
 	 * 
@@ -201,6 +214,88 @@ public class BV_LabelSplitter {
 		
 		return maxima_image;
 	}
+	
+	
+	/**
+	 * 
+	 * @param thresholdedImage
+	 * @param spotSigma
+	 * @param maximaRadius
+	 * @return
+	 */
+	public ClearCLBuffer createMaximaSpheres(ClearCLBuffer binary_image, Float spotSigma, Float maximaRadius) {
+		
+		double y_maxima_radius = maximaRadius * voxelRatios[0];
+		double z_maxima_radius = maximaRadius / voxelRatios[1] == Double.POSITIVE_INFINITY ? 0.0 : maximaRadius / voxelRatios[1];
+			
+		System.out.println(maximaRadius / voxelRatios[1]);
+		
+		ClearCLBuffer distance_map = clij2.create(binary_image.getDimensions(), NativeTypeEnum.Float);
+		clij2.distanceMap(binary_image, distance_map);
+		
+		ClearCLBuffer gaussian_distance_map = clij2.create(binary_image.getDimensions(), NativeTypeEnum.Float);
+		clij2.gaussianBlur3D(distance_map, gaussian_distance_map, spotSigma, y_maxima_radius, z_maxima_radius);
+		
+		ClearCLBuffer maxima_image = clij2.create(binary_image.getDimensions(), NativeTypeEnum.Float);
+		clij2.detectMaxima3DBox(gaussian_distance_map, maxima_image, maximaRadius, y_maxima_radius, z_maxima_radius);
+		gaussian_distance_map.close();
+		
+		ClearCLBuffer maxima_labels = clij2.create(binary_image.getDimensions(), NativeTypeEnum.Float);
+		clij2.connectedComponentsLabelingDiamond(maxima_image, maxima_labels);
+		maxima_image.close();
+				
+		ResultsTable resultsTable = new ResultsTable();
+		clij2.statisticsOfLabelledPixels(distance_map, maxima_labels, resultsTable);
+		distance_map.close();
+		maxima_labels.close();
+		
+		int minIntIndex = resultsTable.getColumnIndex("MINIMUM_INTENSITY");
+		int x_index = resultsTable.getColumnIndex("CENTROID_X");
+		int y_index = resultsTable.getColumnIndex("CENTROID_Y");
+		int z_index = resultsTable.getColumnIndex("CENTROID_Z");
+		
+		double[] maxima_intensity = resultsTable.getColumnAsDoubles(minIntIndex);
+		double[] x = resultsTable.getColumnAsDoubles(x_index);
+		double[] y = resultsTable.getColumnAsDoubles(y_index);
+		double[] z = resultsTable.getColumnAsDoubles(z_index);
+		
+		System.out.println(maxima_intensity);
+		System.out.println(x);
+		System.out.println(y);
+		System.out.println(z);
+		
+		ClearCLBuffer sphere_image = clij2.create(binary_image.getDimensions(), NativeTypeEnum.Float);
+		clij2.set(sphere_image, 0);
+		
+		for (int i = 0; i < maxima_intensity.length; i++) {
+			
+			double x_radius = maxima_intensity[i];
+			double y_radius = maxima_intensity[i] * voxelRatios[0];
+			double z_radius = maxima_intensity[i] / voxelRatios[1] == Double.POSITIVE_INFINITY ? 1.0 : maxima_intensity[i] / voxelRatios[1];
+						
+			clij2.drawSphere(sphere_image, x[i], y[i], z[i], x_radius, y_radius, z_radius, i+1);
+		}
+		
+		ClearCLBuffer separated_sphere_image = clij2.create(binary_image.getDimensions(), NativeTypeEnum.Float);
+		labelSeparator.splitLabels(clij2, sphere_image, separated_sphere_image);
+		
+		
+		if (showDebugImages) {
+			
+			ImagePlus sphereImagePlus = WindowManager.getImage("debug_sphere_image");
+			if (sphereImagePlus == null) {
+				sphereImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, separated_sphere_image, true, LutNames.GLASBEY_LUT);
+				sphereImagePlus.setTitle("debug_sphere_image");
+				sphereImagePlus.show();		
+			} else {
+				sphereImagePlus.setImage(BV3DBoxUtilities.pullImageFromGPU(clij2, separated_sphere_image, true, LutNames.GLASBEY_LUT));
+				sphereImagePlus.setTitle("debug_sphere_image");
+			}	
+		}
+		
+		return separated_sphere_image;
+	}
+
 	
 	
 	/**
@@ -272,23 +367,23 @@ public class BV_LabelSplitter {
 	}
 	
 	
-	//experimental / seem to not really work well --> not implemented via GUI
-	public ClearCLBuffer detectPlateaus(ClearCLBuffer input_image, Float spotSigma) {
-		
-		double y_filter_sigma = spotSigma * voxelRatios[0];
-		double z_filter_sigma = spotSigma / voxelRatios[1];
-			
-		ClearCLBuffer temp = clij2.create(input_image);
-		clij2.gaussianBlur3D(input_image, temp, spotSigma, y_filter_sigma, z_filter_sigma);
-				
-		ClearCLBuffer plateaus_image = clij2.create(temp);
-		FindMaximaPlateaus.findMaximaPlateaus(clij2, temp, plateaus_image);	//not possible to use via clij2 instance since currently deactivated 
-		temp.close();	
-	
-		//BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, plateaus_image, false, LutNames.GLASBEY_LUT);
-		
-		return plateaus_image;
-	}
+//	experimental / seem to not really work well --> not implemented via GUI
+//	public ClearCLBuffer detectPlateaus(ClearCLBuffer input_image, Float spotSigma) {
+//		
+//		double y_filter_sigma = spotSigma * voxelRatios[0];
+//		double z_filter_sigma = spotSigma / voxelRatios[1];
+//			
+//		ClearCLBuffer temp = clij2.create(input_image);
+//		clij2.gaussianBlur3D(input_image, temp, spotSigma, y_filter_sigma, z_filter_sigma);
+//				
+//		ClearCLBuffer plateaus_image = clij2.create(temp);
+//		FindMaximaPlateaus.findMaximaPlateaus(clij2, temp, plateaus_image);	//not possible to use via clij2 instance since currently deactivated 
+//		temp.close();	
+//	
+//		//BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, plateaus_image, false, LutNames.GLASBEY_LUT);
+//		
+//		return plateaus_image;
+//	}
 	
 	/**
 	 * 
@@ -299,11 +394,11 @@ public class BV_LabelSplitter {
 	public ClearCLBuffer createLabels(ClearCLBuffer seed_image, ClearCLBuffer thresholded_image) {
 		// mask spots
 		ClearCLBuffer masked_spots = clij2.create(seed_image);
-		clij2.binaryAnd(seed_image, thresholded_image, masked_spots);
+		clij2.mask(seed_image, thresholded_image, masked_spots);
+		//clij2.binaryAnd(seed_image, thresholded_image, masked_spots);	//old before version 1.9.0
 		
 		ClearCLBuffer output_image = clij2.create(seed_image.getDimensions(), NativeTypeEnum.Float);
 		clij2.maskedVoronoiLabeling(masked_spots, thresholded_image, output_image);
-		
 		masked_spots.close();
 		
 		return output_image;

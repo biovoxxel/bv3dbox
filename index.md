@@ -150,8 +150,9 @@ Methods:
   * `Eroded Maxima`: takes the input image and erodes the objects using the `Spot sigma` as erosion iterations. Then it identifies intensity maxima on the eroded objects using the `Maxima detection radius`.
   * `Maxima Spheres`: the EDM (euclidean distance map) is created from the binary segmentation result, then blurred with the `Spot sigma` and maxima are detected on the blurred EDM. The underlying EDM intensity of those maxima is measured and taken as a radius of a sphere. An image with those spheres serves as seeds for the label splitting (advantage is that the EDM info reflects to some extent the object size and adapts seeds accodingly which might achieves more accurate separation). 
 
-![3d_distance_map_animation](https://user-images.githubusercontent.com/10721817/166154878-9a79bf50-c7ea-4f22-995d-b2852a38e83a.gif)
-![3d_maxima_sphere_animation](https://user-images.githubusercontent.com/10721817/166154894-7ff41c7f-f667-4cf2-b46c-2a5cd9a006da.gif)
+
+![3d_distance_map_animation](https://user-images.githubusercontent.com/10721817/166155091-719ad2c6-909b-4038-a44f-150be30004ab.gif)
+![3d_maxima_sphere_animation](https://user-images.githubusercontent.com/10721817/166155100-4ea48697-e7fc-463e-a426-aa5bb9cd8a60.gif)
 
 
   * `DoG Seeds`: There will be a difference of gausian (DoG) filter be applied on the segmented binary objects which leads to smooth seed objects still dependent on the original object size bit with less smaller fragmented seeds. This does not work well on big connections/bridges between objects but has advantages on fairly irregularly shaped objects.

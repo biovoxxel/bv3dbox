@@ -142,11 +142,13 @@ Parameter meaning and usage:
 ### Label Splitter
 The label splitter is the equivalent of a watershedding function for binary images or images containing labeld objects already. It will separate objects according to the following methods. The output image will be displayed as consecutive intensity labels (intensity = identifier).
 This is the last part of the [Voronoi Threshold Labeler](#voronoi-threshold-labeler) processing.
+All of these functions work best on 3D isotropic voxels, so consider to run [Make 3D image isotropic](#make-3d-image-isotropic)!
 
 Methods:
 * `Separation method`: There are 3 different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are
   * `Maxima`: intensity maxima are determined on the original image in a square/box neighborhood defined by the `Maxima detection radius` after applying a gaussian blur on the original image in a neighborhood defined by the `Spot sigma`. The detected maxima are the seeds from which the objects are filled via a masked voronoi extension.
   * `Eroded Maxima`: takes the input image and erodes the objects using the `Spot sigma` as erosion iterations. Then it identifies intensity maxima on the eroded objects using the `Maxima detection radius`.
+  * `Maxima Spheres`: the EDM (euclidean distance map) is created from the binary segmentation result, then blurred with the `Spot sigma` and maxima are detected on the blurred EDM. The underlying EDM intensity of those maxima is measured and taken as a radius of a sphere. An image with those spheres serves as seeds for the label splitting (advantage is that the EDM info reflects to some extent the object size and adapts seeds accodingly which might achieves more accurate separation). 
   * `DoG Seeds`: There will be a difference of gausian (DoG) filter be applied on the segmented binary objects which leads to smooth seed objects still dependent on the original object size bit with less smaller fragmented seeds. This does not work well on big connections/bridges between objects but has advantages on fairly irregularly shaped objects.
   *  `Eroded box`: The extracted objects/areas are eroded in a square/box neighborhood defined by the `Spot sigma` and used as a seed for the same voronoi filling of the objects.
   * `Eroded sphere`: The extracted objects/areas are eroded in a circle/sphere neighborhood defined by the `Spot sigma` and used as seeds.

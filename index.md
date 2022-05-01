@@ -151,8 +151,7 @@ Methods:
   * `Maxima Spheres`: the EDM (euclidean distance map) is created from the binary segmentation result, then blurred with the `Spot sigma` and maxima are detected on the blurred EDM. The underlying EDM intensity of those maxima is measured and taken as a radius of a sphere. An image with those spheres serves as seeds for the label splitting (advantage is that the EDM info reflects to some extent the object size and adapts seeds accodingly which might achieves more accurate separation). 
 
 
-![3d_distance_map_animation](https://user-images.githubusercontent.com/10721817/166155091-719ad2c6-909b-4038-a44f-150be30004ab.gif)
-![3d_maxima_sphere_animation](https://user-images.githubusercontent.com/10721817/166155100-4ea48697-e7fc-463e-a426-aa5bb9cd8a60.gif)
+![3d_distance_map_animation](https://user-images.githubusercontent.com/10721817/166155091-719ad2c6-909b-4038-a44f-150be30004ab.gif)   ![3d_maxima_sphere_animation](https://user-images.githubusercontent.com/10721817/166155100-4ea48697-e7fc-463e-a426-aa5bb9cd8a60.gif)
 
 
   * `DoG Seeds`: There will be a difference of gausian (DoG) filter be applied on the segmented binary objects which leads to smooth seed objects still dependent on the original object size bit with less smaller fragmented seeds. This does not work well on big connections/bridges between objects but has advantages on fairly irregularly shaped objects.

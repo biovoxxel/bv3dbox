@@ -20,14 +20,14 @@ The BioVoxxel 3D Box are distributed via the **BioVoxxel 3D Box** update site in
 * Select `Manage update sites`
 * <span style="color:red">The following update sites need currently to be minimally active to be able to use all functionalities of the BioVoxxel 3D Box</span>
 
-<p style="color:red">
-  * bv3dbox
+<p style="color:red"><ul>
+  <li> bv3dbox
   * CLIJ2
   * CLIJx
   * CLIJx-assistant
   * CLIJx-assistant-extensions
-  * 3D ImageJ Suite 
-</p>
+  * 3D ImageJ Suite</li> 
+</ul></p>
 ---
 
 # Functionalities

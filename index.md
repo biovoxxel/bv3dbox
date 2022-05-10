@@ -18,14 +18,14 @@ Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Too
 The BioVoxxel 3D Box are distributed via the **BioVoxxel 3D Box** update site in Fiji.
 * `Run >Help >Update...`
 * Select `Manage update sites`
-* <span style="color:red">The following update sites need currently to be minimally active to be able to use all functionalities of the BioVoxxel 3D Box
+* <a style="color:red">The following update sites need currently to be minimally active to be able to use all functionalities of the BioVoxxel 3D Box
 
   * bv3dbox
   * CLIJ2
   * CLIJx
   * CLIJx-assistant
   * CLIJx-assistant-extensions
-  * 3D ImageJ Suite</span>
+  * 3D ImageJ Suite </a>
 
 ---
 

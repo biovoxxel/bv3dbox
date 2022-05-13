@@ -8,6 +8,7 @@ import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.widget.Button;
 import org.scijava.widget.NumberWidget;
 
 import de.biovoxxel.bv3dbox.plugins.BV_LabelSplitter;
@@ -63,21 +64,28 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 	@Parameter(required = true, initializer = "setupImage")
 	private ImagePlus inputImagePlus;
 	
-	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded Maxima", "EDM Maxima", "Maxima Spheres", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
+	@Parameter(label = "Separation method", choices = {"Maxima", "Eroded Maxima", "EDM Maxima", "Maxima Spheres", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImageOnTheFly")
 	private String separationMethod = "Maxima";
 	
-	@Parameter(label = "Spot sigma", min = "0f", callback = "processImage")
+	@Parameter(label = "Spot sigma", min = "0f", callback = "processImageOnTheFly")
 	private Float spotSigma = 1f;
 	
-	@Parameter(label = "Maxima detection radius", min = "0f", callback = "processImage")
+	@Parameter(label = "Maxima detection radius", min = "0f", callback = "processImageOnTheFly")
 	private Float maximaRadius = 1f;
 	
 	@Parameter(label = "Stack slice", initializer = "imageSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
-	Integer stackSlice;
+	private Integer stackSlice = 1;
+	
+	@Parameter(label = "On the fly mode", required = false)
+	private Boolean processOnTheFly = false;
+	
+	@Parameter(label = "Preview", callback = "processImage", required = false)
+	private Button refreshButton;
+	
+	
 	
 	private CLIJ2 clij2 = CLIJ2.getInstance();
-	
-	private BV_LabelSplitter labelSplitter;
+		private BV_LabelSplitter labelSplitter;
 	
 	private ClearCLBuffer input_image;
 	private String outputImageName = null;
@@ -135,6 +143,13 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 			
 	}
 	
+	
+	@SuppressWarnings("unused")
+	private void processImageOnTheFly() {
+		if (processOnTheFly) {
+			processImage();
+		}
+	}
 	
 	public void processImage() {
 		

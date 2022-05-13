@@ -259,6 +259,7 @@ public class BV_LabelSplitter {
 		double[] y = resultsTable.getColumnAsDoubles(y_index);
 		double[] z = resultsTable.getColumnAsDoubles(z_index);
 		
+		
 		System.out.println(maxima_intensity);
 		System.out.println(x);
 		System.out.println(y);
@@ -278,7 +279,7 @@ public class BV_LabelSplitter {
 		
 		ClearCLBuffer separated_sphere_image = clij2.create(binary_image.getDimensions(), NativeTypeEnum.Float);
 		labelSeparator.splitLabels(clij2, sphere_image, separated_sphere_image);
-		
+		sphere_image.close();
 		
 		if (showDebugImages) {
 			

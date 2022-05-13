@@ -27,6 +27,7 @@ import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
 import net.haesleinhuepf.clijx.CLIJx;
 import net.haesleinhuepf.clijx.imagej2.ImageJ2Tubeness;
+import net.haesleinhuepf.clijx.plugins.BinaryFillHolesSliceBySlice;
 
 
 /*
@@ -320,6 +321,9 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 	}
 
 	
+	
+	
+	
 	public ClearCLBuffer backgroundSubtraction(ClearCLBuffer filtered_image, String backgroundSubtractionMethod, Float backgroundRadius) {
 		
 		ClearCLBuffer background_subtracted_image = clij2.create(filtered_image);
@@ -390,7 +394,7 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 	}
 
 	
-
+	
 	public void createOutputImage(ClearCLBuffer output_image, String outputType) {
 		ImagePlus tempOutputImagePlus = null;
 		

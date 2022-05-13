@@ -12,6 +12,7 @@ import ij.ImagePlus;
 import ij.WindowManager;
 import ij.gui.ImageCanvas;
 import ij.gui.ImageWindow;
+import ij.gui.Plot;
 import ij.gui.Roi;
 import ij.measure.Calibration;
 import ij.plugin.LutLoader;
@@ -247,22 +248,25 @@ public class BV3DBoxUtilities {
 	
 	
 	public static int[] getHistogram(ImagePlus image) {
-		StackStatistics stackStatistics = new StackStatistics(image);
+		StackStatistics stackStatistics;
 		if (image.getRoi() != null) {
 			stackStatistics = new StackStatistics(image.duplicate());
 		} else {
 			stackStatistics = new StackStatistics(image);
 		}
 				
-		//double[] histogram = stackStatistics.histogram();
- 	
 		double[] tempHistogram = stackStatistics.histogram();
+//		Plot hist = new Plot("Histogram for thresholding", "intensity", "count");
+//		hist.add("bar", tempHistogram);
+//		hist.show();
 		
 		int[] finalHistogram = new int[tempHistogram.length];
 		
 		for (int i = 0; i < tempHistogram.length; i++) {
 			finalHistogram[i] = (int) Math.round(tempHistogram[i]);
 		}
+		
+		
 		
 		return finalHistogram;
 	}

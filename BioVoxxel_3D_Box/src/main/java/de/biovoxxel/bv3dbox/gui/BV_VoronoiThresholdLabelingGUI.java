@@ -8,6 +8,7 @@ import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
@@ -19,6 +20,7 @@ import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
 import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
+import net.haesleinhuepf.clijx.plugins.BinaryFillHolesSliceBySlice;
 import net.imagej.updater.UpdateService;
 
 /*
@@ -57,61 +59,77 @@ import net.imagej.updater.UpdateService;
 
 @Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Segmentation>Voronoi Threshold Labler (2D/3D)")
 public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
-
-	
+		
 	@Parameter(required = true, initializer = "setupImage")
 	private ImagePlus inputImagePlus;
 	
 	@Parameter(label = "Image filter", choices = { "None", "Gaussian", "DoG", "Median", "Mean", "Open", "Close", "Variance", "Tubeness", "Inverted Tubeness" }, callback = "adaptFilter")
-	private String filterMethod = "Gaussian";
+	private String filterMethod = "None";
 	
-	@Parameter(label = "Filter radius", min = "0f", max = "1000f", callback = "adaptFilter")
+	@Parameter(label = "Filter radius", min = "0f", max = "1000f", callback = "processImageOnTheFly")
 	private Float filterRadius = 1.0f;
 	
 	@Parameter(label = "Background subtraction", choices = {"None", "DoG", "DoM", "TopHat", "BottomHat", "Inverted Tubeness"}, callback = "adaptBackground")
-	private String backgroundSubtractionMethod;
+	private String backgroundSubtractionMethod = "None";
 	
-	@Parameter(label = "Background radius", min = "0f", max = "1000f", callback = "adaptBackground")
+	@Parameter(label = "Background radius", min = "0f", max = "1000f", callback = "processImageOnTheFly")
 	private Float backgroundRadius = 1.0f;
 		
-	@Parameter(label = "Histogram usage", choices = {"full", "ignore black", "ignore white", "ignore both"}, callback = "processImage")
+	@Parameter(label = "Histogram usage", choices = {"full", "ignore black", "ignore white", "ignore both"}, callback = "processImageOnTheFly")
 	private String histogramUsage = "full";
 	
-	@Parameter(label = "Threshold method", initializer = "thresholdMethodList", callback = "processImage")
+	@Parameter(label = "Threshold method", initializer = "thresholdMethodList", callback = "processImageOnTheFly")
 	private String thresholdMethod = "Default";
-		
-	@Parameter(label = "Separation method", choices = {"None", "Maxima", "Eroded Maxima", "EDM Maxima", "Maxima Spheres", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImage")
+	
+	@Parameter(label = "Fill Holes", choices = {"Off","2D","3D"}, callback = "processImageOnTheFly")
+	private String fillHoles = "Off";
+	
+	@Parameter(label = "Separation method", choices = {"None", "Maxima", "Eroded Maxima", "EDM Maxima", "Maxima Spheres", "DoG Seeds", "Eroded box", "Eroded sphere"}, callback = "processImageOnTheFly")
 	private String separationMethod = "Maxima";
 	
-	@Parameter(label = "Spot sigma / Erosion", min = "0f", callback = "processImage")
-	private Float spotSigma;
+	@Parameter(label = "Spot sigma / Erosion", min = "0f", callback = "processImageOnTheFly")
+	private Float spotSigma = 0f;
 	
-	@Parameter(label = "Maxima detection radius", min = "0f", callback = "processImage")
-	private Float maximaRadius;
+	@Parameter(label = "Maxima detection radius", min = "0f", callback = "processImageOnTheFly")
+	private Float maximaRadius = 0f;
 	
+	@Parameter(label = "Volume range", min = "0f")
+	private String volumeRange = "0-Infinity";
+	
+	@Parameter(label = "Exclude on edges", callback = "processImageOnTheFly")
+	private Boolean excludeOnEdges = false;
+
 	@Parameter(label = "Output type", choices = {"Labels", "Binary", "Outlines"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE, callback = "processImage")
-	private String outputType;
+	private String outputType = "Labels";
 	
-	@Parameter(label = "Stack slice", initializer = "imageSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
-	Integer stackSlice;
+	@Parameter(label = "Stack slice", initializer = "imageSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices", required = false)
+	private Integer stackSlice = 1;
 	
 	@Parameter(label = "Apply on complete image")
-	Boolean applyOnCompleteImage = false;
+	private Boolean applyOnCompleteImage = false;
+	
+	@Parameter(label = "On the fly mode", required = false)
+	private Boolean processOnTheFly = false;
+	
+	@Parameter(label = "Preview", callback = "processImage", required = false)
+	private Button previewButton;
 	
 	
 	BV_VoronoiThresholdLabeling bvvtl = new BV_VoronoiThresholdLabeling();
 	BV_LabelSplitter labelSplitter;
 	
+	private CLIJ2 clij2;
+	
 	private ClearCLBuffer input_image;
 	
-	private String priorFilterMethod;
-	private String priorBackgroundMethod;
+//	private String priorFilterMethod;
+//	private String priorBackgroundMethod;
 	
 	private int[] stackHistogram;
 	
 	
 	public void run() {
-						
+		
 		if (inputImagePlus.getRoi() != null && applyOnCompleteImage) {
 			
 			bvvtl.getOutputImage().close();
@@ -132,6 +150,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		
 		bvvtl.getInputImageAsClearClBuffer().close();
 		bvvtl.getCurrentCLIJ2Instance().close();
+			
 	}
 	
 	
@@ -142,6 +161,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		bvvtl.setupInputImage(inputImagePlus);
 		input_image = bvvtl.getInputImageAsClearClBuffer();
 		
+		clij2 = bvvtl.getCurrentCLIJ2Instance();
 		
 		labelSplitter = new BV_LabelSplitter(bvvtl.getCurrentCLIJ2Instance());
 		
@@ -158,8 +178,8 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		}
 		
 		if (inputImagePlus.getRoi() != null) {
-			stackHistogram = BV3DBoxUtilities.getHistogram(inputImagePlus);			
-		}
+			stackHistogram = BV3DBoxUtilities.getHistogram(inputImagePlus);	
+		}		
 	}
 
 
@@ -183,20 +203,21 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		
 		final MutableModuleItem<Float> mutableFilterRadius = getInfo().getMutableInput("filterRadius", Float.class);
 		
-		if(!filterMethod.equals(priorFilterMethod)) {
-			mutableFilterRadius.setValue(this, 1f);
-			priorFilterMethod = filterMethod;
-		}
+//		if(!filterMethod.equals(priorFilterMethod)) {
+//			mutableFilterRadius.setValue(this, 1f);
+//			priorFilterMethod = filterMethod;
+//		}
 				
 		
 		if (filterMethod.equals("Median")) {
+			
+			mutableFilterRadius.setValue(this, 1f);
 			mutableFilterRadius.setMaximumValue(15f);
 			
 		} else {
 			mutableFilterRadius.setMaximumValue(1000f);
 		}
 		
-		processImage();
 	}
 
 
@@ -206,20 +227,50 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		
 		final MutableModuleItem<Float> mutableBackgroundRadius = getInfo().getMutableInput("backgroundRadius", Float.class);
 		
-		if (!backgroundSubtractionMethod.equals(priorBackgroundMethod)) {
-			mutableBackgroundRadius.setValue(this, 1f);
-			priorBackgroundMethod = backgroundSubtractionMethod;
-		}
+//		if (!backgroundSubtractionMethod.equals(priorBackgroundMethod)) {
+//			mutableBackgroundRadius.setValue(this, 1f);
+//			priorBackgroundMethod = backgroundSubtractionMethod;
+//		}
+		
 		if (backgroundSubtractionMethod.equals("DoM")) {
+			mutableBackgroundRadius.setValue(this, 1f);
 			mutableBackgroundRadius.setMaximumValue(15f);
 		} else {
 			mutableBackgroundRadius.setMaximumValue(1000f);
 		}
 		
-		processImage();
 	}
 	
+//TODO: delete if button recordability is officially functional
+//	private void adaptVolumeMin() {
+//		final MutableModuleItem<Float> mutableVolumeMin = getInfo().getMutableInput("minVolume", Float.class);
+//		
+//		if (minVolume > maxVolume) {
+//			mutableVolumeMin.setValue(this, maxVolume);			
+//		}
+//		
+//		processImage();
+//		
+//	}
+//	
+//	private void adaptVolumeMax() {
+//		final MutableModuleItem<Float> mutableVolumeMax = getInfo().getMutableInput("maxVolume", Float.class);
+//		
+//		if (maxVolume < minVolume) {
+//			mutableVolumeMax.setValue(this, minVolume);			
+//		}
+//		
+//		processImage();
+//		
+//	}
 	
+	@SuppressWarnings("unused")
+	private void processImageOnTheFly() {
+		if (processOnTheFly) {
+			processImage();
+		}
+	}
+		
 	private void processImage() {
 	
 		ClearCLBuffer filtered_image = bvvtl.filterImage(input_image, filterMethod, filterRadius);
@@ -230,7 +281,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		
 		if (inputImagePlus.getRoi() == null) {
 			
-			thresholdValue = BV3DBoxUtilities.getThresholdValue(bvvtl.getCurrentCLIJ2Instance(), thresholdMethod, background_subtracted_image, histogramUsage);
+			thresholdValue = BV3DBoxUtilities.getThresholdValue(clij2, thresholdMethod, background_subtracted_image, histogramUsage);
 			
 		} else {
 			
@@ -262,12 +313,37 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		
 		
 		
-		ClearCLBuffer thresholded_image = BV3DBoxUtilities.thresholdImage(bvvtl.getCurrentCLIJ2Instance(), background_subtracted_image, thresholdValue);		
+		ClearCLBuffer thresholded_image = BV3DBoxUtilities.thresholdImage(clij2, background_subtracted_image, thresholdValue);		
 		background_subtracted_image.close();
 				
-		ClearCLBuffer seed_image = bvvtl.getCurrentCLIJ2Instance().create(input_image);
+		
+		switch (fillHoles) {
+		
+		case "2D":			
+			ClearCLBuffer temp_fill_slice_holes_image = clij2.create(thresholded_image);
+			clij2.copy(thresholded_image, temp_fill_slice_holes_image);
+			BinaryFillHolesSliceBySlice.binaryFillHolesSliceBySlice(clij2, temp_fill_slice_holes_image, thresholded_image);
+			temp_fill_slice_holes_image.close();
+			
+			break;
+			
+		case "3D":
+			ClearCLBuffer temp_fill_holes_image = clij2.create(thresholded_image);
+			clij2.copy(thresholded_image, temp_fill_holes_image);
+			clij2.binaryFillHoles(temp_fill_holes_image, thresholded_image);
+			temp_fill_holes_image.close();
+			break;
+			
+		default:
+			break;
+		}
+		
+		
+		
+		ClearCLBuffer seed_image;
 		
 		switch (separationMethod) {
+		
 		case "None":
 			seed_image = thresholded_image;
 			break;
@@ -284,7 +360,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			seed_image = labelSplitter.createMaximaSpheres(thresholded_image, spotSigma, maximaRadius);
 			break;
 		case "DoG Seeds":
-			CLIJ2 clij2 = bvvtl.getCurrentCLIJ2Instance();
+			
 			ClearCLBuffer binary_8_bit_image = clij2.create(thresholded_image);
 			clij2.replaceIntensity(thresholded_image, binary_8_bit_image, 1, 255);
 			seed_image = labelSplitter.detectDoGSeeds(binary_8_bit_image, spotSigma, maximaRadius);
@@ -297,6 +373,26 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		
 		
 		ClearCLBuffer output_image = labelSplitter.createLabels(seed_image, thresholded_image);
+		
+		if (!volumeRange.equalsIgnoreCase("0-infinity")) {
+			
+			ClearCLBuffer size_limited_temp_image = clij2.create(output_image);
+			clij2.copy(output_image, size_limited_temp_image);
+
+			
+			float minVolume = BV3DBoxUtilities.getMinFromRange(volumeRange);
+			float maxVolume = BV3DBoxUtilities.getMaxFromRange(volumeRange);
+			
+			clij2.excludeLabelsOutsideSizeRange(size_limited_temp_image, output_image, minVolume, maxVolume); 
+			size_limited_temp_image.close();
+		}
+		
+		if (excludeOnEdges) {
+			ClearCLBuffer excluded_on_edges_image = clij2.create(output_image);
+			clij2.copy(output_image, excluded_on_edges_image);
+			clij2.excludeLabelsOnEdges(excluded_on_edges_image, output_image);
+			excluded_on_edges_image.close();
+		}
 		
 		thresholded_image.close();
 		seed_image.close();

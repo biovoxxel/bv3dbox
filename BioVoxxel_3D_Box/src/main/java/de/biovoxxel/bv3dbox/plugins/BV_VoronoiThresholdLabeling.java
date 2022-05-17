@@ -354,6 +354,16 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			clij2.subtractImages(filtered_image, tempMedian, background_subtracted_image);
 			tempMedian.close();
 			break;
+		case "Minimum":
+			ClearCLBuffer tempMinimum = clij2.create(filtered_image);
+			if (zSlices == 1) {
+				clij2.minimum2DSphere(filtered_image, tempMinimum, backgroundRadius, y_bckgr_radius);	
+			} else {
+				clij2.minimum3DSliceBySliceSphere(filtered_image, tempMinimum, backgroundRadius, y_bckgr_radius);				
+			}
+			clij2.subtractImages(filtered_image, tempMinimum, background_subtracted_image);
+			tempMinimum.close();
+			break;
 		case "TopHat":
 			clij2.topHatBox(filtered_image, background_subtracted_image, backgroundRadius, y_bckgr_radius, z_bckgr_radius);
 			break;

@@ -69,7 +69,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(label = "Filter radius", min = "0f", max = "1000f", callback = "processImageOnTheFly")
 	private Float filterRadius = 1.0f;
 	
-	@Parameter(label = "Background subtraction", choices = {"None", "DoG", "DoM", "TopHat", "BottomHat", "Inverted Tubeness"}, callback = "adaptBackground")
+	@Parameter(label = "Background subtraction", choices = {"None", "DoG", "DoM", "Minimum", "TopHat", "BottomHat", "Inverted Tubeness"}, callback = "adaptBackground")
 	private String backgroundSubtractionMethod = "None";
 	
 	@Parameter(label = "Background radius", min = "0f", max = "1000f", callback = "processImageOnTheFly")
@@ -148,8 +148,9 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			
 		}
 		
+		BV3DBoxUtilities.showWindow("Log", true);
 		bvvtl.getInputImageAsClearClBuffer().close();
-		bvvtl.getCurrentCLIJ2Instance().close();
+		clij2.close();
 			
 	}
 	
@@ -218,6 +219,8 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			mutableFilterRadius.setMaximumValue(1000f);
 		}
 		
+		processImageOnTheFly();
+		
 	}
 
 
@@ -239,6 +242,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			mutableBackgroundRadius.setMaximumValue(1000f);
 		}
 		
+		processImageOnTheFly();
 	}
 	
 //TODO: delete if button recordability is officially functional
@@ -309,9 +313,10 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			//System.out.println("final stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
 			
 			thresholdValue = BV3DBoxUtilities.getThresholdValue(thresholdMethod, finalHistogram);
+						
 		}
-		
-		
+				
+		BV3DBoxUtilities.showWindow("Log", false);
 		
 		ClearCLBuffer thresholded_image = BV3DBoxUtilities.thresholdImage(clij2, background_subtracted_image, thresholdValue);		
 		background_subtracted_image.close();
@@ -420,7 +425,8 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			outputImagePlus.close();
 		}
 		
-		bvvtl.getCurrentCLIJ2Instance().close();
+		BV3DBoxUtilities.showWindow("Log", true);
+		clij2.close();
 		
 	}
 

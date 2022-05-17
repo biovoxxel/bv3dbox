@@ -3,6 +3,7 @@ package de.biovoxxel.bv3dbox.utilities;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Window;
 
 import org.scijava.log.LogService;
 import org.scijava.log.StderrLogService;
@@ -12,7 +13,6 @@ import ij.ImagePlus;
 import ij.WindowManager;
 import ij.gui.ImageCanvas;
 import ij.gui.ImageWindow;
-import ij.gui.Plot;
 import ij.gui.Roi;
 import ij.measure.Calibration;
 import ij.plugin.LutLoader;
@@ -342,6 +342,18 @@ public class BV3DBoxUtilities {
 		
 		return thresholded_image;
 		
+	}
+	
+	
+	public static void showWindow(String windowName, boolean show) {
+		Window logWindow = WindowManager.getWindow(windowName);
+		if (logWindow != null) {
+			if (show) {
+				logWindow.setVisible(true);				
+			} else {
+				logWindow.setVisible(false);				
+			}
+		}
 	}
 	
 	

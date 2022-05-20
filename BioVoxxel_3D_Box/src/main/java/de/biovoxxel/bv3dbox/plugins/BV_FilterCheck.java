@@ -160,7 +160,7 @@ public class BV_FilterCheck extends DynamicCommand {
 		if (outputImagePlus != null) {
 			outputImagePlus.close();
 		}
-		clij2.close();
+		clij2.clear();
 	}
 	
 	

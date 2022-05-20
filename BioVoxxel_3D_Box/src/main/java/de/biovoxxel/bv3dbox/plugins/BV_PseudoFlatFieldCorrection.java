@@ -203,7 +203,7 @@ public class BV_PseudoFlatFieldCorrection implements Cancelable {
 		if (outputImagePlus != null) {
 			outputImagePlus.close();
 		}
-		clij2.close();
+		clij2.clear();
 		
 	}
 

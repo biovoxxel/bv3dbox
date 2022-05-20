@@ -25,6 +25,7 @@ import ij.process.LUT;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
+import net.haesleinhuepf.clij2.plugins.Create3D;
 import net.haesleinhuepf.clijx.CLIJx;
 import net.haesleinhuepf.clijx.imagej2.ImageJ2Tubeness;
 import net.haesleinhuepf.clijx.plugins.BinaryFillHolesSliceBySlice;
@@ -260,7 +261,8 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 
 	public ClearCLBuffer filterImage(ClearCLBuffer input_image, String filterMethod, Float filterRadius) {
 					
-		ClearCLBuffer filtered_image = clij2.create(input_image);
+		//ClearCLBuffer filtered_image = clij2.create(input_image);
+		ClearCLBuffer filtered_image = clij2.create(input_image.getDimensions(), NativeTypeEnum.Float);
 		
 		double y_filter_radius = filterRadius * calibration[1];
 		double z_filter_radius = filterRadius / calibration[2];
@@ -311,6 +313,18 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			//BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, inverted_image, false, LutNames.GRAY);
 			ij2Tubeness.imageJ2Tubeness(clij2, inverted_image, filtered_image, filterRadius, 0f, 0f, 0f);
 			inverted_image.close();
+			break;
+		case "Horizontal emboss":
+			float[] horizontalEmbossArray = {3f, 0f, -3f, 10f, 0f, -10f, 3f, 0f, -3f};
+			ClearCLBuffer horizontal_emboss_kernel_image= clij2.pushArray(horizontalEmbossArray, 3, 3, 1);
+			clij2.convolve(input_image, horizontal_emboss_kernel_image, filtered_image);
+			horizontal_emboss_kernel_image.close();
+			break;
+		case "Vertical emboss":
+			float[] verticalEmbossArray = {3f, 10f, 3f, 0f, 0f, 0f, -3f, -10f, -3f};
+			ClearCLBuffer vertical_emboss_kernel_image = clij2.pushArray(verticalEmbossArray, 3, 3, 1);
+			clij2.convolve(input_image, vertical_emboss_kernel_image, filtered_image);
+			vertical_emboss_kernel_image.close();
 			break;
 		default:
 			clij2.copy(input_image, filtered_image);

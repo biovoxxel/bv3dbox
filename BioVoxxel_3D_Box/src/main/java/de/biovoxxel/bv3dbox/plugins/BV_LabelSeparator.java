@@ -46,7 +46,7 @@ public class BV_LabelSeparator implements Command {
 		
 		outputImagePlus.show();
 		
-		clij2.close();
+		clij2.clear();
 	}
 	
 	

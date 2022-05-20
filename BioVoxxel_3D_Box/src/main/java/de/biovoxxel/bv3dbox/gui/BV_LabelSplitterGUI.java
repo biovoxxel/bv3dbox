@@ -109,7 +109,7 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 		
 		
 		if (clij2 != null) {
-			clij2.close();			
+			clij2.clear();			
 		}
 		
 	}

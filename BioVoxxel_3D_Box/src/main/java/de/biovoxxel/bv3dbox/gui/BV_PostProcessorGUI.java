@@ -82,7 +82,6 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 		bvpp.getInputBuffer().close();
 		CLIJ2 clij2 = bvpp.getCLIJ2Instance();
 		clij2.clear();
-		clij2.close();
 	}
 
 	
@@ -146,7 +145,6 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 		}
 		CLIJ2 clij2 = bvpp.getCLIJ2Instance();
 		clij2.clear();
-		clij2.close();
 	}
 	
 }

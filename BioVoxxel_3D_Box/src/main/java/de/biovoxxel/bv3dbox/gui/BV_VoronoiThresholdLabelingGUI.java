@@ -63,7 +63,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(required = true, initializer = "setupImage")
 	private ImagePlus inputImagePlus;
 	
-	@Parameter(label = "Image filter", choices = { "None", "Gaussian", "DoG", "Median", "Mean", "Open", "Close", "Variance", "Tubeness", "Inverted Tubeness" }, callback = "adaptFilter")
+	@Parameter(label = "Image filter", choices = { "None", "Gaussian", "DoG", "Median", "Mean", "Open", "Close", "Variance", "Tubeness", "Inverted Tubeness", "Horizontal emboss", "Vertical emboss"}, callback = "adaptFilter")
 	private String filterMethod = "None";
 	
 	@Parameter(label = "Filter radius", min = "0f", max = "1000f", callback = "processImageOnTheFly")
@@ -245,28 +245,6 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		processImageOnTheFly();
 	}
 	
-//TODO: delete if button recordability is officially functional
-//	private void adaptVolumeMin() {
-//		final MutableModuleItem<Float> mutableVolumeMin = getInfo().getMutableInput("minVolume", Float.class);
-//		
-//		if (minVolume > maxVolume) {
-//			mutableVolumeMin.setValue(this, maxVolume);			
-//		}
-//		
-//		processImage();
-//		
-//	}
-//	
-//	private void adaptVolumeMax() {
-//		final MutableModuleItem<Float> mutableVolumeMax = getInfo().getMutableInput("maxVolume", Float.class);
-//		
-//		if (maxVolume < minVolume) {
-//			mutableVolumeMax.setValue(this, minVolume);			
-//		}
-//		
-//		processImage();
-//		
-//	}
 	
 	@SuppressWarnings("unused")
 	private void processImageOnTheFly() {

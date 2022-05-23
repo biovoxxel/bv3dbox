@@ -255,7 +255,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		//cleanup
 		inputImage.close();
 		outputImage.close();
-		clij2.close();
+		clij2.clear();
 		
 	}
 	

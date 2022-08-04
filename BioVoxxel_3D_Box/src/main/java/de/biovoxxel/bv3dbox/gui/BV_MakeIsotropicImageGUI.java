@@ -28,12 +28,15 @@ public class BV_MakeIsotropicImageGUI implements Command {
 		if (inputImagePlus.isStack()) {
 			
 			CLIJ2 clij2 = CLIJ2.getInstance();
+			clij2.clear();
 			BV_MakeIsotropicImage bvmii = new BV_MakeIsotropicImage(clij2, inputImagePlus);
 			ClearCLBuffer isotropic_image = bvmii.makeIsotropic(clij2, inputImagePlus);
 			
 			double pixelSize = inputImagePlus.getCalibration().pixelWidth;
 			
 			ImagePlus isotropicImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, isotropic_image, true, LutNames.GRAY);
+			isotropic_image.close();
+			
 			
 			isotropicImagePlus.setTitle("iso_" + WindowManager.getUniqueName(inputImagePlus.getTitle()));
 			
@@ -46,6 +49,8 @@ public class BV_MakeIsotropicImageGUI implements Command {
 			isotropicImagePlus.setCalibration(cal);
 			
 			isotropicImagePlus.show();
+			
+			clij2.clear();
 			
 		} else {
 			JOptionPane.showMessageDialog(null, "Works only on stacks", "Stack required", JOptionPane.WARNING_MESSAGE);

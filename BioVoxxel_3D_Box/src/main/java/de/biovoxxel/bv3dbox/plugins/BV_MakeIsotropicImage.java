@@ -19,6 +19,7 @@ public class BV_MakeIsotropicImage {
 		} else {
 			this.clij2 = clij2;
 		}
+		clij2.clear();
 		
 		this.inputImagePlus = inputImagePlus;
 		input_image = clij2.push(inputImagePlus);
@@ -43,6 +44,8 @@ public class BV_MakeIsotropicImage {
 		ClearCLBuffer output_image = createOutputBufferFromSource(input_image);
 		
 		clij2.makeIsotropic(input_image, output_image, calibration[0], calibration[1], calibration[2], calibration[0]);
+		
+		input_image.close();
 		
 		return output_image;
 	}	

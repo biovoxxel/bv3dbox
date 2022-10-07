@@ -276,6 +276,18 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 			double dogFilterRadius = filterRadius + 2d;
 			clij2.differenceOfGaussian3D(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius, dogFilterRadius, (dogFilterRadius * calibration[1]), (dogFilterRadius / calibration[2]));
 			break;
+		
+		case "DoG (diff to r*3)":
+			double dogRadiusTimesThree = filterRadius * 3d;
+			clij2.differenceOfGaussian3D(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius, dogRadiusTimesThree, (dogRadiusTimesThree * calibration[1]), (dogRadiusTimesThree / calibration[2]));
+			break;
+		
+			
+		case "DoG (2D forced, diff to r*3)":
+			double dogRadius2DTimesThree = filterRadius * 3d;
+			clij2.differenceOfGaussian3D(input_image, filtered_image, filterRadius, y_filter_radius, 0, dogRadius2DTimesThree, (dogRadius2DTimesThree * calibration[1]), 0);
+			break;
+		
 		case "Median":
 			if (stackSize == 1) {
 				clij2.median2DSphere(input_image, filtered_image, filterRadius, y_filter_radius);	

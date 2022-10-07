@@ -9,6 +9,7 @@ import org.scijava.plugin.Plugin;
 import de.biovoxxel.bv3dbox.plugins.BV_MakeIsotropicImage;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
+
 import ij.ImagePlus;
 import ij.WindowManager;
 import ij.measure.Calibration;
@@ -24,7 +25,7 @@ public class BV_MakeIsotropicImageGUI implements Command {
 	
 	@Override
 	public void run() {
-				
+		
 		if (inputImagePlus.isStack()) {
 			
 			CLIJ2 clij2 = CLIJ2.getInstance();
@@ -36,12 +37,9 @@ public class BV_MakeIsotropicImageGUI implements Command {
 			
 			ImagePlus isotropicImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, isotropic_image, true, LutNames.GRAY);
 			isotropic_image.close();
-			
-			
+						
 			isotropicImagePlus.setTitle("iso_" + WindowManager.getUniqueName(inputImagePlus.getTitle()));
-			
-			
-	
+				
 			Calibration cal = new Calibration();
 			cal.pixelWidth = cal.pixelHeight = cal.pixelDepth = pixelSize;
 			cal.setUnit(inputImagePlus.getCalibration().getUnit());	
@@ -50,6 +48,8 @@ public class BV_MakeIsotropicImageGUI implements Command {
 			
 			isotropicImagePlus.show();
 			
+			//BV3DBoxUtilities.addImagePlusToBatchModeImages(isotropicImagePlus);	//not solving the issue that in batch mode macros the output image is not displayed
+						
 			clij2.clear();
 			
 		} else {

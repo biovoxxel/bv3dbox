@@ -14,6 +14,7 @@ import ij.WindowManager;
 import ij.gui.ImageCanvas;
 import ij.gui.ImageWindow;
 import ij.gui.Roi;
+import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.plugin.LutLoader;
 import ij.process.ImageConverter;
@@ -73,7 +74,11 @@ public class BV3DBoxUtilities {
 		
 	}
 	
-	
+	/**
+	 * 
+	 * @param updateService
+	 * @param updateSiteName A comma-separated String of update site names 
+	 */
 	public static void displayMissingDependencyWarning(UpdateService updateService, String updateSiteName) {
 					
 		String[] updateSiteArray = updateSiteName.split(",");
@@ -170,8 +175,7 @@ public class BV3DBoxUtilities {
 		
 		ImagePlus imagePlusToBePulled = clij2.pull(imageToShow);
 		imagePlusToBePulled.setTitle(imageToShow.getName());
-		
-		
+				
 		LUT outputLut = null;
 		if (lutName.equals(LutNames.GRAY)) {
 			
@@ -199,8 +203,7 @@ public class BV3DBoxUtilities {
 		
 		ImagePlus imagePlusToBePulled = clij2.pull(imageToShow);
 		imagePlusToBePulled.setTitle(imageToShow.getName());
-		
-		
+				
 		LUT outputLut;
 		if (lutName.equals(LutNames.GRAY)) {
 			outputLut = createGrayLUT();
@@ -222,6 +225,18 @@ public class BV3DBoxUtilities {
 		return imagePlusToBePulled;
 	}
 	
+	
+	public static void addImagePlusToBatchModeImages(ImagePlus imageToAdd) {
+		
+		System.out.println("isBatchMode=" + Interpreter.isBatchMode());
+		if (Interpreter.isBatchMode()) {
+			System.out.println("ImageID = " + imageToAdd.getID());
+			Interpreter.addBatchModeImage(imageToAdd);
+			System.out.println("Last batch image = " + Interpreter.getLastBatchModeImage());
+			Interpreter.activateImage(imageToAdd);
+			System.out.println("Batch image activated = " + imageToAdd);
+		}
+	}
 	
 	
 	public static void updateOutputImagePlus(ImagePlus imageToShow, String imageName) {

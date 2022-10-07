@@ -22,8 +22,8 @@ The BioVoxxel 3D Box are distributed via the **BioVoxxel 3D Box** update site in
 
 
   * **bv3dbox**
+  * **clij**
   * **clij2**
-  * **clijx**
   * **clijx-assistant**
   * **clijx-assistant-extensions**
   * **3D ImageJ Suite**

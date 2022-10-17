@@ -149,12 +149,15 @@ public class BV3DBoxUtilities {
 	public static double[] readCalibration(ImagePlus image) {
 		
 		double[] calibration = new double[3];
-		
-		Calibration cal = image.getCalibration();
-		calibration[0] = cal.pixelWidth;
-		calibration[1] = cal.pixelWidth / cal.pixelHeight;
-		calibration[2] = cal.pixelDepth / cal.pixelWidth;
-		
+
+		if (image != null) {
+			
+			Calibration cal = image.getCalibration();
+			calibration[0] = cal.pixelWidth;
+			calibration[1] = cal.pixelWidth / cal.pixelHeight;
+			calibration[2] = cal.pixelDepth / cal.pixelWidth;
+		}
+						
 		return calibration;
 			
 	}

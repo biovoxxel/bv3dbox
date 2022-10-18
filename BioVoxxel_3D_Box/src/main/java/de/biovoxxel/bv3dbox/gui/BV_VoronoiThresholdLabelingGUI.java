@@ -388,7 +388,8 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		ImagePlus outputImagePlus = WindowManager.getImage(bvvtl.getOutputImageName());
 		
 		if (outputImagePlus != null) {
-
+			
+			inputImagePlus.setSlice(stackSlice);
 			outputImagePlus.setSlice(stackSlice);
 			
 		}	

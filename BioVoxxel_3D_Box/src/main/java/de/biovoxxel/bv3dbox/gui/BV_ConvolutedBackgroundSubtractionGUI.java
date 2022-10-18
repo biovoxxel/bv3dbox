@@ -5,6 +5,7 @@ import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.widget.Button;
 import org.scijava.widget.NumberWidget;
 
 import de.biovoxxel.bv3dbox.plugins.BV_ConvolutedBackgroundSubtraction;
@@ -21,29 +22,51 @@ public class BV_ConvolutedBackgroundSubtractionGUI extends DynamicCommand {
 	BV_ConvolutedBackgroundSubtraction bvcbs;
 	CLIJ2 clij2;
 	
-	@Parameter(required = true, label = "Image", description = "", initializer = "run")
+	@Parameter(required = true, label = "Image", description = "", initializer = "setup")
 	ImagePlus currentImagePlus;
 	
-	@Parameter(required = true, label = "Filter", description = "", choices = {"Gaussian", "Median", "Mean", "Open"}, callback = "processImage")
+	@Parameter(required = true, label = "Filter", description = "", choices = {"Gaussian", "Median", "Mean", "Open"}, callback = "processImageOnTheFly")
 	String filterMethod = "Gaussian";
 	
-	@Parameter(required = true, label = "Radius", description = "", min = "0.5", stepSize = "0.5", callback = "processImage")
+	@Parameter(required = true, label = "Radius", description = "", min = "0.5", stepSize = "0.5", callback = "processImageOnTheFly")
 	Float filterRadius = 1.0f;
 	
-	@Parameter(label = "Force 2D filtering", callback = "processImage")
+	@Parameter(label = "Force 2D filtering", callback = "processImageOnTheFly")
 	Boolean force2DFiltering = true;
 	
 	@Parameter(label = "Stack slice", initializer = "sliderSetup", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices", required = false)
 	private Integer stackSlice = 1;
 	
+	@Parameter(label = "On the fly mode", required = false)
+	private Boolean processOnTheFly = false;
+	
+	@Parameter(label = "Preview", callback = "processImage", required = false)
+	private Button previewButton;
+	
+	
 	public void run() {
+						
+		if (getOutputImage() == null) {
+			processImage();				
+		} else {
+			//just keep the output image open without further action
+		}
+		
+	}
+	
+	
+	@SuppressWarnings("unused")
+	private void setup() {
 		
 		bvcbs = new BV_ConvolutedBackgroundSubtraction(currentImagePlus);
-		
 		clij2 = bvcbs.getCLIJ2Instance();
-		
-		processImage();
-		
+	}
+	
+	@SuppressWarnings("unused")
+	private void processImageOnTheFly() {
+		if (processOnTheFly) {
+			processImage();
+		}
 	}
 	
 	
@@ -93,9 +116,15 @@ public class BV_ConvolutedBackgroundSubtractionGUI extends DynamicCommand {
 		
 	}
 	
+	
+	private ImagePlus getOutputImage() {
+		
+		return WindowManager.getImage("BVCBS_" + currentImagePlus.getTitle());
+	}
+	
 	public void cancel(String reason) {
 		
-		ImagePlus outputImagePlus = WindowManager.getImage("BVCBS_" + currentImagePlus.getTitle());
+		ImagePlus outputImagePlus = getOutputImage();
 		if (outputImagePlus != null) {
 			outputImagePlus.close();
 		}
@@ -105,7 +134,7 @@ public class BV_ConvolutedBackgroundSubtractionGUI extends DynamicCommand {
 	
 	@SuppressWarnings("unused")
 	private void slideSlices() {
-		ImagePlus outputImagePlus = WindowManager.getImage("BVCBS_" + currentImagePlus.getTitle());
+		ImagePlus outputImagePlus = getOutputImage();
 		
 		if (outputImagePlus != null) {
 

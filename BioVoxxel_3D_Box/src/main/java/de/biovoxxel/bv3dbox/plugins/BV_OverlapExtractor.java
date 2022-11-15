@@ -226,7 +226,7 @@ public class BV_OverlapExtractor {
 			ClearCLBuffer percent_volume_map = clij2.create(image_1_CCL);
 			ClearCLBuffer percent_volume_vector = clij2.push(percent_volume_image);
 			percent_volume_map.setName("%volume_" + image_plus_2.getTitle());
-			clij2.generateParametricImage(percent_volume_vector, image_1_CCL, percent_volume_map);
+			clij2.generateParametricImage(image_1_CCL, percent_volume_vector, percent_volume_map);
 			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, percent_volume_map, true, LutNames.GEEN_FIRE_BLUE_LUT);
 			percent_volume_map.close();
 			percent_volume_vector.close();

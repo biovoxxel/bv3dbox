@@ -175,6 +175,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 			
 		} else {
 			
+			stackSlice.setValue(this, 1);
 			stackSlice.setMaximumValue(1);
 		}
 		
@@ -387,9 +388,10 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	private void slideSlices() {
 		ImagePlus outputImagePlus = WindowManager.getImage(bvvtl.getOutputImageName());
 		
+		inputImagePlus.setSlice(stackSlice);
+
 		if (outputImagePlus != null) {
 			
-			inputImagePlus.setSlice(stackSlice);
 			outputImagePlus.setSlice(stackSlice);
 			
 		}	

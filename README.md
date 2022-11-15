@@ -1,10 +1,15 @@
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
 # BioVoxxel 3D Box (bv3dbox)
 
-**REMARK: This is currently still in beta test phase and should be handled with care when creating results. Please inform me about any [issues](https://github.com/biovoxxel/bv3dbox/issues) you encounter!**
+**REMARK: Please inform me about any [issues](https://github.com/biovoxxel/bv3dbox/issues) you encounter!**
 
+
+[![DOI](https://zenodo.org/badge/434949702.svg)](https://zenodo.org/badge/latestdoi/434949702)
 ![GitHub](https://img.shields.io/github/license/biovoxxel/bv3dbox?style=plastic)
 ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/biovoxxel/bv3dbox?include_prereleases&style=plastic)
 ![GitHub issues](https://img.shields.io/github/issues/biovoxxel/bv3dbox?style=plastic)
+
 
 Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) functions now for 2D and 3D images in one place. All functions are heavily based on GPU computing via the fabulous [CLIJ2 library](https://clij.github.io/). Segmentation output is based stronger on labels (intensity coding of objects) instead of ROIs. Those labels can be equivalently used like ROIs with many CLIJ2 functions. Also label images created via other tools such as [MorphoLibJ](https://imagej.net/plugins/morpholibj) are suitable inputs for any plugin using labels.
 

@@ -208,7 +208,7 @@ public class BV_OverlapExtractor {
 		
 			percent_volume_processor.putPixelValue(c1+1, 0, percent_volume[c1]);
 			
-			if (percent_volume[c1] >= minVolume && percent_volume[c1] <= maxVolume) {
+			if (percent_volume[c1] > 0 && percent_volume[c1] >= minVolume && percent_volume[c1] <= maxVolume) {
 				
 				flag_list_processor.putPixel(c1+1, 0, 0);	//keep label
 				kept_objects_count++;

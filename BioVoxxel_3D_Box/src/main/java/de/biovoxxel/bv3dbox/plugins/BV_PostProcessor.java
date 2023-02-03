@@ -62,7 +62,7 @@ public class BV_PostProcessor extends DynamicCommand {
 	private final PrefService prefs = new DefaultPrefService();
 	private static CLIJ2 clij2;
 	private ClearCLBuffer input_image;
-	private BV_LabelSeparator bvls = new BV_LabelSeparator();
+//	private BV_LabelSeparator bvls = new BV_LabelSeparator();
 	
 	/**
 	 * 

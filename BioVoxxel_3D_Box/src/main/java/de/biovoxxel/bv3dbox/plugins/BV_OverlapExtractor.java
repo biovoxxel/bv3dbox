@@ -227,7 +227,7 @@ public class BV_OverlapExtractor {
 			ClearCLBuffer percent_volume_vector = clij2.push(percent_volume_image);
 			percent_volume_map.setName("%volume_" + image_plus_2.getTitle());
 			clij2.generateParametricImage(image_1_CCL, percent_volume_vector, percent_volume_map);
-			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, percent_volume_map, true, LutNames.GEEN_FIRE_BLUE_LUT);
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, percent_volume_map, true, LutNames.GEEN_FIRE_BLUE_LUT, image_plus_1.getCalibration());
 			percent_volume_map.close();
 			percent_volume_vector.close();
 		}
@@ -237,7 +237,7 @@ public class BV_OverlapExtractor {
 			ClearCLBuffer kept_image_1_CCL = clij2.create(image_1_CCL);
 			kept_image_1_CCL.setName("extracted_" + image_plus_1.getTitle());
 			clij2.excludeLabels(flag_list_vector, image_1_CCL, kept_image_1_CCL);		
-			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, kept_image_1_CCL, true, LutNames.GEEN_FIRE_BLUE_LUT);
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, kept_image_1_CCL, true, LutNames.GEEN_FIRE_BLUE_LUT, image_plus_1.getCalibration());
 			flag_list_vector.close();
 			kept_image_1_CCL.close();
 			

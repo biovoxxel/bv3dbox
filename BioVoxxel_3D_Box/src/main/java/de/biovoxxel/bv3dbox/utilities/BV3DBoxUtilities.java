@@ -174,7 +174,7 @@ public class BV3DBoxUtilities {
 	}
 
 	
-	public static void pullAndDisplayImageFromGPU(CLIJ2 clij2, ClearCLBuffer imageToShow, boolean autoContrast, LutNames lutName) {
+	public static void pullAndDisplayImageFromGPU(CLIJ2 clij2, ClearCLBuffer imageToShow, boolean autoContrast, LutNames lutName, Calibration cal) {
 		
 		ImagePlus imagePlusToBePulled = clij2.pull(imageToShow);
 		imagePlusToBePulled.setTitle(imageToShow.getName());
@@ -198,6 +198,12 @@ public class BV3DBoxUtilities {
 		} else {
 			imagePlusToBePulled.resetDisplayRange();			
 		}
+		
+		System.out.println("Calubration = " + cal);
+		if (cal != null) {
+			imagePlusToBePulled.setCalibration(cal);
+		}
+		
 		imagePlusToBePulled.show();
 		
 	}

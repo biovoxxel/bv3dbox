@@ -267,7 +267,7 @@ public class BV_FlatFieldCorrection {
 			
 			if (showDebugImages) {
 				
-				BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, corrected_image, false, LutNames.GRAY);
+				BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, corrected_image, false, LutNames.GRAY, originalImagePlus.getCalibration());
 				
 			}
 			
@@ -288,6 +288,7 @@ public class BV_FlatFieldCorrection {
 		
 		correctedImagePlus.setTitle(WindowManager.getUniqueName("FFCorr_" + originalImagePlus.getTitle()));
 		correctedImagePlus.getProcessor().resetMinAndMax();
+		correctedImagePlus.setCalibration(originalImagePlus.getCalibration());
 		correctedImagePlus.show();
 	}
 

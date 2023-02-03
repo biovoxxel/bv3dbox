@@ -81,6 +81,7 @@ public class BV_ObjectInspector implements Cancelable {
 	private String secondary_MMER_range = "0.00-1.00";
 	private Boolean exclude_primary_objects_on_edges = true;
 	private Boolean pad_stack_tops = false;
+	private Boolean display_results_tables = true;
 	private Boolean display_analyzed_label_maps = false;
 	private Boolean show_count_map = false;
 	
@@ -191,7 +192,8 @@ public class BV_ObjectInspector implements Cancelable {
 	 * @param display_analyzed_label_maps
 	 * @param show_count_map
 	 */
-	public void setOutputImageFlags(boolean display_analyzed_label_maps, boolean show_count_map) {
+	public void setOutputImageFlags(boolean display_results_tables, boolean display_analyzed_label_maps, boolean show_count_map) {
+		this.display_results_tables = display_results_tables;
 		this.display_analyzed_label_maps = display_analyzed_label_maps;
 		this.show_count_map = show_count_map;
 	}
@@ -215,6 +217,7 @@ public class BV_ObjectInspector implements Cancelable {
 		log.debug("secondary_MMDTCR_range = " + secondary_MMER_range);
 		log.debug("exclude_primary_objects_on_edges = " + exclude_primary_objects_on_edges);
 		log.debug("pad_stack_tops = " + pad_stack_tops);
+		log.debug("display_results_tables = " + display_results_tables);
 		log.debug("display_analyzed_label_maps = " + display_analyzed_label_maps);
 		log.debug("show_count_map = " + show_count_map);
 		log.debug("------------------------------------------------------");
@@ -474,7 +477,7 @@ public class BV_ObjectInspector implements Cancelable {
 		final_primary_results_table.setColumn("SEC_OBJECT_COUNT", secondaryObjectCountArray);
 		
 		if (show_count_map) {
-			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, overlapCountMap, true, LutNames.GEEN_FIRE_BLUE_LUT);	//test output			
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, overlapCountMap, true, LutNames.GEEN_FIRE_BLUE_LUT, voxel_calibration);	//test output			
 		}
 		overlapCountMap.close();
 		
@@ -585,8 +588,8 @@ public class BV_ObjectInspector implements Cancelable {
 		
 		
 		if (display_analyzed_label_maps) {
-			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, finalLabels_1, true, LutNames.GLASBEY_LUT);
-			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, finalLabels_2, true, LutNames.GLASBEY_LUT);
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, finalLabels_1, true, LutNames.GLASBEY_LUT, voxel_calibration);
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, finalLabels_2, true, LutNames.GLASBEY_LUT, voxel_calibration);
 		}
 		finalLabels_1.close();
 		finalLabels_2.close();
@@ -677,8 +680,10 @@ public class BV_ObjectInspector implements Cancelable {
 
 		secondary_original_measurements_table = null;
 		
-		final_primary_results_table.show(PRIMARY_RESULTS_TABLE_NAME);	
-		final_secondary_results_table.show(SECONDARY_RESULTS_TABLE_NAME);
+		if (display_results_tables) {
+			final_primary_results_table.show(PRIMARY_RESULTS_TABLE_NAME);	
+			final_secondary_results_table.show(SECONDARY_RESULTS_TABLE_NAME);			
+		}
 		
 		clij2.clear();
 	}

@@ -1,7 +1,5 @@
 package de.biovoxxel.bv3dbox.plugins;
 
-import java.awt.Point;
-
 import org.scijava.Cancelable;
 import org.scijava.log.LogLevel;
 import org.scijava.log.LogService;
@@ -14,7 +12,6 @@ import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
 import ij.WindowManager;
-import ij.gui.ImageWindow;
 import ij.measure.Calibration;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
@@ -165,8 +162,7 @@ public class BV_PseudoFlatFieldCorrection implements Cancelable {
 		
 		outputImagePlus.setImage(tempOutputImagePlus);
 		outputImagePlus.setTitle(outputImageName);
-		//ImageWindow inputImageWindow = inputImagePlus.getWindow();
-		//Point inputImageLocation = inputImageWindow.getLocationOnScreen();
+		outputImagePlus.setCalibration(inputImagePlus.getCalibration());
 		outputImagePlus.show();
 		//outputImagePlus.getWindow().setLocation(inputImageLocation.x + inputImageWindow.getWidth() + 10, inputImageLocation.y);
 		BV3DBoxUtilities.adaptImageDisplay(inputImagePlus, outputImagePlus);

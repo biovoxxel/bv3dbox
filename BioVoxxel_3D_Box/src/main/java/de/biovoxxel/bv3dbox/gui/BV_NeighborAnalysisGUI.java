@@ -80,7 +80,8 @@ public class BV_NeighborAnalysisGUI implements Command {
 		
 		ImagePlus neighborCountMapImp = BV3DBoxUtilities.pullImageFromGPU(neighborAnalysis.getCurrentCLIJ2Instance(), neighbor_image, false, LutNames.GEEN_FIRE_BLUE_LUT);
 		neighborCountMapImp.setTitle(WindowManager.getUniqueName("NeighborCount_" + inputImagePlus.getTitle()));
-		
+		System.out.println("Calibration = " + inputImagePlus.getCalibration());
+		neighborCountMapImp.setCalibration(inputImagePlus.getCalibration());
 		neighborCountMapImp.show();
 		
 		if (plotNeighborCount) {

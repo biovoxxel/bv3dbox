@@ -57,7 +57,8 @@ public class BV_NeighborAnalysis {
 
 	private LogService log = new StderrLogService();
 	private PrefService prefs = new DefaultPrefService();
-	private Boolean displayDebugImages = prefs.getBoolean(BV3DBoxSettings.class, "bv_3d_box_settings_display_debug_images", false);
+//	private Boolean displayDebugImages = prefs.getBoolean(BV3DBoxSettings.class, "bv_3d_box_settings_display_debug_images", false);
+	private Boolean displayDebugImages = false;
 	private CLIJ2 clij2;
 	private ClearCLBuffer connectedComponentLabels;
 	
@@ -126,7 +127,7 @@ public class BV_NeighborAnalysis {
 			
 			clij2.excludeLabelsOutsideSizeRange(size_limited_label_image, input_image, minSize, maxSize);
 			
-			if(displayDebugImages) { BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, input_image, true, LutNames.GLASBEY_LUT); }
+			if(displayDebugImages) { BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, input_image, true, LutNames.GLASBEY_LUT, null); }
 			
 			size_limited_label_image.close();
 		} 
@@ -138,7 +139,7 @@ public class BV_NeighborAnalysis {
 		
 		clij2.extendLabelingViaVoronoi(input_image, voronoi_image);
 		
-		if (displayDebugImages) { BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, voronoi_image, false, LutNames.GLASBEY_LUT); }
+		if (displayDebugImages) { BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, voronoi_image, false, LutNames.GLASBEY_LUT, null); }
 		
 		if (method.equals(NeighborMethods.OBJECTS.method)) {
 								
@@ -289,7 +290,7 @@ public class BV_NeighborAnalysis {
 		
 		ImagePlus neighborCountMapImp = BV3DBoxUtilities.pullImageFromGPU(neighborAnalysis.getCurrentCLIJ2Instance(), neighbor_image, false, LutNames.GEEN_FIRE_BLUE_LUT);
 		neighborCountMapImp.setTitle(WindowManager.getUniqueName("NeighborCount_" + inputImagePlus.getTitle()));
-		
+		neighborCountMapImp.setCalibration(inputImagePlus.getCalibration());
 		neighborCountMapImp.show();
 		
 		if (plotNeighborCount) {

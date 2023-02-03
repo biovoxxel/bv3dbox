@@ -233,19 +233,20 @@ public class BV_ThresholdCheck extends DynamicCommand {
 			
 			ImagePlus outputImagePlus = clij2.pullBinary(outputImage);
 			outputImagePlus.setTitle(outputImageName);
+			outputImagePlus.setCalibration(inputImagePlus.getCalibration());
 			outputImagePlus.show();
 			
 		} else if (outputImageStyle.equals("0/1")) {
 			
 			outputImage.setName(outputImageName);
-			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, outputImage, true, LutNames.GRAY);
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, outputImage, true, LutNames.GRAY, inputImagePlus.getCalibration());
 			
 		} else {
 			
 			ClearCLBuffer labelOutputImage = clij2.create(outputImage.getDimensions(), NativeTypeEnum.Float);
 			clij2.connectedComponentsLabelingBox(outputImage, labelOutputImage);
 			labelOutputImage.setName(outputImageName);
-			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, labelOutputImage, true, LutNames.GLASBEY_LUT);
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, labelOutputImage, true, LutNames.GLASBEY_LUT, inputImagePlus.getCalibration());
 			labelOutputImage.close();
 			
 		}

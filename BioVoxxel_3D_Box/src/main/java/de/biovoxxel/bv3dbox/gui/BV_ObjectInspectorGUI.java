@@ -91,6 +91,9 @@ public class BV_ObjectInspectorGUI extends DynamicCommand {
 			+ "	 This however introduces a certain bias and error in any analysis and should be used with care or only in test cases.")
 	private Boolean pad_stack_tops = false;
 	
+	@Parameter(required = false, label = "Display results tables", description = "")
+	private Boolean display_results_tables = true;
+	
 	@Parameter(required = false, label = "Show analysis label map", description = "")
 	private Boolean display_analyzed_label_maps = false;
 	
@@ -137,7 +140,8 @@ public class BV_ObjectInspectorGUI extends DynamicCommand {
 		bvoi.setSecondaryVolumeRange(secondary_volume_range);
 		bvoi.setSecondaryMMDTCRRange(secondary_MMER_range);
 		bvoi.setEdgeExclusion(exclude_primary_objects_on_edges);
-		bvoi.setOutputImageFlags(display_analyzed_label_maps, show_count_map);
+		bvoi.padStackTops(pad_stack_tops);
+		bvoi.setOutputImageFlags(display_results_tables, display_analyzed_label_maps, show_count_map);
 		
 		bvoi.inspect();
 	}

@@ -2,7 +2,6 @@ package de.biovoxxel.bv3dbox.plugins;
 
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import ij.ImagePlus;
-import ij.WindowManager;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
 

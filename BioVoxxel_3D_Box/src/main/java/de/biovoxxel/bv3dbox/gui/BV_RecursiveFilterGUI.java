@@ -78,6 +78,7 @@ public class BV_RecursiveFilterGUI extends DynamicCommand {
 		
 		ImagePlus outputImage = BV3DBoxUtilities.pullImageFromGPU(bvrf.getCurrentCLIJ2Instance(), output_image, true, LutNames.GRAY);
 		outputImage.setTitle(WindowManager.getUniqueName(current_image_plus.getTitle() + "_" + recursiveRadius + "_" + iterations + "x"));
+		outputImage.setCalibration(current_image_plus.getCalibration());
 		outputImage.show();
 		
 	}

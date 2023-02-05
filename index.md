@@ -113,7 +113,7 @@ Slice-by-slice thresholding might come up in a future release.
 ### Voronoi Threshold Labeler
 The labeler is meant to be used as a image segmentation tool combining image pre-processing using a variety of convolition filters, background subtraction methods, auto thresholding and intensity maxima detection. The latter allows object separation similar to the a watershed algorithm, but will be only effective if _Labels_ is chosen as output. Dependent on the combination of pre-processing. background subtraction, threshold and maxima detection quite variable objects can be extracted from an image.
 
-![image](https://user-images.githubusercontent.com/10721817/152376765-39b0a628-6705-490a-a9ae-921368a67b57.png)
+![image](https://user-images.githubusercontent.com/10721817/216850120-4ffd97e7-1ee8-4f50-8f7f-dfff42807ca3.png)
 
 
 Parameter meaning and usage:
@@ -123,6 +123,7 @@ Parameter meaning and usage:
 * `Background radius`: Strength of background homogenization. One can orient on a certain prinziple like, the bigger the objects, the bigger the radius needed.
 * `Histogram usage`: either the complete histogram can be handed to the thresholding algorithm or a limited one by ignoring black or white or both (black and white) pixels to achive better segmentation results.
 * `Threshold method`: Automatic intensity threshold to extract basic object areas after the upper pre-processing steps
+* `Fill Holes`: Closing holes inside objects either 2D (= slice by slice in case of stacks) or 3D. 
 * `Separation method`: There are different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are explained below in the section [Label Splitter](#label-splitter)
  
   
@@ -150,9 +151,10 @@ All of these functions work best on 3D isotropic voxels, so consider to run [Mak
 
 Methods:
 * `Separation method`: There are 3 different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are
-  * `Maxima`: intensity maxima are determined on the original image in a square/box neighborhood defined by the `Maxima detection radius` after applying a gaussian blur on the original image in a neighborhood defined by the `Spot sigma`. The detected maxima are the seeds from which the objects are filled via a masked voronoi extension.
+  * `Maxima` (extremely good for small objects): intensity maxima are determined on the original image in a square/box neighborhood defined by the `Maxima detection radius` after applying a gaussian blur on the original image in a neighborhood defined by the `Spot sigma`. The detected maxima are the seeds from which the objects are filled via a masked voronoi extension.
   * `Eroded Maxima`: takes the input image and erodes the objects using the `Spot sigma` as erosion iterations. Then it identifies intensity maxima on the eroded objects using the `Maxima detection radius`.
-  * `Maxima Spheres`: the EDM (euclidean distance map) is created from the binary segmentation result, then blurred with the `Spot sigma` and maxima are detected on the blurred EDM. The underlying EDM intensity of those maxima is measured and taken as a radius of a sphere. An image with those spheres serves as seeds for the label splitting (advantage is that the EDM info reflects to some extent the object size and adapts seeds accodingly which might achieves more accurate separation). 
+  * `EDM Maxima`: Maxima are detected on the euclidean distance map after gaussian blurring using the `Spot sigma` and `Maxima detection radius` as for the normal `Maxima`method. 
+  * `Maxima Spheres` (good for bigger and roundish objects): the EDM (euclidean distance map) is created from the binary segmentation result, then blurred with the `Spot sigma` and maxima are detected on the blurred EDM. The underlying EDM intensity of those maxima is measured and taken as a radius of a sphere. An image with those spheres serves as seeds for the label splitting (advantage is that the EDM info reflects to some extent the object size and adapts seeds accodingly which might achieves more accurate separation). 
 
 
 ![3d_distance_map_animation](https://user-images.githubusercontent.com/10721817/166155091-719ad2c6-909b-4038-a44f-150be30004ab.gif)   ![3d_maxima_sphere_animation](https://user-images.githubusercontent.com/10721817/166155100-4ea48697-e7fc-463e-a426-aa5bb9cd8a60.gif)

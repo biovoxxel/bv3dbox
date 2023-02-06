@@ -9,7 +9,7 @@
 ![GitHub](https://img.shields.io/github/license/biovoxxel/bv3dbox?style=plastic)
 ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/biovoxxel/bv3dbox?include_prereleases&style=plastic)
 ![GitHub issues](https://img.shields.io/github/issues/biovoxxel/bv3dbox?style=plastic)
-![image](https://user-images.githubusercontent.com/10721817/216852199-823836b0-3e4f-4ae0-a560-165744cf519b.png)
+
 
 
 Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) functions now for 2D and 3D images in one place. All functions are heavily based on GPU computing via the fabulous [CLIJ2 library](https://clij.github.io/). Segmentation output is based stronger on labels (intensity coding of objects) instead of ROIs. Those labels can be equivalently used like ROIs with many CLIJ2 functions. Also label images created via other tools such as [MorphoLibJ](https://imagej.net/plugins/morpholibj) are suitable inputs for any plugin using labels.

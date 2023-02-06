@@ -113,10 +113,9 @@ Slice-by-slice thresholding might come up in a future release.
 
 ### Voronoi Threshold Labeler
 The labeler is meant to be used as a image segmentation tool combining image pre-processing using a variety of convolition filters, background subtraction methods, auto thresholding and intensity maxima detection. The latter allows object separation similar to the a watershed algorithm, but will be only effective if _Labels_ is chosen as output. Dependent on the combination of pre-processing. background subtraction, threshold and maxima detection quite variable objects can be extracted from an image.
-|GUI|Processing|
-|---|---|
-|![image](https://user-images.githubusercontent.com/10721817/216852277-3c0eebc7-56d6-4842-bc1d-2ae95e263314.png)|![image](https://user-images.githubusercontent.com/10721817/216852962-bad48938-cfa2-4113-8fa7-9882bdb6473b.png)|
 
+![image](https://user-images.githubusercontent.com/10721817/216852962-bad48938-cfa2-4113-8fa7-9882bdb6473b.png)
+![image](https://user-images.githubusercontent.com/10721817/216852277-3c0eebc7-56d6-4842-bc1d-2ae95e263314.png)
 
 Parameter meaning and usage:
 * `Image Filter`: diverse convolution filter methods to homogenize objects and background for improved background subtraction and object segmentation

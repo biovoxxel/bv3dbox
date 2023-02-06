@@ -112,7 +112,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	private Boolean processOnTheFly = false;
 	
 	@Parameter(label = "Preview", callback = "processImage", required = false)
-	private Button previewButton;
+	private Button previewButton = null;
 	
 	
 	BV_VoronoiThresholdLabeling bvvtl = new BV_VoronoiThresholdLabeling();

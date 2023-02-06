@@ -9,6 +9,7 @@
 ![GitHub](https://img.shields.io/github/license/biovoxxel/bv3dbox?style=plastic)
 ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/biovoxxel/bv3dbox?include_prereleases&style=plastic)
 ![GitHub issues](https://img.shields.io/github/issues/biovoxxel/bv3dbox?style=plastic)
+![image](https://user-images.githubusercontent.com/10721817/216852199-823836b0-3e4f-4ae0-a560-165744cf519b.png)
 
 
 Most of the known [BioVoxxel Toolbox](https://github.com/biovoxxel/BioVoxxel-Toolbox) functions now for 2D and 3D images in one place. All functions are heavily based on GPU computing via the fabulous [CLIJ2 library](https://clij.github.io/). Segmentation output is based stronger on labels (intensity coding of objects) instead of ROIs. Those labels can be equivalently used like ROIs with many CLIJ2 functions. Also label images created via other tools such as [MorphoLibJ](https://imagej.net/plugins/morpholibj) are suitable inputs for any plugin using labels.
@@ -112,8 +113,9 @@ Slice-by-slice thresholding might come up in a future release.
 
 ### Voronoi Threshold Labeler
 The labeler is meant to be used as a image segmentation tool combining image pre-processing using a variety of convolition filters, background subtraction methods, auto thresholding and intensity maxima detection. The latter allows object separation similar to the a watershed algorithm, but will be only effective if _Labels_ is chosen as output. Dependent on the combination of pre-processing. background subtraction, threshold and maxima detection quite variable objects can be extracted from an image.
-
-![image](https://user-images.githubusercontent.com/10721817/216850120-4ffd97e7-1ee8-4f50-8f7f-dfff42807ca3.png)
+|GUI|Processing|
+|---|---|
+|![image](https://user-images.githubusercontent.com/10721817/216852277-3c0eebc7-56d6-4842-bc1d-2ae95e263314.png)|![image](https://user-images.githubusercontent.com/10721817/216852962-bad48938-cfa2-4113-8fa7-9882bdb6473b.png)|
 
 
 Parameter meaning and usage:
@@ -125,7 +127,6 @@ Parameter meaning and usage:
 * `Threshold method`: Automatic intensity threshold to extract basic object areas after the upper pre-processing steps
 * `Fill Holes`: Closing holes inside objects either 2D (= slice by slice in case of stacks) or 3D. 
 * `Separation method`: There are different object separations. Those are meant to be used in exchange for a common _Watershed_ algorithm. The different methods are explained below in the section [Label Splitter](#label-splitter)
- 
   
   The erosion methods are useful for bigger and irregularly shaped objects, while the maxima method performs better for smaller objects. The erosion-based methods ignore the field `Maxima detection radius`. Too high spot sigmas will delete smaller objects from the image.
 * `Spot sigma`: Blurring strength for maxima detection OR neighborhood definition for the ersosion methods.

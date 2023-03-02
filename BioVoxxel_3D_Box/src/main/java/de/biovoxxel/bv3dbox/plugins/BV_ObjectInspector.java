@@ -612,7 +612,7 @@ public class BV_ObjectInspector implements Cancelable {
 		for (int cal2 = 0; cal2 < secondary_volume_in_pixels.length; cal2++) {
 			secondary_volume_in_units[cal2] = new Variable(secondary_volume_in_pixels[cal2] * voxel_volume);
 		}
-		final_secondary_results_table.setColumn("VOLUME ("+calibrated_units+")", secondary_volume_in_units);
+		final_secondary_results_table.setColumn("VOLUME ("+calibrated_units+"^3)", secondary_volume_in_units);
 		
 		final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.name()));
 		

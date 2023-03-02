@@ -436,6 +436,7 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		}
 		
 		outputImagePlus.setImage(tempOutputImagePlus);
+		outputImagePlus.setCalibration(inputImagePlus.getCalibration());
 		outputImagePlus.setTitle(outputImageName);
 		outputImagePlus.show();
 		

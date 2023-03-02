@@ -289,7 +289,13 @@ public class BV_PostProcessor extends DynamicCommand {
 				break;
 			}
 		
-		return output_image;
+		
+		ClearCLBuffer output_image_with_closed_index_gaps = clij2.create(output_image);
+		clij2.closeIndexGapsInLabelMap(output_image, output_image_with_closed_index_gaps);
+		
+		output_image.close();
+		
+		return output_image_with_closed_index_gaps;
 		
 	}
 	

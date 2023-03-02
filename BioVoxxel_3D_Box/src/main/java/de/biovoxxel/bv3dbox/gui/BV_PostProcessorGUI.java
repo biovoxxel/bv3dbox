@@ -120,6 +120,7 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 			outputImagePlus = new ImagePlus();
 		}
 		outputImagePlus.setImage(tempImagePlus);
+		outputImagePlus.setCalibration(inputImagePlus.getCalibration());
 		outputImagePlus.setTitle("BVPP_" + inputImagePlus.getTitle());
 		outputImagePlus.getProcessor().resetMinAndMax();
 		outputImagePlus.show();

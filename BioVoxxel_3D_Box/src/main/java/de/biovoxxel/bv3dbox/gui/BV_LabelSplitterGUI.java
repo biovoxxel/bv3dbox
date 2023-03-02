@@ -102,6 +102,7 @@ public class BV_LabelSplitterGUI extends DynamicCommand {
 			splitted_label_image.close();
 			
 			outputImagePlus.setTitle(outputImageName);
+			outputImagePlus.setCalibration(inputImagePlus.getCalibration());
 			outputImagePlus.show();
 			
 			BV3DBoxUtilities.adaptImageDisplay(inputImagePlus, outputImagePlus);

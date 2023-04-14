@@ -97,7 +97,7 @@ public class BV_PseudoFlatFieldCorrection implements Cancelable {
 		
 	
 	//TODO: implement for RGB images
-	public void runCorrection(float radius, boolean force2D, boolean showBackgroundImage) {
+	public ImagePlus runCorrection(float radius, boolean force2D, boolean showBackgroundImage) {
 		
 		ClearCLBuffer backgound = clij2.create(inputImage.getDimensions(), NativeTypeEnum.Float);
 		clij2.copy(inputImage, backgound);
@@ -153,7 +153,12 @@ public class BV_PseudoFlatFieldCorrection implements Cancelable {
 		
 		blurredBackground.close();
 		
+		return tempOutputImagePlus;
 		
+	}
+
+
+	public void displayCorrectedImage(ImagePlus tempOutputImagePlus) {
 		outputImagePlus = WindowManager.getImage(outputImageName);
 		
 		if (outputImagePlus == null) {

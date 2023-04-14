@@ -95,6 +95,9 @@ public class BV_ObjectInspector implements Cancelable {
 	String PRIMARY_RESULTS_TABLE_NAME = "Primary_Results";
 	String SECONDARY_RESULTS_TABLE_NAME = "Secondary_Results";
 	
+	ResultsTable final_primary_results_table = new ResultsTable();
+	ResultsTable final_secondary_results_table = new ResultsTable();
+	
 	String GLASBEY_LUT = "glasbey_on_dark";
 	String GEEN_FIRE_BLUE_LUT = "Green Fire Blue";
 	String FIRE_LUT = "Fire";
@@ -449,8 +452,6 @@ public class BV_ObjectInspector implements Cancelable {
 		log.debug("LabelOverlapCountMap finished = " + label_overlap_count_map_created);
 		
 			
-		ResultsTable final_primary_results_table = new ResultsTable();
-		
 		ResultsTable primary_original_measurements_table = new ResultsTable();
 		
 						
@@ -596,9 +597,6 @@ public class BV_ObjectInspector implements Cancelable {
 		
 		
 		
-		
-		ResultsTable final_secondary_results_table = new ResultsTable();
-		
 		Variable[] primary_label_origin_of_secondary_label = primary_label_origin_of_secondary_label_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name());
 		//primary_label_origin_of_secondary_label[0] = new Variable("Background");
 		final_secondary_results_table.setColumn("PRIMARY_LABEL", primary_label_origin_of_secondary_label);
@@ -689,6 +687,13 @@ public class BV_ObjectInspector implements Cancelable {
 	}
 	
 	
+	public ResultsTable getPrimaryTable() {
+		return final_primary_results_table;
+	}
+	
+	public ResultsTable getSecondaryTable() {
+		return final_secondary_results_table;
+	}
 	
 	
 	public void padStackLids(ImagePlus inputImage) {

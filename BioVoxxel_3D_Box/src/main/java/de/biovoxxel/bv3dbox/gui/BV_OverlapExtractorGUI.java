@@ -75,6 +75,9 @@ public class BV_OverlapExtractorGUI implements Command {
 		
 	@Parameter(label = "Show %-volume map", description = "")
 	private Boolean show_percent_volume_map = false;
+	
+	@Parameter(label = "Treat binary objects as one", description = "Binary areas will be considered being one object even if occupying separate areas")
+	private Boolean treat_binary_objects_as_one = false;
 
 	@Override
 	public void run() {
@@ -82,7 +85,7 @@ public class BV_OverlapExtractorGUI implements Command {
 		BV_OverlapExtractor bvolex = new BV_OverlapExtractor(image_plus_1, image_plus_2);
 		
 		bvolex.setVolumeRange(volume_range);
-		bvolex.setOutputFlags(exclude_edge_objects, show_original_primary_statistics, show_extracted_objects, show_count_statistics, show_volume_statistics, show_percent_volume_map);
+		bvolex.setOutputFlags(exclude_edge_objects, show_original_primary_statistics, show_extracted_objects, show_count_statistics, show_volume_statistics, show_percent_volume_map, treat_binary_objects_as_one);
 		
 		bvolex.extract();
 	}	

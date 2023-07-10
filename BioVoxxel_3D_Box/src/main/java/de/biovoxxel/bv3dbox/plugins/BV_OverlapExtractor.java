@@ -19,6 +19,7 @@ import ij.ImagePlus;
 import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
+import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
 import net.haesleinhuepf.clij2.plugins.StatisticsOfLabelledPixels;
 
@@ -75,6 +76,7 @@ public class BV_OverlapExtractor {
 	private Boolean show_count_statistics = false;
 	private Boolean show_volume_statistics = false;
 	private Boolean show_percent_volume_map = false;
+	private Boolean treat_binary_objects_as_one = false;
 	
 	
 	
@@ -109,14 +111,16 @@ public class BV_OverlapExtractor {
 	 * @param show_count_statistics
 	 * @param show_volume_statistics
 	 * @param show_percent_volume_map
+	 * @param treat_binary_objects_as_one
 	 */
-	public void setOutputFlags(boolean exclude_edge_objects, boolean show_original_primary_statistics, boolean show_extracted_objects, boolean show_count_statistics, boolean show_volume_statistics, boolean show_percent_volume_map) {
+	public void setOutputFlags(boolean exclude_edge_objects, boolean show_original_primary_statistics, boolean show_extracted_objects, boolean show_count_statistics, boolean show_volume_statistics, boolean show_percent_volume_map, boolean treat_binary_objects_as_one) {
 		this.exclude_edge_objects = exclude_edge_objects;
 		this.show_original_primary_statistics = show_original_primary_statistics;
 		this.show_extracted_objects = show_extracted_objects;
 		this.show_count_statistics = show_count_statistics;
 		this.show_volume_statistics = show_volume_statistics;
 		this.show_percent_volume_map = show_percent_volume_map;
+		this.treat_binary_objects_as_one = treat_binary_objects_as_one;
 	}
 	
 	
@@ -143,7 +147,13 @@ public class BV_OverlapExtractor {
 		if (image_plus_1.getProcessor().isBinary()) {
 			ClearCLBuffer image_1_gpu = clij2.push(image_plus_1);
 			image_1_CCL = clij2.create(image_1_gpu);
-			clij2.connectedComponentsLabelingBox(image_1_gpu, image_1_CCL);
+			
+			if (treat_binary_objects_as_one) {
+				clij2.closeIndexGapsInLabelMap(image_1_gpu, image_1_CCL);
+			} else {
+				clij2.connectedComponentsLabelingBox(image_1_gpu, image_1_CCL);	
+			}
+			
 			image_1_gpu.close();
 		} else {
 			image_1_CCL = clij2.push(image_plus_1);
@@ -160,7 +170,13 @@ public class BV_OverlapExtractor {
 		if (image_plus_2.getProcessor().isBinary()) {
 			ClearCLBuffer image_2_gpu = clij2.push(image_plus_2);
 			image_2_CCL = clij2.create(image_2_gpu);
-			clij2.connectedComponentsLabelingBox(image_2_gpu, image_2_CCL);
+			
+			if (treat_binary_objects_as_one) {
+				clij2.closeIndexGapsInLabelMap(image_2_gpu, image_2_CCL);
+			} else {
+				clij2.connectedComponentsLabelingBox(image_2_gpu, image_2_CCL);
+			}
+			
 			image_2_gpu.close();
 		} else {
 			image_2_CCL = clij2.push(image_plus_2);
@@ -223,7 +239,7 @@ public class BV_OverlapExtractor {
 		
 				
 		if (show_percent_volume_map) {
-			ClearCLBuffer percent_volume_map = clij2.create(image_1_CCL);
+			ClearCLBuffer percent_volume_map = clij2.create(image_1_CCL.getDimensions(), NativeTypeEnum.Float);
 			ClearCLBuffer percent_volume_vector = clij2.push(percent_volume_image);
 			percent_volume_map.setName("%volume_" + image_plus_2.getTitle());
 			clij2.generateParametricImage(image_1_CCL, percent_volume_vector, percent_volume_map);
@@ -281,9 +297,14 @@ public class BV_OverlapExtractor {
 					full_statistics_table.setValue("ORIGINAL_VOXELS", row - offset, original_pixel_count[index]);
 					full_statistics_table.setValue("SELECTOR_VOXELS", row - offset, comparison_1_2_overlap[index]);
 					full_statistics_table.setValue("PERCENT_VOLUME", row - offset, percent_volume[index]);					
-				} else {
-					 offset++;
-					 log.debug("offset = " + offset);
+				} else {	
+					full_statistics_table.setValue("IDENTIFIER", row - offset, (row - offset + 1));
+					full_statistics_table.setValue("ORIGINAL_LABEL_ID", row - offset, label_id[index]);
+					full_statistics_table.setValue("ORIGINAL_VOXELS", row - offset, original_pixel_count[index]);
+					full_statistics_table.setValue("SELECTOR_VOXELS", row - offset, comparison_1_2_overlap[index]);
+					full_statistics_table.setValue("PERCENT_VOLUME", row - offset, percent_volume[index]);		
+//					offset++;
+//					log.debug("offset = " + offset);
 				}
 			}
 			

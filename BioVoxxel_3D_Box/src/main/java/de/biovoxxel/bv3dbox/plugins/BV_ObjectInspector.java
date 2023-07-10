@@ -596,92 +596,98 @@ public class BV_ObjectInspector implements Cancelable {
 		finalLabels_2.close();
 		
 		
-		
-		Variable[] primary_label_origin_of_secondary_label = primary_label_origin_of_secondary_label_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name());
-		//primary_label_origin_of_secondary_label[0] = new Variable("Background");
-		final_secondary_results_table.setColumn("PRIMARY_LABEL", primary_label_origin_of_secondary_label);
-		primary_label_origin_of_secondary_label_table = null;
-		
-		final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.IDENTIFIER.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.IDENTIFIER.name()));
-		
-		//Calculate primary scaled volumes
-		double[] secondary_volume_in_pixels = secondary_original_measurements_table.getColumnAsDoubles(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.value);
-		Variable[] secondary_volume_in_units = new Variable[secondary_volume_in_pixels.length];
-		for (int cal2 = 0; cal2 < secondary_volume_in_pixels.length; cal2++) {
-			secondary_volume_in_units[cal2] = new Variable(secondary_volume_in_pixels[cal2] * voxel_volume);
-		}
-		final_secondary_results_table.setColumn("VOLUME ("+calibrated_units+"^3)", secondary_volume_in_units);
-		
-		final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.name()));
-		
-		if (original_2_gpu != null) {
-			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name()));
-			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name()));
-			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name()));
-			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.STANDARD_DEVIATION_INTENSITY.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.STANDARD_DEVIATION_INTENSITY.name()));
-			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.SUM_INTENSITY.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.SUM_INTENSITY.name()));
+		if (primary_label_origin_of_secondary_label_table.size() > 0) {
 			
-			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MASS_CENTER_X.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MASS_CENTER_X.name()));
-			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MASS_CENTER_Y.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MASS_CENTER_Y.name()));
-			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MASS_CENTER_Z.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MASS_CENTER_Z.name()));
-			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_DISTANCE_TO_MASS_CENTER.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_DISTANCE_TO_MASS_CENTER.name()));
-			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_MASS_CENTER.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_MASS_CENTER.name()));
-			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_MASS_CENTER_RATIO.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_MASS_CENTER_RATIO.name()));
+			Variable[] primary_label_origin_of_secondary_label = primary_label_origin_of_secondary_label_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name());
+			//primary_label_origin_of_secondary_label[0] = new Variable("Background");
+			final_secondary_results_table.setColumn("PRIMARY_LABEL", primary_label_origin_of_secondary_label);
+			primary_label_origin_of_secondary_label_table = null;
+		}
+		
+		if (secondary_original_measurements_table.size() > 0) {
 			
-		} else {
-			//skip intensity based measurements if original input image not available
+			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.IDENTIFIER.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.IDENTIFIER.name()));
+			
+			//Calculate primary scaled volumes
+			double[] secondary_volume_in_pixels = secondary_original_measurements_table.getColumnAsDoubles(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.value);
+			Variable[] secondary_volume_in_units = new Variable[secondary_volume_in_pixels.length];
+			for (int cal2 = 0; cal2 < secondary_volume_in_pixels.length; cal2++) {
+				secondary_volume_in_units[cal2] = new Variable(secondary_volume_in_pixels[cal2] * voxel_volume);
+			}
+			final_secondary_results_table.setColumn("VOLUME ("+calibrated_units+"^3)", secondary_volume_in_units);
+			
+			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.name()));
+			
+			if (original_2_gpu != null) {
+				final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name()));
+				final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name()));
+				final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name()));
+				final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.STANDARD_DEVIATION_INTENSITY.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.STANDARD_DEVIATION_INTENSITY.name()));
+				final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.SUM_INTENSITY.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.SUM_INTENSITY.name()));
+				
+				final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MASS_CENTER_X.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MASS_CENTER_X.name()));
+				final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MASS_CENTER_Y.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MASS_CENTER_Y.name()));
+				final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MASS_CENTER_Z.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MASS_CENTER_Z.name()));
+				final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_DISTANCE_TO_MASS_CENTER.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_DISTANCE_TO_MASS_CENTER.name()));
+				final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_MASS_CENTER.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_MASS_CENTER.name()));
+				final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_MASS_CENTER_RATIO.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_MASS_CENTER_RATIO.name()));
+				
+			} else {
+				//skip intensity based measurements if original input image not available
+			}
+			
+			//final_edge_analysis_table_2.show("final_edge_analysis_table_2");
+			
+			final_secondary_results_table.setColumn("MIN_MAX_EXTENSION_RATIO", final_edge_analysis_table_2.getColumnAsVariables("MIN_MAX_EXTENSION_RATIO"));
+			final_secondary_results_table.setColumn("MEAN_MAX_EXTENSION_RATIO", final_edge_analysis_table_2.getColumnAsVariables("MEAN_MAX_EXTENSION_RATIO"));
+			final_secondary_results_table.setColumn("MIN_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("MIN_EXTENSION"));
+			final_secondary_results_table.setColumn("MAX_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("MAX_EXTENSION"));
+			final_secondary_results_table.setColumn("MEAN_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("MEAN_EXTENSION"));
+			final_secondary_results_table.setColumn("STD_DEV_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("STD_DEV_EXTENSION"));
+			
+			
+			final_secondary_results_table.setColumn("AVER_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name()));
+			final_secondary_results_table.setColumn("SHORT_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name()));
+			final_secondary_results_table.setColumn("LONG_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name()));
+			
+			final_secondary_results_table.setColumn("AVER_CENTER_DIST", border_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name()));
+			final_secondary_results_table.setColumn("SHORT_CENTER_DIST", border_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name()));
+			final_secondary_results_table.setColumn("LONG_CENTER_DIST", border_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name()));
+			
+			center_distance_table = null;
+			border_distance_table = null;
+			
+			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_X.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_X.name()));
+			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_Y.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_Y.name()));
+			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_Z.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_Z.name()));
+			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_DISTANCE_TO_CENTROID.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_DISTANCE_TO_CENTROID.name()));
+			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_CENTROID.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_CENTROID.name()));
+			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_CENTROID_RATIO.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_CENTROID_RATIO.name()));
+			
+			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_WIDTH.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_WIDTH.name()));
+			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_HEIGHT.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_HEIGHT.name()));
+			final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_DEPTH.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_DEPTH.name()));
+			
+			
+			Variable[] secondary_bounding_box_width = secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_WIDTH.name());
+			Variable[] secondary_bounding_box_height = secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_HEIGHT.name());
+			Variable[] secondary_bounding_box_depth = secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_DEPTH.name());
+			Variable[] secondary_bounding_box_extent = new Variable[secondary_bounding_box_width.length];
+			for (int e = 0; e < secondary_bounding_box_extent.length; e++) {
+				secondary_bounding_box_extent[e] = new Variable( (secondary_volume_in_pixels[e] / (secondary_bounding_box_width[e].getValue() * secondary_bounding_box_height[e].getValue() * secondary_bounding_box_depth[e].getValue())) );
+			}
+			final_secondary_results_table.setColumn("BOUNDING_BOX_EXTENT", secondary_bounding_box_extent);
+			
+			final_secondary_results_table.sort("PRIMARY_LABEL");
+			
+			secondary_original_measurements_table = null;
+			
+			if (display_results_tables) {
+				final_primary_results_table.show(PRIMARY_RESULTS_TABLE_NAME);	
+				final_secondary_results_table.show(SECONDARY_RESULTS_TABLE_NAME);			
+			}
 		}
 		
-		//final_edge_analysis_table_2.show("final_edge_analysis_table_2");
-		
-		final_secondary_results_table.setColumn("MIN_MAX_EXTENSION_RATIO", final_edge_analysis_table_2.getColumnAsVariables("MIN_MAX_EXTENSION_RATIO"));
-		final_secondary_results_table.setColumn("MEAN_MAX_EXTENSION_RATIO", final_edge_analysis_table_2.getColumnAsVariables("MEAN_MAX_EXTENSION_RATIO"));
-		final_secondary_results_table.setColumn("MIN_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("MIN_EXTENSION"));
-		final_secondary_results_table.setColumn("MAX_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("MAX_EXTENSION"));
-		final_secondary_results_table.setColumn("MEAN_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("MEAN_EXTENSION"));
-		final_secondary_results_table.setColumn("STD_DEV_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("STD_DEV_EXTENSION"));
-
-	
-		final_secondary_results_table.setColumn("AVER_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name()));
-		final_secondary_results_table.setColumn("SHORT_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name()));
-		final_secondary_results_table.setColumn("LONG_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name()));
-		
-		final_secondary_results_table.setColumn("AVER_CENTER_DIST", border_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name()));
-		final_secondary_results_table.setColumn("SHORT_CENTER_DIST", border_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name()));
-		final_secondary_results_table.setColumn("LONG_CENTER_DIST", border_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name()));
-	
-		center_distance_table = null;
-		border_distance_table = null;
-		
-		final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_X.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_X.name()));
-		final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_Y.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_Y.name()));
-		final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_Z.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_Z.name()));
-		final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_DISTANCE_TO_CENTROID.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_DISTANCE_TO_CENTROID.name()));
-		final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_CENTROID.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_DISTANCE_TO_CENTROID.name()));
-		final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_CENTROID_RATIO.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAX_MEAN_DISTANCE_TO_CENTROID_RATIO.name()));
-		
-		final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_WIDTH.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_WIDTH.name()));
-		final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_HEIGHT.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_HEIGHT.name()));
-		final_secondary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_DEPTH.name(), secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_DEPTH.name()));
-		
-		
-		Variable[] secondary_bounding_box_width = secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_WIDTH.name());
-		Variable[] secondary_bounding_box_height = secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_HEIGHT.name());
-		Variable[] secondary_bounding_box_depth = secondary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.BOUNDING_BOX_DEPTH.name());
-		Variable[] secondary_bounding_box_extent = new Variable[secondary_bounding_box_width.length];
-		for (int e = 0; e < secondary_bounding_box_extent.length; e++) {
-			secondary_bounding_box_extent[e] = new Variable( (secondary_volume_in_pixels[e] / (secondary_bounding_box_width[e].getValue() * secondary_bounding_box_height[e].getValue() * secondary_bounding_box_depth[e].getValue())) );
-		}
-		final_secondary_results_table.setColumn("BOUNDING_BOX_EXTENT", secondary_bounding_box_extent);
-		
-		final_secondary_results_table.sort("PRIMARY_LABEL");
-
-		secondary_original_measurements_table = null;
-		
-		if (display_results_tables) {
-			final_primary_results_table.show(PRIMARY_RESULTS_TABLE_NAME);	
-			final_secondary_results_table.show(SECONDARY_RESULTS_TABLE_NAME);			
-		}
 		
 		clij2.clear();
 	}
@@ -741,73 +747,80 @@ public class BV_ObjectInspector implements Cancelable {
 		clij2.statisticsOfLabelledPixels(input, input, inputStatisticsTable);
 		//inputStatisticsTable.show("inputStatisticsTable_" + input.getName());	//test output
 		float[] volumeOfLabel = inputStatisticsTable.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.value);
-		log.debug("volumeOfLabel[] size = " + volumeOfLabel.length);
-		
-		int label_count = inputStatisticsTable.size();
-		log.debug("Object count = " + label_count);
-		
-		ResultsTable edge_analysis_table = getLabelEdgeAnalysisTable(input);
-		log.debug("Initial edge_analysis_table size = " + edge_analysis_table.size());
-		
-		float[] min_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.value);
-		float[] max_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.value);
-		float[] mean_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.value);
-		float[] std_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.STANDARD_DEVIATION_INTENSITY.value);
-		float[] min_max_extension_ratio = new float[min_extension.length];
-		float[] mean_max_extension_ratio = new float[min_extension.length];
-		
-		int[] label_exclusion_vector = new int[label_count + 1];
-		label_exclusion_vector[0] = 0;
-		int keptObjects = 0;
-		int excludedObjects = 0;
-		
-		for (int object = 0; object < label_count; object++) {
-			min_max_extension_ratio[object] = (max_extension[object] == 0) ? 0 : min_extension[object] / max_extension[object];
-			log.debug("Object --> " + object + " Volume = " + volumeOfLabel[object] + "/ min-max-extension-ratio = " + min_max_extension_ratio[object]);
+		if (volumeOfLabel != null) {
 			
-			mean_max_extension_ratio[object] = (max_extension[object] == 0) ? 0 : mean_extension[object] / max_extension[object];
-			log.debug("Object --> " + object + " --> mean-max-extension-ratio = " + mean_max_extension_ratio[object]);
+			log.debug("volumeOfLabel[] size = " + volumeOfLabel.length);
 			
-			if (volumeOfLabel[object] >= minVolume && volumeOfLabel[object] <= maxVolume && mean_max_extension_ratio[object] >= min_MMER && mean_max_extension_ratio[object] <= max_MMER) {
+			int label_count = inputStatisticsTable.size();
+			log.debug("Object count = " + label_count);
+			
+			ResultsTable edge_analysis_table = getLabelEdgeAnalysisTable(input);
+			log.debug("Initial edge_analysis_table size = " + edge_analysis_table.size());
+			
+			float[] min_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.value);
+			float[] max_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.value);
+			float[] mean_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.value);
+			float[] std_extension = edge_analysis_table.getColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.STANDARD_DEVIATION_INTENSITY.value);
+			float[] min_max_extension_ratio = new float[min_extension.length];
+			float[] mean_max_extension_ratio = new float[min_extension.length];
+			
+			int[] label_exclusion_vector = new int[label_count + 1];
+			label_exclusion_vector[0] = 0;
+			int keptObjects = 0;
+			int excludedObjects = 0;
+			
+			for (int object = 0; object < label_count; object++) {
+				min_max_extension_ratio[object] = (max_extension[object] == 0) ? 0 : min_extension[object] / max_extension[object];
+				log.debug("Object --> " + object + " Volume = " + volumeOfLabel[object] + "/ min-max-extension-ratio = " + min_max_extension_ratio[object]);
 				
-				label_exclusion_vector[object + 1] = 0;	//keep label
-				keptObjects++;
-				final_edge_analysis_table.addRow();
-				final_edge_analysis_table.addValue("VOLUME_OF_LABEL", volumeOfLabel[object]);	//for test reasons
-				final_edge_analysis_table.addValue("MIN_MAX_EXTENSION_RATIO", min_max_extension_ratio[object]);
-				final_edge_analysis_table.addValue("MEAN_MAX_EXTENSION_RATIO", mean_max_extension_ratio[object]);
-				final_edge_analysis_table.addValue("MIN_EXTENSION", min_extension[object]);
-				final_edge_analysis_table.addValue("MAX_EXTENSION", max_extension[object]);
-				final_edge_analysis_table.addValue("MEAN_EXTENSION", mean_extension[object]);
-				final_edge_analysis_table.addValue("STD_DEV_EXTENSION", std_extension[object]);
+				mean_max_extension_ratio[object] = (max_extension[object] == 0) ? 0 : mean_extension[object] / max_extension[object];
+				log.debug("Object --> " + object + " --> mean-max-extension-ratio = " + mean_max_extension_ratio[object]);
 				
-			} else {
-				
-				label_exclusion_vector[object + 1] = 1;	//remove label
-				excludedObjects++;
+				if (volumeOfLabel[object] >= minVolume && volumeOfLabel[object] <= maxVolume && mean_max_extension_ratio[object] >= min_MMER && mean_max_extension_ratio[object] <= max_MMER) {
+					
+					label_exclusion_vector[object + 1] = 0;	//keep label
+					keptObjects++;
+					final_edge_analysis_table.addRow();
+					final_edge_analysis_table.addValue("VOLUME_OF_LABEL", volumeOfLabel[object]);	//for test reasons
+					final_edge_analysis_table.addValue("MIN_MAX_EXTENSION_RATIO", min_max_extension_ratio[object]);
+					final_edge_analysis_table.addValue("MEAN_MAX_EXTENSION_RATIO", mean_max_extension_ratio[object]);
+					final_edge_analysis_table.addValue("MIN_EXTENSION", min_extension[object]);
+					final_edge_analysis_table.addValue("MAX_EXTENSION", max_extension[object]);
+					final_edge_analysis_table.addValue("MEAN_EXTENSION", mean_extension[object]);
+					final_edge_analysis_table.addValue("STD_DEV_EXTENSION", std_extension[object]);
+					
+				} else {
+					
+					label_exclusion_vector[object + 1] = 1;	//remove label
+					excludedObjects++;
+					
+				}
+				log.debug("label_exclusion_vector[0]["+object+"] = " + label_exclusion_vector[object + 1]);
 				
 			}
-			log.debug("label_exclusion_vector[0]["+object+"] = " + label_exclusion_vector[object + 1]);
 			
+			log.debug("kept objects = " + keptObjects);
+			log.debug("excluded objects = " + excludedObjects);
+			log.debug("final edge_analysis_table size = " + edge_analysis_table.size());
+			
+			ImagePlus exclusion_vector_ImagePlus = IJ.createImage("label_exclusion_vector " + input.getName(), label_count + 1, 1, 1, 8);
+			ImageProcessor exclusionVectorProcessor = exclusion_vector_ImagePlus.getProcessor();
+			
+			for (int xPixel = 0; xPixel < label_exclusion_vector.length; xPixel++) {
+				exclusionVectorProcessor.putPixel(xPixel, 0, label_exclusion_vector[xPixel]);
+			}
+			
+			ClearCLBuffer exclusionVectorImage = clij2.push(exclusion_vector_ImagePlus);
+			
+			clij2.excludeLabels(exclusionVectorImage, input, output);
+			
+			//cleanup
+			exclusionVectorImage.close();
+			
+		} else {
+			
+			clij2.copy(input, output);
 		}
-								
-		log.debug("kept objects = " + keptObjects);
-		log.debug("excluded objects = " + excludedObjects);
-		log.debug("final edge_analysis_table size = " + edge_analysis_table.size());
-		
-		ImagePlus exclusion_vector_ImagePlus = IJ.createImage("label_exclusion_vector " + input.getName(), label_count + 1, 1, 1, 8);
-		ImageProcessor exclusionVectorProcessor = exclusion_vector_ImagePlus.getProcessor();
-		
-		for (int xPixel = 0; xPixel < label_exclusion_vector.length; xPixel++) {
-			exclusionVectorProcessor.putPixel(xPixel, 0, label_exclusion_vector[xPixel]);
-		}
-
-		ClearCLBuffer exclusionVectorImage = clij2.push(exclusion_vector_ImagePlus);
-		
-		clij2.excludeLabels(exclusionVectorImage, input, output);
-		
-		//cleanup
-		exclusionVectorImage.close();
 		
 		log.debug("Finishing label exclusion for " + input.getName());
 	}

@@ -682,12 +682,12 @@ public class BV_ObjectInspector implements Cancelable {
 			
 			secondary_original_measurements_table = null;
 			
-			if (display_results_tables) {
-				final_primary_results_table.show(PRIMARY_RESULTS_TABLE_NAME);	
-				final_secondary_results_table.show(SECONDARY_RESULTS_TABLE_NAME);			
-			}
 		}
 		
+		if (display_results_tables) {
+			final_primary_results_table.show(PRIMARY_RESULTS_TABLE_NAME);	
+			final_secondary_results_table.show(SECONDARY_RESULTS_TABLE_NAME);			
+		}
 		
 		clij2.clear();
 	}

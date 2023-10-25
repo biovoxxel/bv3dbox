@@ -52,7 +52,7 @@ import net.imagej.updater.UpdateService;
 @Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Filtering>Flat Field Correction (2D/3D)")
 public class BV_FlatFieldCorrectionGUI extends DynamicCommand {
 
-	@Parameter(required = true)
+	@Parameter(label = "Sample Image", required = true)
 	ImagePlus originalImagePlus = null;
 	
 	@Parameter(label = "Flat-field image", required = true)

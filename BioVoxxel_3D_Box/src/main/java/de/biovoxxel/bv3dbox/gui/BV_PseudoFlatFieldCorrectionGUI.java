@@ -1,5 +1,6 @@
 package de.biovoxxel.bv3dbox.gui;
 
+import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
@@ -9,6 +10,7 @@ import org.scijava.widget.NumberWidget;
 
 import de.biovoxxel.bv3dbox.plugins.BV_PseudoFlatFieldCorrection;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
 import net.imagej.updater.UpdateService;
@@ -59,6 +61,9 @@ public class BV_PseudoFlatFieldCorrectionGUI extends DynamicCommand {
 	@Parameter(label = "Force 2D filter (e.g. time series)")
 	Boolean force2DFilter = true;
 	
+	@Parameter(label = "Active channel only", callback = "run")
+	Boolean activeChannelOnly = false;
+	
 	@Parameter(label = "Show background image", callback = "run")
 	Boolean showBackgroundImage = true;
 	
@@ -71,6 +76,14 @@ public class BV_PseudoFlatFieldCorrectionGUI extends DynamicCommand {
 
 	public void run() {
 						
+		if (activeChannelOnly && inputImagePlus.getNChannels() > 1) {
+			
+			bvpffc.setInputImage(inputImagePlus, inputImagePlus.getChannel());
+
+		} else {
+			
+			bvpffc.setInputImage(inputImagePlus, 0);
+		}
 		ImagePlus correctedImage = bvpffc.runCorrection(flatFieldRadius, force2DFilter, showBackgroundImage);
 		bvpffc.displayCorrectedImage(correctedImage);
 		
@@ -79,11 +92,19 @@ public class BV_PseudoFlatFieldCorrectionGUI extends DynamicCommand {
 	@SuppressWarnings("unused")
 	private void setupImage() {
 		
+		if (inputImagePlus.getNDimensions() > 3) {
+			cancel("Multidimensional images not supported");
+			
+		}
+		
 		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2,clijx-assistant,clijx-assistant-extensions,3D ImageJ Suite");
 		
-				
-		bvpffc = new BV_PseudoFlatFieldCorrection(inputImagePlus);
+		if (inputImagePlus.getCompositeMode() == IJ.COMPOSITE) {
+			inputImagePlus.setDisplayMode(IJ.GRAYSCALE);
+		}
 		
+		bvpffc = new BV_PseudoFlatFieldCorrection(inputImagePlus);
+				
 		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);
 		if(inputImagePlus.isStack()) {
 			
@@ -100,11 +121,17 @@ public class BV_PseudoFlatFieldCorrectionGUI extends DynamicCommand {
 	private void slideSlices() {
 		ImagePlus outputImagePlus = WindowManager.getImage(bvpffc.getOutputImageName());
 		
-		if (outputImagePlus != null) {
+		if (outputImagePlus != null && inputImagePlus.isStack()) {
 
 			outputImagePlus.setSlice(stackSlice);
+			inputImagePlus.setSlice(stackSlice);
 			
 		}	
+		
+		if (activeChannelOnly && inputImagePlus.isStack()) {
+			run();
+		}
+		
 	}
 	
 	@Override

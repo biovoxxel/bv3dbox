@@ -69,17 +69,18 @@ public class BV_PseudoFlatFieldCorrection implements Cancelable {
 		
 	public BV_PseudoFlatFieldCorrection(ImagePlus inputImagePlus) {
 		
-		setInputImage(inputImagePlus);
+		setInputImage(inputImagePlus, 0);
 		
 	}
 	
 	
-	public void setInputImage(ImagePlus image) {
+	public void setInputImage(ImagePlus image, int activeSlice) {
 		
 		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO));
 		this.inputImagePlus = image;
 				
-		outputImageName = WindowManager.getUniqueName("PFFC_" + inputImagePlus.getTitle());
+		//outputImageName = WindowManager.getUniqueName("PFFC_" + inputImagePlus.getTitle());
+		outputImageName = "PFFC_" + inputImagePlus.getTitle();
 		log.debug("outputImageName = " + outputImageName);
 		
 		readCalibration();
@@ -87,10 +88,20 @@ public class BV_PseudoFlatFieldCorrection implements Cancelable {
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
 		
+				
 		if (inputImagePlus.getRoi() != null) {
-			inputImage = clij2.pushCurrentSelection(inputImagePlus);
+			if (activeSlice > 0) {
+				inputImage = clij2.pushCurrentSelection(inputImagePlus.crop("slice"));
+			} else {
+				inputImage = clij2.pushCurrentSelection(inputImagePlus);				
+			}
 		} else {
-			inputImage = clij2.push(inputImagePlus);			
+			if (activeSlice > 0) {
+				inputImage = clij2.push(inputImagePlus.crop("whole-slice"));
+			} else {
+				inputImage = clij2.push(inputImagePlus);
+			}
+						
 		}
 		
 	}
@@ -169,6 +180,9 @@ public class BV_PseudoFlatFieldCorrection implements Cancelable {
 		outputImagePlus.setTitle(outputImageName);
 		outputImagePlus.setCalibration(inputImagePlus.getCalibration());
 		outputImagePlus.show();
+		if (inputImagePlus.getNChannels() > 1) {
+			outputImagePlus.setC(inputImagePlus.getC());
+		}
 		//outputImagePlus.getWindow().setLocation(inputImageLocation.x + inputImageWindow.getWidth() + 10, inputImageLocation.y);
 		BV3DBoxUtilities.adaptImageDisplay(inputImagePlus, outputImagePlus);
 	}

@@ -302,6 +302,20 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 				clij2.mean3DSphere(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius);				
 			}
 			break;
+		case "Minimum":
+			if (stackSize == 1) {
+				clij2.minimum2DSphere(input_image, filtered_image, filterRadius, y_filter_radius);	
+			} else {
+				clij2.minimum3DSphere(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius);				
+			}
+			break;	
+		case "Maximum":
+			if (stackSize == 1) {
+				clij2.maximum2DSphere(input_image, filtered_image, filterRadius, y_filter_radius);	
+			} else {
+				clij2.maximum3DSphere(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius);				
+			}
+			break;
 		case "Open":
 			clij2.greyscaleOpeningSphere(input_image, filtered_image, filterRadius, y_filter_radius, z_filter_radius);
 			break;

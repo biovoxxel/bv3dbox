@@ -63,7 +63,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	@Parameter(required = true, initializer = "setupImage")
 	private ImagePlus inputImagePlus;
 	
-	@Parameter(label = "Image filter", choices = { "None", "Gaussian", "DoG", "DoG (diff to r*3)", "DoG (2D forced, diff to r*3)", "Median", "Mean", "Open", "Close", "Variance", "Tubeness", "Inverted Tubeness"}, callback = "adaptFilter")
+	@Parameter(label = "Image filter", choices = { "None", "Gaussian", "DoG", "DoG (diff to r*3)", "DoG (2D forced, diff to r*3)", "Median", "Mean", "Minimum", "Maximum", "Open", "Close", "Variance", "Tubeness", "Inverted Tubeness"}, callback = "adaptFilter")
 	private String filterMethod = "None";
 	
 	@Parameter(label = "Filter radius", min = "0f", max = "1000f", callback = "processImageOnTheFly")

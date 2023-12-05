@@ -1,5 +1,6 @@
 package de.biovoxxel.bv3dbox.gui;
 
+import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
@@ -12,7 +13,13 @@ import de.biovoxxel.bv3dbox.plugins.BV_ConvolutedBackgroundSubtraction;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.WindowManager;
+import ij.measure.Calibration;
+import ij.plugin.Filters3D;
+import ij.plugin.ImageCalculator;
+import ij.plugin.filter.RankFilters;
+import ij.process.ImageProcessor;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
 
@@ -30,6 +37,9 @@ public class BV_ConvolutedBackgroundSubtractionGUI extends DynamicCommand {
 	
 	@Parameter(required = true, label = "Radius", description = "", min = "0.5", stepSize = "0.5", callback = "processImageOnTheFly")
 	Float filterRadius = 1.0f;
+	
+	@Parameter(visibility = ItemVisibility.MESSAGE)
+	String message = "Median filters with radii > 20 are slow";
 	
 	@Parameter(label = "Force 2D filtering", callback = "processImageOnTheFly")
 	Boolean force2DFiltering = true;
@@ -74,15 +84,26 @@ public class BV_ConvolutedBackgroundSubtractionGUI extends DynamicCommand {
 		
 		adaptFilter();
 		
-		ClearCLBuffer input_image = bvcbs.getInputBuffer();
+		ImagePlus tempOutputImagePlus = null;
 		
-		ClearCLBuffer filtered_image = bvcbs.filterImage(input_image, filterMethod, filterRadius, force2DFiltering);
-		
-		//BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, filtered_image, true, LutNames.GRAY);
-		
-		ClearCLBuffer output_image = bvcbs.subtractBackground(input_image, filtered_image);
-		
-		ImagePlus tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, output_image, false, LutNames.GRAY);
+		if (filterMethod.equals("Median") && filterRadius > 15) {
+			System.out.println("using ImageJ");
+			tempOutputImagePlus = imagejMedianFilter();
+			
+		} else {
+			System.out.println("using clij2");
+			
+			ClearCLBuffer input_image = bvcbs.getInputBuffer();
+			
+			ClearCLBuffer filtered_image = bvcbs.filterImage(input_image, filterMethod, filterRadius, force2DFiltering);
+			
+			//BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, filtered_image, true, LutNames.GRAY);
+			
+			ClearCLBuffer output_image = bvcbs.subtractBackground(input_image, filtered_image);
+			
+			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, output_image, false, LutNames.GRAY);
+			
+		}
 		
 		String outputImageName = "BVCBS_" + currentImagePlus.getTitle();
 		ImagePlus outputImagePlus = WindowManager.getImage("BVCBS_" + currentImagePlus.getTitle());			
@@ -106,10 +127,10 @@ public class BV_ConvolutedBackgroundSubtractionGUI extends DynamicCommand {
 			
 		if (filterMethod.equals("Median")) {
 			
-			if (filterRadius > 15) {
-				mutableFilterRadius.setValue(this, 15f);
+			if (filterRadius > 100) {
+				mutableFilterRadius.setValue(this, 100f);
 			}
-			mutableFilterRadius.setMaximumValue(15f);
+			mutableFilterRadius.setMaximumValue(100f);
 			
 		} else {
 			mutableFilterRadius.setMaximumValue(1000f);
@@ -117,6 +138,42 @@ public class BV_ConvolutedBackgroundSubtractionGUI extends DynamicCommand {
 		
 	}
 	
+	
+	private ImagePlus imagejMedianFilter() {
+		
+		ImageStack filteredStack = null; 
+		
+		Calibration cal = currentImagePlus.getCalibration();
+		System.out.println(cal.pixelDepth);
+		float z_radius = 0.0f; 
+		if (cal.pixelDepth != 1.0) {
+			z_radius = (float)(filterRadius * cal.pixelWidth / cal.pixelDepth);
+		}
+		
+		if(force2DFiltering) {
+			
+			filteredStack = currentImagePlus.getStack().duplicate();
+			
+			RankFilters rf = new RankFilters();
+			for (int slice = 1; slice <= currentImagePlus.getStackSize(); slice++) {
+				ImageProcessor currentProcessor = filteredStack.getProcessor(slice);
+				
+				rf.rank(currentProcessor, filterRadius, RankFilters.MEDIAN);
+				rf.rank(currentProcessor, Math.floor(filterRadius/10)*1.5, RankFilters.MAX);
+			}
+			
+		} else {
+			
+			ImagePlus copyOfOriginal = currentImagePlus.duplicate();
+			filteredStack = Filters3D.filter(copyOfOriginal.getStack(), Filters3D.MEDIAN, filterRadius, (float)(filterRadius * (cal.pixelWidth / cal.pixelHeight)), z_radius);
+		}
+	
+		ImagePlus filteredImagePlus = new ImagePlus("filtered_" + currentImagePlus.getTitle(), filteredStack);
+		ImagePlus tempOutputImagePlus = ImageCalculator.run(currentImagePlus, filteredImagePlus, "subtract create stack");
+	
+		return tempOutputImagePlus;
+		
+	}
 	
 	private ImagePlus getOutputImage() {
 		
@@ -150,7 +207,7 @@ public class BV_ConvolutedBackgroundSubtractionGUI extends DynamicCommand {
 		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);
 		
 		stackSlice.setValue(this, currentImagePlus.getSlice());
-		if(currentImagePlus.isStack()) {
+		if(currentImagePlus.hasImageStack()) {
 			
 			stackSlice.setMaximumValue(currentImagePlus.getStackSize());
 			

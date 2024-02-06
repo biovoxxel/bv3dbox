@@ -81,6 +81,7 @@ public class BV_RecursiveFilterGUI extends DynamicCommand {
 		outputImage.setCalibration(current_image_plus.getCalibration());
 		outputImage.show();
 		
+		bvrf.getCurrentCLIJ2Instance().close();
 	}
 	
 	public void checkUpdateSites() {

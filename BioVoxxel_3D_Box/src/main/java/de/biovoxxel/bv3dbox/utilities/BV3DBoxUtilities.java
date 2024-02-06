@@ -89,13 +89,13 @@ public class BV3DBoxUtilities {
 				
 				if (!requestedUpdateSite.isActive()) {
 					
-					log.error(updateSiteArray[site].trim() + " update site needs to be activated to use this plugin.\n"
+					log.warn(updateSiteArray[site].trim() + " update site needs to be activated to use this plugin.\n"
 							+ "Go to >Help >Update... and then use the Manage update sites button.");
 				}
 				
 			} catch (NullPointerException e) {
 				e.printStackTrace();
-				log.error("Update site \"" + updateSiteArray[site].trim() + "\" is not existing in list of ImageJ update sites");
+				log.warn("Update site \"" + updateSiteArray[site].trim() + "\" is not existing in list of ImageJ update sites");
 			}		
 		}
 	}

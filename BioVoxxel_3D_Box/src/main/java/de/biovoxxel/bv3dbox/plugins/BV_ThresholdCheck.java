@@ -173,6 +173,8 @@ public class BV_ThresholdCheck extends DynamicCommand {
 
 		}
 		
+		thresholdValue = thresholdValue + 1; //correction to achieve same result as IJ 
+		
 		log.debug(thresholdMethod + " with value = " + thresholdValue + " displayed");
 		return thresholdValue;
 			

@@ -7,6 +7,7 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 
+import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.log.LogLevel;
@@ -24,6 +25,7 @@ import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
+import ij.macro.Interpreter;
 import ij.process.AutoThresholder;
 import ij.process.ImageProcessor;
 import ij.process.LUT;
@@ -82,7 +84,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	
 	@Parameter(label = "Input image", initializer = "imageSetup")
 	ImagePlus inputImagePlus;
-	
+		
 	@Parameter(label = "Threshold library", choices = {"CLIJ2", "IJ"}, callback = "changeThresholdLibrary")
 	String thresholdLibrary = "CLIJ2";
 	
@@ -101,6 +103,24 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	@Parameter(label = "Binary output style", choices = {"0/255", "Labels", "0/1"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE)
 	String outputImageStyle;
 	
+	@Parameter(label = "True / False Positive", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+	String tpfp = "";
+	
+	@Parameter(label = "True / False Negative", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+	String tnfn = "";
+	
+	@Parameter(label = "Sensitivity", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+	String sens = "";
+	
+	@Parameter(label = "Specificity", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+	String spec = "";
+	
+	@Parameter(label = "Jaccard Index", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+	String jaccard = "";
+	
+	@Parameter(label = "Dice Coefficient", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+	String dice = "";
+	
 		
 	CLIJ2 clij2;
 	ClearCLBuffer inputImage;
@@ -113,6 +133,22 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	//public double thresholdValue = 0.0;
 	private LUT originalLut;
 	private DecimalFormat df = new DecimalFormat("0.00000");
+
+	private double truePositive;
+
+	private double trueNegative;
+
+	private double falsePositive;
+
+	private double falseNegative;
+
+	private double sensitivity;
+
+	private double specificity;
+
+	private double jaccardIndex;
+
+	private double diceCoeff;
 		
 	/**
 	 * 
@@ -197,6 +233,24 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		
 		double saturatedIntensity = saturation > 0.00 ? getSaturatedMaxIntentsity(saturation, thresholdValue) : 255.0;
 		
+		final MutableModuleItem<String> mutableTrueFalsePositive = getInfo().getMutableInput("tpfp", String.class);
+		mutableTrueFalsePositive.setValue(this, ""+(int)truePositive + " / " + (int)falsePositive + " pixels");
+		
+		final MutableModuleItem<String> mutableTrueFalseNegative = getInfo().getMutableInput("tnfn", String.class);
+		mutableTrueFalseNegative.setValue(this, ""+(int)trueNegative + " / " + (int)falseNegative + " pixels");
+		
+		final MutableModuleItem<String> mutableSensitivity = getInfo().getMutableInput("sens", String.class);
+		mutableSensitivity.setValue(this, ""+sensitivity);
+		
+		final MutableModuleItem<String> mutableSpecificity = getInfo().getMutableInput("spec", String.class);
+		mutableSpecificity.setValue(this, ""+specificity);
+				
+		final MutableModuleItem<String> mutableJaccard = getInfo().getMutableInput("jaccard", String.class);
+		mutableJaccard.setValue(this, "<html><b style=\"color: red;\">"+jaccardIndex + "</b></html>");
+		
+		final MutableModuleItem<String> mutableDice = getInfo().getMutableInput("dice", String.class);
+		mutableDice.setValue(this, "<html><b style=\"color: red;\">"+diceCoeff + "</b></html>");
+		
 		for (int v = 0; v < bins; v++) {
 			
 			if ( v < thresholdValue) {
@@ -219,6 +273,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	public void applyThreshold(double thresholdValue) {
 		
 		ClearCLBuffer outputImage = clij2.create(inputImage);
+		log.debug("outputImage = " + outputImage);
 		
 //		if (inputImagePlus.getBitDepth() == 16) {
 //			double minInt = inputImagePlus.getProcessor().getMin();
@@ -231,20 +286,24 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		
 		String outputImageName = WindowManager.getUniqueName(thresholdMethod + "_" + inputImagePlus.getTitle());
 		
+		log.debug("outputImageName = " + outputImageName);
+		
+		inputImagePlus.setLut(originalLut);
+		
 		if (outputImageStyle.equals("0/255")) {
-			
+			log.debug("creating 0/255 result");
 			ImagePlus outputImagePlus = clij2.pullBinary(outputImage);
 			outputImagePlus.setTitle(outputImageName);
 			outputImagePlus.setCalibration(inputImagePlus.getCalibration());
 			outputImagePlus.show();
 			
 		} else if (outputImageStyle.equals("0/1")) {
-			
+			log.debug("creating 0/1 result");
 			outputImage.setName(outputImageName);
 			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, outputImage, true, LutNames.GRAY, inputImagePlus.getCalibration());
 			
 		} else {
-			
+			log.debug("creating label result");
 			ClearCLBuffer labelOutputImage = clij2.create(outputImage.getDimensions(), NativeTypeEnum.Float);
 			clij2.connectedComponentsLabelingBox(outputImage, labelOutputImage);
 			labelOutputImage.setName(outputImageName);
@@ -253,7 +312,6 @@ public class BV_ThresholdCheck extends DynamicCommand {
 			
 		}
 		
-		inputImagePlus.setLut(originalLut);
 		
 		//cleanup
 		inputImage.close();
@@ -312,10 +370,10 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		
 		inputImage = clij2.push(BV3DBoxUtilities.convertToGray8(inputImagePlus));
 					
-		log.debug(inputImagePlus.getTitle() + "pushed to GPU");
+		log.debug(inputImagePlus.getTitle() + " pushed to GPU");
 		
 		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);
-		if(inputImagePlus.isStack()) {
+		if(inputImagePlus.hasImageStack()) {
 			
 			stackSlice.setMaximumValue(inputImagePlus.getStackSize());
 			
@@ -363,25 +421,25 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		double backgroundPixelCount = totalPixelCount - foregroundPixelCount;
 		log.debug("backgroundPixelCount =" + backgroundPixelCount);
 		
-		double truePositive = Math.min(saturatedPixelCount, foregroundPixelCount);
+		truePositive = Math.min(saturatedPixelCount, foregroundPixelCount);
 		log.debug("truePositive =" + truePositive);
-		double trueNegative = Math.min(backgroundPixelCount, (totalPixelCount - saturatedPixelCount));
+		trueNegative = Math.min(backgroundPixelCount, (totalPixelCount - saturatedPixelCount));
 		log.debug("trueNegative =" + trueNegative);
-		double falsePositive = Math.max(foregroundPixelCount - saturatedPixelCount, 0);
+		falsePositive = Math.max(foregroundPixelCount - saturatedPixelCount, 0);
 		log.debug("falsePositive =" + falsePositive);
-		double falseNegative = Math.max(saturatedPixelCount - foregroundPixelCount, 0);
+		falseNegative = Math.max(saturatedPixelCount - foregroundPixelCount, 0);
 		log.debug("falseNegative =" + falseNegative);
 		
-		double sensitivity = truePositive / (truePositive + falseNegative);
+		sensitivity = truePositive / (truePositive + falseNegative);
 		log.debug("Sensitivity = " + df.format(sensitivity));
 		
-		double specificity = trueNegative / (trueNegative + falsePositive);
+		specificity = trueNegative / (trueNegative + falsePositive);
 		log.debug("Specificity = " + df.format(specificity));
 		
-		double jaccardIndex = truePositive / (truePositive + falsePositive + falseNegative);
+		jaccardIndex = truePositive / (truePositive + falsePositive + falseNegative);
 		log.debug("JaccardIndex = " + df.format(jaccardIndex));
 		
-		double diceCoeff = (2 * truePositive) / (2 * truePositive + falsePositive + falseNegative);
+		diceCoeff = (2 * truePositive) / (2 * truePositive + falsePositive + falseNegative);
 		log.debug("DiceCoeff = " + df.format(diceCoeff));
 		
 		System.out.println("recalc dice = " + ((2*jaccardIndex) / (jaccardIndex + 1)));

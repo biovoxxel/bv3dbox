@@ -51,6 +51,7 @@ public class BV_DifferenceOfGaussianGUI extends DynamicCommand {
 		outputImage.getProcessor().setMinAndMax(clij2.getMinimumOfAllPixels(dog_output_image), clij2.getMaximumOfAllPixels(dog_output_image));
 		outputImage.updateAndDraw();
 		
+		
 		clij2.close();
 	}
 	

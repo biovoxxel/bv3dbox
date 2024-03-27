@@ -497,6 +497,7 @@ public class BV3DBoxUtilities {
 		return outlineLUT;
 	}
 	
+	
 	public static ImagePlus convertToGray8(ImagePlus image) {
 		if (image.getProcessor().getBitDepth() > 8) {
 

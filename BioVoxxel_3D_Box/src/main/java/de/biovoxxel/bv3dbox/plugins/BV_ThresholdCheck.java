@@ -154,6 +154,8 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	
 	public void run() {
 		
+		System.out.println(inputImagePlus);
+		
 		double thresholdValue = getThreshold();
 		applyThreshold(thresholdValue);
 		
@@ -361,9 +363,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 			
 			finalThresholdMethodList = Arrays.asList(extendedThresholdMethodArray);
 			
-		}
-		
-				
+		}	
 		
 		final MutableModuleItem<String> thresholdMethod = getInfo().getMutableInput("thresholdMethod", String.class);
 		thresholdMethod.setChoices(finalThresholdMethodList);

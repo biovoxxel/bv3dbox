@@ -102,11 +102,11 @@ public class BV_FlatFieldCorrection {
 			
 		} else {
 			
-			if (originalImagePlus.getBitDepth() == 24 && originalImagePlus.isStack()) {
+			if (originalImagePlus.getBitDepth() == 24 && originalImagePlus.hasImageStack()) {
 				
 				nonSupportedFormat(originalImagePlus);
 				
-			} else if (originalImagePlus.getBitDepth() == 24 && !originalImagePlus.isStack()) {
+			} else if (originalImagePlus.getBitDepth() == 24 && !originalImagePlus.hasImageStack()) {
 				
 				ImagePlus originalBrightnessImagePlus = getBrightnessChannel(originalImagePlus);
 				
@@ -131,11 +131,11 @@ public class BV_FlatFieldCorrection {
 			return;
 		} else {
 			
-			if (flatFieldImagePlus.getBitDepth() == 24 && flatFieldImagePlus.isStack()) {
+			if (flatFieldImagePlus.getBitDepth() == 24 && flatFieldImagePlus.hasImageStack()) {
 				
 				nonSupportedFormat(flatFieldImagePlus);
 				
-			} else if (flatFieldImagePlus.getBitDepth() == 24 && !flatFieldImagePlus.isStack()) {
+			} else if (flatFieldImagePlus.getBitDepth() == 24 && !flatFieldImagePlus.hasImageStack()) {
 				
 				ImagePlus flatFieldBrightnessImagePlus = getBrightnessChannel(flatFieldImagePlus);
 				
@@ -167,11 +167,11 @@ public class BV_FlatFieldCorrection {
 	
 		if (darkFieldImagePlus != null) {
 			
-			if (darkFieldImagePlus.getBitDepth() == 24 && darkFieldImagePlus.isStack()) {
+			if (darkFieldImagePlus.getBitDepth() == 24 && darkFieldImagePlus.hasImageStack()) {
 				
 				nonSupportedFormat(darkFieldImagePlus);
 				
-			} else if (darkFieldImagePlus.getBitDepth() == 24 && !darkFieldImagePlus.isStack()) {
+			} else if (darkFieldImagePlus.getBitDepth() == 24 && !darkFieldImagePlus.hasImageStack()) {
 				
 				ImagePlus darkFieldBrightnessImagePlus = getBrightnessChannel(darkFieldImagePlus);
 				
@@ -261,7 +261,7 @@ public class BV_FlatFieldCorrection {
 		
 		ImagePlus correctedImagePlus;
 		
-		if (originalImagePlus.getBitDepth() == 24 && !originalImagePlus.isStack()) {
+		if (originalImagePlus.getBitDepth() == 24 && !originalImagePlus.hasImageStack()) {
 			
 			ImagePlus correctedLightnessImagePlus = clij2.pull(corrected_image);
 			
@@ -290,6 +290,7 @@ public class BV_FlatFieldCorrection {
 		correctedImagePlus.getProcessor().resetMinAndMax();
 		correctedImagePlus.setCalibration(originalImagePlus.getCalibration());
 		correctedImagePlus.show();
+		correctedImagePlus.setLut(originalImagePlus.getProcessor().getLut());
 	}
 
 }

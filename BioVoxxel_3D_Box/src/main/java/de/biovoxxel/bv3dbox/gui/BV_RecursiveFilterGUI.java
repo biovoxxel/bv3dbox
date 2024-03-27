@@ -80,6 +80,7 @@ public class BV_RecursiveFilterGUI extends DynamicCommand {
 		outputImage.setTitle(WindowManager.getUniqueName(current_image_plus.getTitle() + "_" + recursiveRadius + "_" + iterations + "x"));
 		outputImage.setCalibration(current_image_plus.getCalibration());
 		outputImage.show();
+		outputImage.setLut(current_image_plus.getProcessor().getLut());
 		
 		bvrf.getCurrentCLIJ2Instance().close();
 	}

@@ -116,6 +116,7 @@ public class BV_ConvolutedBackgroundSubtractionGUI extends DynamicCommand {
 		outputImagePlus.setCalibration(currentImagePlus.getCalibration());
 		outputImagePlus.setTitle(outputImageName);
 		outputImagePlus.show();
+		outputImagePlus.setLut(currentImagePlus.getProcessor().getLut());
 		
 		BV3DBoxUtilities.adaptImageDisplay(currentImagePlus, WindowManager.getImage("BVCBS_" + currentImagePlus.getTitle()));
 	}

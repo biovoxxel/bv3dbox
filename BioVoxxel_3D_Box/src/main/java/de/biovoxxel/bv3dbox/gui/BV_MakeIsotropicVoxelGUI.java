@@ -30,7 +30,7 @@ public class BV_MakeIsotropicVoxelGUI implements Command {
 	@Override
 	public void run() {
 		
-		if (inputImagePlus.isStack()) {
+		if (inputImagePlus.hasImageStack()) {
 			
 			CLIJ2 clij2 = CLIJ2.getInstance();
 			clij2.clear();

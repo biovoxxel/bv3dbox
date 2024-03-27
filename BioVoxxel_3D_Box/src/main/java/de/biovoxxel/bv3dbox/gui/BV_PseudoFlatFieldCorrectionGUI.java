@@ -85,6 +85,9 @@ public class BV_PseudoFlatFieldCorrectionGUI extends DynamicCommand {
 			bvpffc.setInputImage(inputImagePlus, 0);
 		}
 		ImagePlus correctedImage = bvpffc.runCorrection(flatFieldRadius, force2DFilter, showBackgroundImage);
+		if (!showBackgroundImage) {
+			correctedImage.setLut(inputImagePlus.getProcessor().getLut());
+		}
 		bvpffc.displayCorrectedImage(correctedImage);
 		
 	}

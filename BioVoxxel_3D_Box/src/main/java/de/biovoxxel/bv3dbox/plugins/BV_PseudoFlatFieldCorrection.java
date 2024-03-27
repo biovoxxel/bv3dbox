@@ -179,7 +179,8 @@ public class BV_PseudoFlatFieldCorrection implements Cancelable {
 		outputImagePlus.setImage(tempOutputImagePlus);
 		outputImagePlus.setTitle(outputImageName);
 		outputImagePlus.setCalibration(inputImagePlus.getCalibration());
-		outputImagePlus.show();
+		outputImagePlus.show();		
+		
 		if (inputImagePlus.getNChannels() > 1) {
 			outputImagePlus.setC(inputImagePlus.getC());
 		}

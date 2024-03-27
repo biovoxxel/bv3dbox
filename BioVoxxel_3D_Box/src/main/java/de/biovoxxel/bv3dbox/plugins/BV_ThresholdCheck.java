@@ -295,7 +295,12 @@ public class BV_ThresholdCheck extends DynamicCommand {
 			ImagePlus outputImagePlus = clij2.pullBinary(outputImage);
 			outputImagePlus.setTitle(outputImageName);
 			outputImagePlus.setCalibration(inputImagePlus.getCalibration());
-			outputImagePlus.show();
+//TODO: in batch mode images are not correctly displayed
+//			if (Interpreter.isBatchMode()) {
+//				log.debug("Batch mode = " + Interpreter.isBatchMode());
+//				BV3DBoxUtilities.addImagePlusToBatchModeImages(outputImagePlus);
+//			}
+			outputImagePlus.show();				
 			
 		} else if (outputImageStyle.equals("0/1")) {
 			log.debug("creating 0/1 result");

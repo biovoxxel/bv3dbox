@@ -199,12 +199,15 @@ public class BV3DBoxUtilities {
 			imagePlusToBePulled.resetDisplayRange();			
 		}
 		
-		System.out.println("Calubration = " + cal);
+		System.out.println("Calibration = " + cal);
 		if (cal != null) {
 			imagePlusToBePulled.setCalibration(cal);
 		}
-		
-		imagePlusToBePulled.show();
+//TODO: in batch mode images are not correctly displayed
+//		if (Interpreter.isBatchMode()) {
+//			addImagePlusToBatchModeImages(imagePlusToBePulled);
+//		}
+		imagePlusToBePulled.show();			
 		
 	}
 	
@@ -242,8 +245,6 @@ public class BV3DBoxUtilities {
 			System.out.println("ImageID = " + imageToAdd.getID());
 			Interpreter.addBatchModeImage(imageToAdd);
 			System.out.println("Last batch image = " + Interpreter.getLastBatchModeImage());
-			Interpreter.activateImage(imageToAdd);
-			System.out.println("Batch image activated = " + imageToAdd);
 		}
 	}
 	

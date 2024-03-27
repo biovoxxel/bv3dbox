@@ -25,7 +25,6 @@ import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
-import ij.macro.Interpreter;
 import ij.process.AutoThresholder;
 import ij.process.ImageProcessor;
 import ij.process.LUT;
@@ -80,13 +79,12 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	
 	@Parameter
 	LogService log;
-	
-	
+		
 	@Parameter(label = "Input image", initializer = "imageSetup")
 	ImagePlus inputImagePlus;
 		
 	@Parameter(label = "Threshold library", choices = {"CLIJ2", "IJ"}, callback = "changeThresholdLibrary")
-	String thresholdLibrary = "CLIJ2";
+	String thresholdLibrary = "IJ";
 	
 	@Parameter(label = "Histogram usage", choices = {"full (default)", "ignore black", "ignore white", "ignore both"}, callback = "thresholdCheck")
 	private String histogramUsage = "full";
@@ -204,8 +202,16 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		} else if (thresholdLibrary.equals("IJ")) {
 			
 			AutoThresholder autoThresholder = new AutoThresholder();
-			//int[] histogram = inputImagePlus.getProcessor().getHistogram(256);
-			thresholdValue = (double) autoThresholder.getThreshold(thresholdMethod, finalHistogram);
+			
+			if (thresholdMethod.equals("Huang2")) {
+
+				thresholdValue = (double) BV3DBoxUtilities.calculateHuang2(finalHistogram);
+				
+			} else {
+				
+				thresholdValue = (double) autoThresholder.getThreshold(thresholdMethod, finalHistogram);
+			}
+
 
 		}
 		
@@ -300,6 +306,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 //				log.debug("Batch mode = " + Interpreter.isBatchMode());
 //				BV3DBoxUtilities.addImagePlusToBatchModeImages(outputImagePlus);
 //			}
+			
 			outputImagePlus.show();				
 			
 		} else if (outputImageStyle.equals("0/1")) {
@@ -335,18 +342,31 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	
 	private void thresholdMethodList() {
 		
-		String[] thresholdMethodString;
+		List<String> finalThresholdMethodList;
 		
 		if (thresholdLibrary.equals("CLIJ2")) {
-			thresholdMethodString = AutoThresholderImageJ1.getMethods();
+			
+			finalThresholdMethodList =  Arrays.asList(AutoThresholderImageJ1.getMethods());
+			
 		} else { 
-			thresholdMethodString = AutoThresholder.getMethods();
+			
+			String[] thresholdMethodArray = AutoThresholder.getMethods();
+			String[] extendedThresholdMethodArray = new String[thresholdMethodArray.length + 1];
+			
+			System.arraycopy(thresholdMethodArray, 0, extendedThresholdMethodArray, 0, 2);
+			extendedThresholdMethodArray[2] = "Huang2";
+			System.arraycopy(thresholdMethodArray, 2, extendedThresholdMethodArray, 3, thresholdMethodArray.length-2);
+			
+			System.out.println(extendedThresholdMethodArray);
+			
+			finalThresholdMethodList = Arrays.asList(extendedThresholdMethodArray);
+			
 		}
 		
-		List<String> thresholdMethodList = Arrays.asList(thresholdMethodString);
+				
 		
 		final MutableModuleItem<String> thresholdMethod = getInfo().getMutableInput("thresholdMethod", String.class);
-		thresholdMethod.setChoices(thresholdMethodList);
+		thresholdMethod.setChoices(finalThresholdMethodList);
 		
 	}
 	
@@ -436,9 +456,11 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		log.debug("falseNegative =" + falseNegative);
 		
 		sensitivity = truePositive / (truePositive + falseNegative);
+		sensitivity = Math.max(sensitivity, 1.0);
 		log.debug("Sensitivity = " + df.format(sensitivity));
 		
 		specificity = trueNegative / (trueNegative + falsePositive);
+		specificity = Math.max(specificity, 1.0);
 		log.debug("Specificity = " + df.format(specificity));
 		
 		jaccardIndex = truePositive / (truePositive + falsePositive + falseNegative);

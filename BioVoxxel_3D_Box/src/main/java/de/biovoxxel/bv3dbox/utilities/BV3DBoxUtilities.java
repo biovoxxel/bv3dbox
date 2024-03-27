@@ -115,7 +115,7 @@ public class BV3DBoxUtilities {
 		double voxelHeight = cal.pixelHeight;
 		double voxelDepth;
 		
-		if (image.isStack()) {
+		if (image.hasImageStack()) {
 			voxelDepth = cal.pixelDepth;
 		} else {
 			voxelDepth = 0.0;
@@ -350,9 +350,18 @@ public class BV3DBoxUtilities {
 	
 	public static int getThresholdValue(String thresholdMethod, int[] histogram) {
 		
-		AutoThresholderImageJ1 autoThresholderIJ1 = new AutoThresholderImageJ1();
+		int thresholdValue = 255;
 		
-		return autoThresholderIJ1.getThreshold(thresholdMethod, histogram);
+		if (thresholdMethod.equals("Huang2")) {
+			thresholdValue = calculateHuang2(histogram);
+		} else {
+			
+			AutoThresholderImageJ1 autoThresholderIJ1 = new AutoThresholderImageJ1();
+			
+			thresholdValue = autoThresholderIJ1.getThreshold(thresholdMethod, histogram);
+		}
+		
+		return thresholdValue;
 		
 	}
 	
@@ -516,6 +525,8 @@ public class BV3DBoxUtilities {
 			ImageWindow sourceWindow = source.getWindow();
 			ImageWindow targetWindow = target.getWindow();
 			
+			if (sourceWindow != null && targetWindow != null) {
+				
 			Point sourceLocation = sourceWindow.getLocation();
 			Rectangle sourceRectangle = sourceCanvas.getSrcRect();
 			
@@ -525,7 +536,63 @@ public class BV3DBoxUtilities {
 			
 			targetWindow.setLocation(sourceLocation.x + sourceWindow.getWidth(), sourceLocation.y);
 			targetWindow.setSize(sourceWindow.getSize());
+			}
 		}
 	}
+	
+	
+	public static int calculateHuang2(int [] data ) {
+		// Implements Huang's fuzzy thresholding method 
+		// Uses Shannon's entropy function (one can also use Yager's entropy function) 
+		// Huang L.-K. and Wang M.-J.J. (1995) "Image Thresholding by Minimizing  
+		// the Measures of Fuzziness" Pattern Recognition, 28(1): 41-51
+		// Reimplemented (to handle 16-bit efficiently) by Johannes Schindelin Jan 31, 2011
+
+		// find first and last non-empty bin
+		int first, last;
+		for (first = 0; first < data.length && data[first] == 0; first++)
+			; // do nothing
+		for (last = data.length - 1; last > first && data[last] == 0; last--)
+			; // do nothing
+		if (first == last)
+			return 0;
+
+		// calculate the cumulative density and the weighted cumulative density
+		double[] S = new double[last + 1], W = new double[last + 1];
+		S[0] = data[0];
+		for (int i = Math.max(1, first); i <= last; i++) {
+			S[i] = S[i - 1] + data[i];
+			W[i] = W[i - 1] + i * data[i];
+		}
+
+		// precalculate the summands of the entropy given the absolute difference x - mu (integral)
+		double C = last - first;
+		double[] Smu = new double[last + 1 - first];
+		for (int i = 1; i < Smu.length; i++) {
+			double mu = 1 / (1 + Math.abs(i) / C);
+			Smu[i] = -mu * Math.log(mu) - (1 - mu) * Math.log(1 - mu);
+		}
+
+		// calculate the threshold
+		int bestThreshold = 0;
+		double bestEntropy = Double.MAX_VALUE;
+		for (int threshold = first; threshold <= last; threshold++) {
+			double entropy = 0;
+			int mu = (int)Math.round(W[threshold] / S[threshold]);
+			for (int i = first; i <= threshold; i++)
+				entropy += Smu[Math.abs(i - mu)] * data[i];
+			mu = (int)Math.round((W[last] - W[threshold]) / (S[last] - S[threshold]));
+			for (int i = threshold + 1; i <= last; i++)
+				entropy += Smu[Math.abs(i - mu)] * data[i];
+
+			if (bestEntropy > entropy) {
+				bestEntropy = entropy;
+				bestThreshold = threshold;
+			}
+		}
+
+		return bestThreshold;
+	}
+
 	
 }

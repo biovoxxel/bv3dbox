@@ -169,7 +169,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);
 		
 		stackSlice.setValue(this, inputImagePlus.getSlice());
-		if(inputImagePlus.isStack()) {
+		if(inputImagePlus.hasImageStack()) {
 			
 			stackSlice.setMaximumValue(inputImagePlus.getStackSize());
 			

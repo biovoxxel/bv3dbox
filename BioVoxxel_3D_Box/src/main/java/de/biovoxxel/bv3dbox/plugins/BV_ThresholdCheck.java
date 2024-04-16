@@ -16,6 +16,7 @@ import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
+import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
@@ -83,41 +84,44 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	@Parameter(label = "Input image", initializer = "imageSetup")
 	ImagePlus inputImagePlus;
 		
+	@Parameter(label = "Invert Image", callback = "invertImage", required = false)
+	private Button invertImage = null;
+
 	@Parameter(label = "Threshold library", choices = {"CLIJ2", "IJ"}, callback = "changeThresholdLibrary")
-	String thresholdLibrary = "IJ";
+	private String thresholdLibrary = "IJ";
 	
 	@Parameter(label = "Histogram usage", choices = {"full (default)", "ignore black", "ignore white", "ignore both"}, callback = "thresholdCheck")
 	private String histogramUsage = "full";
 	
 	@Parameter(label = "Auto Threshold", initializer = "thresholdMethodList", callback = "thresholdCheck", persist = true)
-	String thresholdMethod = "Default";
+	private String thresholdMethod = "Default";
 	
 	@Parameter(label = "Contrast saturation (%)", min = "0.00", max = "100.00", stepSize = "0.05", style = NumberWidget.SLIDER_STYLE, callback = "thresholdCheck", persist = false, required = false)
-	Double saturation = 0.00;
+	private Double saturation = 0.00;
 
 	@Parameter(label = "Stack slice", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
-	Integer stackSlice;
+	private Integer stackSlice;
 	
 	@Parameter(label = "Binary output style", choices = {"0/255", "Labels", "0/1"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE)
-	String outputImageStyle;
+	private String outputImageStyle;
 	
 	@Parameter(label = "True / False Positive", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
-	String tpfp = "";
+	private String tpfp = "";
 	
 	@Parameter(label = "True / False Negative", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
-	String tnfn = "";
+	private String tnfn = "";
 	
 	@Parameter(label = "Sensitivity", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
-	String sens = "";
+	private String sens = "";
 	
 	@Parameter(label = "Specificity", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
-	String spec = "";
+	private String spec = "";
 	
 	@Parameter(label = "Jaccard Index", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
-	String jaccard = "";
+	private String jaccard = "";
 	
 	@Parameter(label = "Dice Coefficient", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
-	String dice = "";
+	private String dice = "";
 	
 		
 	CLIJ2 clij2;
@@ -387,7 +391,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		if (inputImageProcessor.getBitDepth() == 24) {
 			cancel("RGB images are not supported by auto thresholding");
 		}
-
+				
 		originalLut = inputImagePlus.getProcessor().getLut();
 
 		clij2 = CLIJ2.getInstance();
@@ -410,6 +414,16 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	
 		//thresholdCheck();
 
+	}
+	
+	private void invertImage() {
+		
+		inputImagePlus.getProcessor().invert();
+		
+		imageSetup();
+		
+		thresholdCheck();
+		
 	}
 
 

@@ -29,6 +29,7 @@ import ij.WindowManager;
 import ij.process.AutoThresholder;
 import ij.process.ImageProcessor;
 import ij.process.LUT;
+import ij.process.StackProcessor;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
@@ -416,9 +417,14 @@ public class BV_ThresholdCheck extends DynamicCommand {
 
 	}
 	
+	
+	@SuppressWarnings("unused")
 	private void invertImage() {
 		
-		inputImagePlus.getProcessor().invert();
+		inputImagePlus.setLut(originalLut);
+		
+		StackProcessor sp = new StackProcessor(inputImagePlus.getStack());
+		sp.invert();
 		
 		imageSetup();
 		

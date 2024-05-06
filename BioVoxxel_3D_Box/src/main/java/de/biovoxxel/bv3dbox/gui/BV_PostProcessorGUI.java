@@ -95,7 +95,7 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 		outputImageName = "BVPP_" + inputImagePlus.getTitle();
 		
 		final MutableModuleItem<Integer> stackSlice = getInfo().getMutableInput("stackSlice", Integer.class);
-		if(inputImagePlus.isStack()) {
+		if(inputImagePlus.hasImageStack()) {
 			
 			stackSlice.setMaximumValue(inputImagePlus.getStackSize());
 			
@@ -131,6 +131,8 @@ public class BV_PostProcessorGUI extends DynamicCommand {
 	@SuppressWarnings("unused")
 	private void slideSlices() {
 		ImagePlus outputImagePlus = WindowManager.getImage(outputImageName);
+		
+		inputImagePlus.setSlice(stackSlice);
 		
 		if (outputImagePlus != null) {
 

@@ -434,12 +434,12 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		if (outputType.equals("Binary")) {
 			tempOutputImagePlus = clij2.pullBinary(output_image);
 		} else if (outputType.equals("Labels")) {
-			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, output_image, true, LutNames.GLASBEY_LUT);
+			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, output_image, false, LutNames.GLASBEY_LUT);
 		} else {
 			
 			ClearCLBuffer temp_output_image = clij2.create(input_image);
 			clij2.visualizeOutlinesOnOriginal(input_image, output_image, temp_output_image);
-			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, temp_output_image, true, LutNames.OUTLINE);
+			tempOutputImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, temp_output_image, false, LutNames.OUTLINE);
 			temp_output_image.close();
 		}
 						
@@ -453,6 +453,8 @@ public class BV_VoronoiThresholdLabeling implements Cancelable {
 		outputImagePlus.setCalibration(inputImagePlus.getCalibration());
 		outputImagePlus.setTitle(outputImageName);
 		outputImagePlus.show();
+		
+		outputImagePlus.setDisplayRange(0, clij2.getMaximumOfAllPixels(output_image));     
 		
 		BV3DBoxUtilities.adaptImageDisplay(inputImagePlus, outputImagePlus);
 		

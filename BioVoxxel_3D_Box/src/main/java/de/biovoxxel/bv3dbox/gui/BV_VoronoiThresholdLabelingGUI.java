@@ -155,6 +155,7 @@ public class BV_VoronoiThresholdLabelingGUI extends DynamicCommand {
 	}
 	
 	
+	
 	private void setupImage() {
 		
 		BV3DBoxUtilities.displayMissingDependencyWarning(getContext().service(UpdateService.class), "clij,clij2,clijx-assistant,clijx-assistant-extensions,3D ImageJ Suite");

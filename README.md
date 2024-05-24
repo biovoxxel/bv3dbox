@@ -24,7 +24,7 @@ The BioVoxxel 3D Box are distributed via the **BioVoxxel 3D Box** update site in
 * <span style="color:red">The following update sites need currently to be minimally active to be able to use all functionalities of the BioVoxxel 3D Box</span>
 
 
-  * **bv3dbox**
+  * **BioVoxxel 3D Box**
   * **clij**
   * **clij2**
   * **clijx-assistant**

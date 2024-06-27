@@ -71,13 +71,13 @@ public class BV_ObjectInspectorGUI extends DynamicCommand {
 	private String original_2_title;
 	
 	
-	@Parameter(required = true, label = "Primary volume limitation", description = "")
+	@Parameter(required = true, label = "Primary volume limitation (px)", description = "")
 	private String primary_volume_range = "0-Infinity";
 	
 	@Parameter(required = true, label = "Primary mean/max extension ratio", description = "")
 	private String primary_MMER_range = "0.00-1.00";
 	
-	@Parameter(required = true, label = "Secondary volume limitation", description = "")
+	@Parameter(required = true, label = "Secondary volume limitation (px)", description = "")
 	private String secondary_volume_range = "0-Infinity";
 	
 	@Parameter(required = true, label = "Secondary mean/max extension ratio", description = "")

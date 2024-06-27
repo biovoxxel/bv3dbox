@@ -18,6 +18,7 @@ import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
 
+
 /*
  * BSD 3-Clause License
  *
@@ -87,7 +88,6 @@ public class BV_FlatFieldCorrection {
 		log.debug("flatFieldImagePlus = " + flatFieldImagePlus);
 		log.debug("darkFieldImagePlus = " + darkFieldImagePlus);
 		
-		
 		this.originalImagePlus = originalImagePlus;
 		
 		long[] originalDimensions = null;
@@ -150,6 +150,7 @@ public class BV_FlatFieldCorrection {
 				
 				flat_field_image = clij2.create(flatFieldDimensions, NativeTypeEnum.Float);
 				
+				
 				if (originalDimensions[DEPTH] > 1 && flatFieldDimensions[DEPTH] == 1) {
 					
 					ClearCLBuffer temp_flat_field = clij2.push(flatFieldImagePlus);
@@ -166,7 +167,7 @@ public class BV_FlatFieldCorrection {
 
 	
 		if (darkFieldImagePlus != null) {
-			
+		
 			if (darkFieldImagePlus.getBitDepth() == 24 && darkFieldImagePlus.hasImageStack()) {
 				
 				nonSupportedFormat(darkFieldImagePlus);
@@ -263,7 +264,7 @@ public class BV_FlatFieldCorrection {
 		
 		if (originalImagePlus.getBitDepth() == 24 && !originalImagePlus.hasImageStack()) {
 			
-			ImagePlus correctedLightnessImagePlus = clij2.pull(corrected_image);
+			ImagePlus correctedLightnessImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, corrected_image, true, LutNames.GRAY);
 			
 			if (showDebugImages) {
 				
@@ -281,16 +282,18 @@ public class BV_FlatFieldCorrection {
 			
 		} else {
 			
-			correctedImagePlus = clij2.pull(corrected_image);
+			correctedImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, corrected_image, false, LutNames.GRAY);
+			
 					
 		}
 		corrected_image.close();
 		
 		correctedImagePlus.setTitle(WindowManager.getUniqueName("FFCorr_" + originalImagePlus.getTitle()));
-		correctedImagePlus.getProcessor().resetMinAndMax();
 		correctedImagePlus.setCalibration(originalImagePlus.getCalibration());
 		correctedImagePlus.show();
 		correctedImagePlus.setLut(originalImagePlus.getProcessor().getLut());
+		correctedImagePlus.resetDisplayRange();
+		correctedImagePlus.updateAndDraw();
 	}
 
 }

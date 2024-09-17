@@ -145,8 +145,10 @@ public class BV_OverlapExtractor {
 		
 		ClearCLBuffer image_1_CCL;
 		if (image_plus_1.getProcessor().isBinary()) {
+			
 			ClearCLBuffer image_1_gpu = clij2.push(image_plus_1);
-			image_1_CCL = clij2.create(image_1_gpu);
+			
+			image_1_CCL = clij2.create(image_1_gpu.getDimensions(), NativeTypeEnum.Float);
 			
 			if (treat_binary_objects_as_one) {
 				clij2.closeIndexGapsInLabelMap(image_1_gpu, image_1_CCL);
@@ -168,8 +170,9 @@ public class BV_OverlapExtractor {
 
 		ClearCLBuffer image_2_CCL;
 		if (image_plus_2.getProcessor().isBinary()) {
+			
 			ClearCLBuffer image_2_gpu = clij2.push(image_plus_2);
-			image_2_CCL = clij2.create(image_2_gpu);
+			image_2_CCL = clij2.create(image_2_gpu.getDimensions(), NativeTypeEnum.Float);
 			
 			if (treat_binary_objects_as_one) {
 				clij2.closeIndexGapsInLabelMap(image_2_gpu, image_2_CCL);

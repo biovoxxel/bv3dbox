@@ -450,8 +450,7 @@ public class BV_ObjectInspector implements Cancelable {
 		overlapCountMap.setName("CountMap_" + primary_ImagePlus.getTitle());
 		boolean label_overlap_count_map_created = clij2.labelOverlapCountMap(finalLabels_1, finalLabels_2, overlapCountMap);
 		log.debug("LabelOverlapCountMap finished = " + label_overlap_count_map_created);
-		
-			
+				
 		ResultsTable primary_original_measurements_table = new ResultsTable();
 		
 						
@@ -481,8 +480,7 @@ public class BV_ObjectInspector implements Cancelable {
 			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, overlapCountMap, true, LutNames.GEEN_FIRE_BLUE_LUT, voxel_calibration);	//test output			
 		}
 		overlapCountMap.close();
-		
-		
+				
 		//Calculate primary scaled volumes
 		double[] primary_volume_in_pixels = primary_original_measurements_table.getColumnAsDoubles(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.value);
 		
@@ -511,6 +509,30 @@ public class BV_ObjectInspector implements Cancelable {
 		} else {
 			//skip intensity based measurements if original input image not available
 		}
+		
+		//create binary secondary labels to calculate %area
+		ClearCLBuffer binary_finalLabels_2 = clij2.create(finalLabels_1);
+		clij2.binaryAnd(finalLabels_1, finalLabels_2, binary_finalLabels_2);
+		
+		ResultsTable area_fraction_table = new ResultsTable();
+		
+		clij2.statisticsOfLabelledPixels(binary_finalLabels_2, finalLabels_1, area_fraction_table);
+		
+		Variable[] sum_int = area_fraction_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.SUM_INTENSITY.name());
+		Variable[] pixel_count = area_fraction_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.PIXEL_COUNT.name());
+		
+		System.out.println("size=" + sum_int.length);
+		
+		Variable[] area_fraction = new Variable[sum_int.length];
+		for (int af = 0; af < sum_int.length; af++) {
+			
+			area_fraction[af] = new Variable( (100 / pixel_count[af].getValue()) * sum_int[af].getValue() );
+			
+		}
+		final_primary_results_table.setColumn("AREA_FRACTION_%", area_fraction);
+		binary_finalLabels_2.close();
+		area_fraction_table = null;
+		
 		final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_X.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_X.name()));
 		final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_Y.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_Y.name()));
 		final_primary_results_table.setColumn(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_Z.name(), primary_original_measurements_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.CENTROID_Z.name()));

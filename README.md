@@ -76,12 +76,14 @@ A recursive filter repetitively applies the same filter on the previously filter
 ### Threshold Check: 
 A helping tool to better identify suitable histogram-based automatic intensity thresholds, compare them qualitatively and quantitatively. This is based on the publication: [Qualitative and Quantitative Evaluation of Two New Histogram Limiting Binarization Algorithms](https://www.cscjournals.org/library/manuscriptinfo.php?mc=IJIP-829), Brocher J., IJIP (2014).
 
-The Threshold Check allows to compare all implemented [Auto Thresholds](https://imagej.net/plugins/auto-threshold) from ImageJ (by [Gabriel Landini](https://github.com/landinig)) and its counterparts from the CLIJ2 library (by [Robert Haase](https://github.com/haesleinhuepf)). It uses false color to indicate the following:
+The Threshold Check allows to compare all implemented [Auto Thresholds](https://imagej.net/plugins/auto-threshold) from ImageJ (by [Gabriel Landini](https://github.com/landinig)).
+
+It uses false color to indicate the following:
 
 * `blue`: non-extracted pixels which are also not part of the ground truth (_true negative_)
 * `cyan`: non-extracted pixels which are part of the ground truth (_false negative_)
-* `orange` to `red`: extracted pixels which are NOT overlapping with the ground truth (_false positive_)
-* `orange` to `yellow`: extracted pixels which are part of the ground truth (_true positive_)
+* `red`: extracted pixels which are NOT overlapping with the ground truth (_false positive_)
+* `yellow`: extracted pixels which are part of the ground truth (_true positive_)
 
 The ground truth is in this case NOT the perfect, desired outcome but rather the next best estimation. It will also contain unspecific objects (or generally pixels) if the underlying image is not pre-processed by image filtering and/or background subtraction. It just serves as the quickest and direct way of comparing the extraction to an approximation of an acceptable outcome!
 
@@ -89,17 +91,17 @@ The following example image which the segmentation result according to Jaccard a
 
 ![image](https://user-images.githubusercontent.com/10721817/155275761-c6ded9a8-5b1f-432c-9b17-ff77bc2f527e.png)
 
-The `Contrast saturation (%)` slider serves to highlight brighter image content and "add" it to the ground truth. Objects of interest should in the best case therefore appear completely in yellow. If parts are highlighted in `cyan` they are not recognized by the current threshold even though being of interest, while if they show up in `orange` or `red` they are picked up by the threshold but are rather undesired.
+The `Highlight ground truth` slider serves to highlight brighter image content and "add" it to the ground truth. While the `Threshold method` field is set to "None", objects of interest should in the best case appear completely in cyan. If any other threshold method is selected true positive (extracted) areas will appear `yellow`. In the latter case, parts highlighted still in `cyan` are not recognized by the current threshold even though being of interest (false negative), while parts shown in `red` are false positive ones compared to the specified ground truth.
 
 The `Histogram usage` field allows to restrict the histogram during threshold calculation by ignoring black or white pixels or both. This can avoid that a big amount of saturated pixels contributes oversized to the final threshold. If "full" is chosen the original histogram is taken into account. The latter is the default setting.
 
 In the ImageJ main window, the status bar shows the corresponding [Jaccard Index](https://en.wikipedia.org/wiki/Jaccard_index) and [Dice Coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) values for the current setup and comparison of approximated ground truth versus segmentation result are displayed. The closer to 1.0 they are the more more accurate the segmentation will be (in context of the approximated ground truth). The lower they are the lower the relative "segmentation quality".
 
-If the `Contrast saturation`value is kept fixed a more objective and quantitative comparison of the performance of individual Auto Thresholds can be achieved. 
+If the `highlighted ground truth` value is kept fixed a more objective and quantitative comparison of the performance of individual Auto Thresholds can be achieved. 
 
 ![image](https://user-images.githubusercontent.com/10721817/152512052-fa834e26-6933-4d97-92c6-cd8e7e13574a.png)
 
-If the user finds a useful threshold the output can be set to either binary with the values 0/255 (ImageJ binary standard), binary 0/1 (CLIJ2 standard) or "Labels" which extracts the the objects filled with unique intensity values to be used as labeled connected components for further analysis (recommended setup).
+If the user finds a useful threshold the output can be retrieved already as a binary image.
 
 ![image](https://user-images.githubusercontent.com/10721817/151660615-ea6ae986-f0b3-4c9b-b3b8-c9f30e6c09ce.png)
 

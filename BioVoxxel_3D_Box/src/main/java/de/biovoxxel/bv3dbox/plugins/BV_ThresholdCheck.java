@@ -17,12 +17,10 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import org.scijava.widget.Button;
-import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxSettings;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
-import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
@@ -31,7 +29,6 @@ import ij.process.ImageProcessor;
 import ij.process.LUT;
 import ij.process.StackProcessor;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
-import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
 import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
 
@@ -84,27 +81,30 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		
 	@Parameter(label = "Input image", initializer = "imageSetup")
 	ImagePlus inputImagePlus;
-		
+	
 	@Parameter(label = "Invert Image", callback = "invertImage", required = false)
 	private Button invertImage = null;
 
-	@Parameter(label = "Threshold library", choices = {"CLIJ2", "IJ"}, callback = "changeThresholdLibrary")
-	private String thresholdLibrary = "IJ";
+//	@Parameter(label = "Threshold library", choices = {"CLIJ2", "IJ"}, callback = "changeThresholdLibrary")
+//	private String thresholdLibrary = "IJ";
+
+	@Parameter(label = "Highlight ground truth", min = "0.00", max = "100.00", stepSize = "0.05", style = NumberWidget.SLIDER_STYLE, callback = "thresholdCheck", persist = false, required = false)
+	private Double saturation = 0.00;
+	
+	@Parameter(label = "Toggle overlay", callback = "toggleThresholdLUT")
+	Boolean showOverlay = true;
 	
 	@Parameter(label = "Histogram usage", choices = {"full (default)", "ignore black", "ignore white", "ignore both"}, callback = "thresholdCheck")
 	private String histogramUsage = "full";
 	
-	@Parameter(label = "Auto Threshold", initializer = "thresholdMethodList", callback = "thresholdCheck", persist = true)
-	private String thresholdMethod = "Default";
-	
-	@Parameter(label = "Contrast saturation (%)", min = "0.00", max = "100.00", stepSize = "0.05", style = NumberWidget.SLIDER_STYLE, callback = "thresholdCheck", persist = false, required = false)
-	private Double saturation = 0.00;
+	@Parameter(label = "Auto Threshold", initializer = "thresholdMethodList", callback = "thresholdCheck", persist = false)
+	private String thresholdMethod = "None";
 
 	@Parameter(label = "Stack slice", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
 	private Integer stackSlice;
 	
-	@Parameter(label = "Binary output style", choices = {"0/255", "Labels", "0/1"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE)
-	private String outputImageStyle;
+//	@Parameter(label = "Binary output style", choices = {"0/255", "Labels", "0/1"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE)
+//	private String outputImageStyle;
 	
 	@Parameter(label = "True / False Positive", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
 	private String tpfp = "";
@@ -112,18 +112,22 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	@Parameter(label = "True / False Negative", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
 	private String tnfn = "";
 	
-	@Parameter(label = "Sensitivity", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
-	private String sens = "";
-	
-	@Parameter(label = "Specificity", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
-	private String spec = "";
+//	@Parameter(label = "Sensitivity", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+//	private String sens = "";
+//	
+//	@Parameter(label = "Specificity", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+//	private String spec = "";
 	
 	@Parameter(label = "Jaccard Index", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
 	private String jaccard = "";
 	
 	@Parameter(label = "Dice Coefficient", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
 	private String dice = "";
-	
+		
+//	@Parameter(label = "Create Binary", callback = "createBinary", required = false)
+//	private Button createBinary = null;
+
+
 		
 	CLIJ2 clij2;
 	ClearCLBuffer inputImage;
@@ -145,31 +149,33 @@ public class BV_ThresholdCheck extends DynamicCommand {
 
 	private double falseNegative;
 
-	private double sensitivity;
-
-	private double specificity;
+//	private double sensitivity;
+//
+//	private double specificity;
 
 	private double jaccardIndex;
 
 	private double diceCoeff;
 		
-	/**
-	 * 
-	 */
+	
 	
 	public void run() {
-		
-		System.out.println(inputImagePlus);
-		
+	
 		double thresholdValue = getThreshold();
-		applyThreshold(thresholdValue);
-		
+		applyThreshold(thresholdValue);			
+
 	}
+	
+//	public void createBinary() {
+//		double thresholdValue = getThreshold();
+//		applyThreshold(thresholdValue);	
+//		
+//	}
 	
 	
 	public void thresholdCheck() {
-		double thresholdValue = getThreshold();
 		
+		double thresholdValue = getThreshold();
 		applyThresholdLUT(thresholdValue);
 		
 	}
@@ -199,14 +205,16 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		}
 		//System.out.println("final stackHistogram extremes =" + finalHistogram[0] + " / " + finalHistogram[stackHistogram.length-1]);
 		
-		double thresholdValue = 0.0;
+		double thresholdValue = 255.0;
 		
-		if (thresholdLibrary.equals("CLIJ2")) {
-			
-			thresholdValue = BV3DBoxUtilities.getThresholdValue(thresholdMethod, finalHistogram);
-			//thresholdValue = clij2.getAutomaticThreshold(inputImage, thresholdMethod);	
-			
-		} else if (thresholdLibrary.equals("IJ")) {
+//		if (thresholdLibrary.equals("CLIJ2") && !thresholdMethod.equals("None")) {
+//			
+//			thresholdValue = BV3DBoxUtilities.getThresholdValue(thresholdMethod, finalHistogram);
+//			//thresholdValue = clij2.getAutomaticThreshold(inputImage, thresholdMethod);	
+//			
+//		} else 
+		
+		if (!thresholdMethod.equals("None")) {
 			
 			AutoThresholder autoThresholder = new AutoThresholder();
 			
@@ -218,8 +226,6 @@ public class BV_ThresholdCheck extends DynamicCommand {
 				
 				thresholdValue = (double) autoThresholder.getThreshold(thresholdMethod, finalHistogram);
 			}
-
-
 		}
 		
 		thresholdValue = thresholdValue + 1; //correction to achieve same result as IJ 
@@ -238,6 +244,14 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		
 		
 	}
+	
+	public void toggleThresholdLUT() {
+		if (showOverlay) {
+			thresholdCheck();
+		} else {
+			inputImagePlus.setLut(originalLut);			
+		}
+	}
 
 	
 	
@@ -246,17 +260,20 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		
 		double saturatedIntensity = saturation > 0.00 ? getSaturatedMaxIntentsity(saturation, thresholdValue) : 255.0;
 		
+		final MutableModuleItem<Boolean> mutableToggleOverlay = getInfo().getMutableInput("showOverlay", Boolean.class);
+		mutableToggleOverlay.setValue(this, true);
+		
 		final MutableModuleItem<String> mutableTrueFalsePositive = getInfo().getMutableInput("tpfp", String.class);
 		mutableTrueFalsePositive.setValue(this, ""+(int)truePositive + " / " + (int)falsePositive + " pixels");
 		
 		final MutableModuleItem<String> mutableTrueFalseNegative = getInfo().getMutableInput("tnfn", String.class);
 		mutableTrueFalseNegative.setValue(this, ""+(int)trueNegative + " / " + (int)falseNegative + " pixels");
 		
-		final MutableModuleItem<String> mutableSensitivity = getInfo().getMutableInput("sens", String.class);
-		mutableSensitivity.setValue(this, ""+sensitivity);
-		
-		final MutableModuleItem<String> mutableSpecificity = getInfo().getMutableInput("spec", String.class);
-		mutableSpecificity.setValue(this, ""+specificity);
+//		final MutableModuleItem<String> mutableSensitivity = getInfo().getMutableInput("sens", String.class);
+//		mutableSensitivity.setValue(this, ""+sensitivity);
+//		
+//		final MutableModuleItem<String> mutableSpecificity = getInfo().getMutableInput("spec", String.class);
+//		mutableSpecificity.setValue(this, ""+specificity);
 				
 		final MutableModuleItem<String> mutableJaccard = getInfo().getMutableInput("jaccard", String.class);
 		mutableJaccard.setValue(this, "<html><b style=\"color: red;\">"+jaccardIndex + "</b></html>");
@@ -303,33 +320,37 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		
 		inputImagePlus.setLut(originalLut);
 		
-		if (outputImageStyle.equals("0/255")) {
-			log.debug("creating 0/255 result");
-			ImagePlus outputImagePlus = clij2.pullBinary(outputImage);
-			outputImagePlus.setTitle(outputImageName);
-			outputImagePlus.setCalibration(inputImagePlus.getCalibration());
+		log.debug("creating 0/255 result");
+		ImagePlus outputImagePlus = clij2.pullBinary(outputImage);
+		outputImagePlus.setTitle(outputImageName);
+		outputImagePlus.setCalibration(inputImagePlus.getCalibration());
+		outputImagePlus.show();				
+		
 //TODO: in batch mode images are not correctly displayed
 //			if (Interpreter.isBatchMode()) {
 //				log.debug("Batch mode = " + Interpreter.isBatchMode());
 //				BV3DBoxUtilities.addImagePlusToBatchModeImages(outputImagePlus);
 //			}
-			
-			outputImagePlus.show();				
-			
-		} else if (outputImageStyle.equals("0/1")) {
-			log.debug("creating 0/1 result");
-			outputImage.setName(outputImageName);
-			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, outputImage, true, LutNames.GRAY, inputImagePlus.getCalibration());
-			
-		} else {
-			log.debug("creating label result");
-			ClearCLBuffer labelOutputImage = clij2.create(outputImage.getDimensions(), NativeTypeEnum.Float);
-			clij2.connectedComponentsLabelingBox(outputImage, labelOutputImage);
-			labelOutputImage.setName(outputImageName);
-			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, labelOutputImage, true, LutNames.GLASBEY_LUT, inputImagePlus.getCalibration());
-			labelOutputImage.close();
-			
-		}
+		
+		
+		
+//		old code for different output options (deprecated)
+//		if (outputImageStyle.equals("0/255")) {
+//			
+//		} else if (outputImageStyle.equals("0/1")) {
+//			log.debug("creating 0/1 result");
+//			outputImage.setName(outputImageName);
+//			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, outputImage, true, LutNames.GRAY, inputImagePlus.getCalibration());
+//			
+//		} else {
+//			log.debug("creating label result");
+//			ClearCLBuffer labelOutputImage = clij2.create(outputImage.getDimensions(), NativeTypeEnum.Float);
+//			clij2.connectedComponentsLabelingBox(outputImage, labelOutputImage);
+//			labelOutputImage.setName(outputImageName);
+//			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, labelOutputImage, true, LutNames.GLASBEY_LUT, inputImagePlus.getCalibration());
+//			labelOutputImage.close();
+//			
+//		}
 		
 		
 		//cleanup
@@ -351,24 +372,25 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		
 		List<String> finalThresholdMethodList;
 		
-		if (thresholdLibrary.equals("CLIJ2")) {
+//		if (thresholdLibrary.equals("CLIJ2")) {
+//			
+//			finalThresholdMethodList =  Arrays.asList(AutoThresholderImageJ1.getMethods());
+//			
+//		} else { 
+//		}	
 			
-			finalThresholdMethodList =  Arrays.asList(AutoThresholderImageJ1.getMethods());
+		String[] thresholdMethodArray = AutoThresholder.getMethods();
+		String[] extendedThresholdMethodArray = new String[thresholdMethodArray.length + 2];
+		
+		extendedThresholdMethodArray[0] = "None";
+		System.arraycopy(thresholdMethodArray, 0, extendedThresholdMethodArray, 1, 2);
+		extendedThresholdMethodArray[3] = "Huang2";
+		System.arraycopy(thresholdMethodArray, 2, extendedThresholdMethodArray, 4, thresholdMethodArray.length-2);
+		
+		System.out.println(extendedThresholdMethodArray);
+		
+		finalThresholdMethodList = Arrays.asList(extendedThresholdMethodArray);
 			
-		} else { 
-			
-			String[] thresholdMethodArray = AutoThresholder.getMethods();
-			String[] extendedThresholdMethodArray = new String[thresholdMethodArray.length + 1];
-			
-			System.arraycopy(thresholdMethodArray, 0, extendedThresholdMethodArray, 0, 2);
-			extendedThresholdMethodArray[2] = "Huang2";
-			System.arraycopy(thresholdMethodArray, 2, extendedThresholdMethodArray, 3, thresholdMethodArray.length-2);
-			
-			System.out.println(extendedThresholdMethodArray);
-			
-			finalThresholdMethodList = Arrays.asList(extendedThresholdMethodArray);
-			
-		}	
 		
 		final MutableModuleItem<String> thresholdMethod = getInfo().getMutableInput("thresholdMethod", String.class);
 		thresholdMethod.setChoices(finalThresholdMethodList);
@@ -475,13 +497,13 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		falseNegative = Math.max(saturatedPixelCount - foregroundPixelCount, 0);
 		log.debug("falseNegative =" + falseNegative);
 		
-		sensitivity = truePositive / (truePositive + falseNegative);
-		sensitivity = Math.max(sensitivity, 1.0);
-		log.debug("Sensitivity = " + df.format(sensitivity));
-		
-		specificity = trueNegative / (trueNegative + falsePositive);
-		specificity = Math.max(specificity, 1.0);
-		log.debug("Specificity = " + df.format(specificity));
+//		sensitivity = truePositive / (truePositive + falseNegative);
+//		sensitivity = Math.max(sensitivity, 1.0);
+//		log.debug("Sensitivity = " + df.format(sensitivity));
+//		
+//		specificity = trueNegative / (trueNegative + falsePositive);
+//		specificity = Math.max(specificity, 1.0);
+//		log.debug("Specificity = " + df.format(specificity));
 		
 		jaccardIndex = truePositive / (truePositive + falsePositive + falseNegative);
 		log.debug("JaccardIndex = " + df.format(jaccardIndex));
@@ -492,7 +514,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		System.out.println("recalc dice = " + ((2*jaccardIndex) / (jaccardIndex + 1)));
 		
 //TODO: calculation of at least the specificity seems to be still not correct (at least for stacks)
-		IJ.showStatus(thresholdMethod + "(" + thresholdLibrary + "): JaccardIndex=" + df.format(jaccardIndex) + " / DiceCoeff = " + df.format(diceCoeff));
+		IJ.showStatus(thresholdMethod + "JaccardIndex=" + df.format(jaccardIndex) + " / DiceCoeff = " + df.format(diceCoeff));
 		
 		return saturationIntensity;
 	}
@@ -500,6 +522,9 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	
 		
 	public void cancel() {
+		System.out.println("ThresholdCheck closed/cancelled");
+		inputImage.close();
+		clij2.close();
 		inputImagePlus.setLut(originalLut);
 	}
 	

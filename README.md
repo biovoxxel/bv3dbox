@@ -89,7 +89,7 @@ The ground truth is in this case NOT the perfect, desired outcome but rather the
 
 The following example image which the segmentation result according to Jaccard and Dice indices in Fiji's main window are ok but indicate the slight over-segmentation (red pixels) with the chosen Threshold.
 
-![image](https://user-images.githubusercontent.com/10721817/155275761-c6ded9a8-5b1f-432c-9b17-ff77bc2f527e.png)
+![Screenshot 2025-02-28 171523](https://github.com/user-attachments/assets/33de71db-523e-4042-9c8c-a987cd4e7168)
 
 The `Highlight ground truth` slider serves to highlight brighter image content and "add" it to the ground truth. While the `Threshold method` field is set to "None", objects of interest should in the best case appear completely in cyan. If any other threshold method is selected true positive (extracted) areas will appear `yellow`. In the latter case, parts highlighted still in `cyan` are not recognized by the current threshold even though being of interest (false negative), while parts shown in `red` are false positive ones compared to the specified ground truth.
 
@@ -99,11 +99,13 @@ In the ImageJ main window, the status bar shows the corresponding [Jaccard Index
 
 If the `highlighted ground truth` value is kept fixed a more objective and quantitative comparison of the performance of individual Auto Thresholds can be achieved. 
 
-![image](https://user-images.githubusercontent.com/10721817/152512052-fa834e26-6933-4d97-92c6-cd8e7e13574a.png)
+![Screenshot 2025-02-28 171614](https://github.com/user-attachments/assets/76340797-0dac-49ef-ac47-07a60dd708d7)
 
-If the user finds a useful threshold the output can be retrieved already as a binary image.
 
-![image](https://user-images.githubusercontent.com/10721817/151660615-ea6ae986-f0b3-4c9b-b3b8-c9f30e6c09ce.png)
+If the user finds a useful threshold the output can be retrieved already as a binary image. Disclaimer: Do not macro record the Thresholdcheck for batch processing. Use it just to define a suitable threshold and then record the normal AutoThreshold pluging of Fiji with the corresponding desired threshold method.
+
+![Screenshot 2025-02-28 172210](https://github.com/user-attachments/assets/90319237-e0b2-4135-96e3-69c64b9b45c5)
+
 
 Currently, stacks will automatically be considered as volume and thresholding is done on the stack histogram to achieve consistent results over the complete stack.
 

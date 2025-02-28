@@ -78,14 +78,7 @@ A helping tool to better identify suitable histogram-based automatic intensity t
 
 The Threshold Check allows to compare all implemented [Auto Thresholds](https://imagej.net/plugins/auto-threshold) from ImageJ (by [Gabriel Landini](https://github.com/landinig)).
 
-It uses false color to indicate the following:
-
-* `blue`: non-extracted pixels which are also not part of the ground truth (_true negative_)
-* `cyan`: non-extracted pixels which are part of the ground truth (_false negative_)
-* `red`: extracted pixels which are NOT overlapping with the ground truth (_false positive_)
-* `yellow`: extracted pixels which are part of the ground truth (_true positive_)
-
-The ground truth is in this case NOT the perfect, desired outcome but rather the next best estimation. It will also contain unspecific objects (or generally pixels) if the underlying image is not pre-processed by image filtering and/or background subtraction. It just serves as the quickest and direct way of comparing the extraction to an approximation of an acceptable outcome!
+The ground truth you can "define" (see below) is in this case NOT the perfect, desired outcome but rather the next best estimation. It will also contain unspecific objects (or generally pixels) if the underlying image is not pre-processed by image filtering and/or background subtraction. It just serves as the quickest possible and direct way of comparing the extraction to an approximation of an acceptable outcome!
 
 ![Screenshot 2025-02-28 171523](https://github.com/user-attachments/assets/33de71db-523e-4042-9c8c-a987cd4e7168)
 
@@ -93,12 +86,18 @@ The `Highlight ground truth` slider serves to highlight brighter image content a
 
 The `Histogram usage` field allows to restrict the histogram during threshold calculation by ignoring black or white pixels or both. This can avoid that a big amount of saturated pixels contributes oversized to the final threshold. If "full" is chosen the original histogram is taken into account. The latter is the default setting.
 
-In the ImageJ main window, the status bar shows the corresponding [Jaccard Index](https://en.wikipedia.org/wiki/Jaccard_index) and [Dice Coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) values for the current setup and comparison of approximated ground truth versus segmentation result are displayed. The closer to 1.0 they are the more more accurate the segmentation will be (in context of the approximated ground truth). The lower they are the lower the relative "segmentation quality".
+In the ThresholdCheck window itself as well as in ImageJ's main window, the status bar shows the corresponding [Jaccard Index](https://en.wikipedia.org/wiki/Jaccard_index) and [Dice Coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) values for the current setup and comparison of approximated ground truth versus segmentation result are displayed. The closer to 1.0 they are the more more accurate the segmentation will be (in context of the approximated ground truth). The lower they are the lower the relative "segmentation quality".
 
 If the `highlighted ground truth` value is kept fixed a more objective and quantitative comparison of the performance of individual Auto Thresholds can be achieved. 
 
 ![Screenshot 2025-02-28 171614](https://github.com/user-attachments/assets/76340797-0dac-49ef-ac47-07a60dd708d7)
 
+Here the used color coding in overview:
+
+* `blue`: non-extracted pixels which are also not part of the ground truth (_true negative_)
+* `cyan`: non-extracted pixels which are part of the ground truth (_false negative_)
+* `red`: extracted pixels which are NOT overlapping with the ground truth (_false positive_)
+* `yellow`: extracted pixels which are part of the ground truth (_true positive_)
 
 If the user finds a useful threshold the output can be retrieved already as a binary image. Disclaimer: Do not macro record the Thresholdcheck for batch processing. Use it just to define a suitable threshold and then record the normal AutoThreshold pluging of Fiji with the corresponding desired threshold method.
 

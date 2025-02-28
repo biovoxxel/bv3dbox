@@ -106,10 +106,10 @@ public class BV_ThresholdCheck extends DynamicCommand {
 //	@Parameter(label = "Binary output style", choices = {"0/255", "Labels", "0/1"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE)
 //	private String outputImageStyle;
 	
-	@Parameter(label = "True / False Positive", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+	@Parameter(label = "<html><b><span style=\"background: yellow;\">True</span> / <span style=\"background: red; color: white;\">False</span>&nbsp Positive</b></html>", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
 	private String tpfp = "";
 	
-	@Parameter(label = "True / False Negative", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+	@Parameter(label = "<html><b><span style=\"background: blue; color: white;\">True</span> / <span style=\"background: #00ffff;\">False</span> Negative</b></html>", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
 	private String tnfn = "";
 	
 //	@Parameter(label = "Sensitivity", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
@@ -118,10 +118,10 @@ public class BV_ThresholdCheck extends DynamicCommand {
 //	@Parameter(label = "Specificity", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
 //	private String spec = "";
 	
-	@Parameter(label = "Jaccard Index", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+	@Parameter(label = "<html>Jaccard Index</html>", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
 	private String jaccard = "";
 	
-	@Parameter(label = "Dice Coefficient", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+	@Parameter(label = "<html>Dice Coefficient</html>", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
 	private String dice = "";
 		
 //	@Parameter(label = "Create Binary", callback = "createBinary", required = false)
@@ -264,10 +264,10 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		mutableToggleOverlay.setValue(this, true);
 		
 		final MutableModuleItem<String> mutableTrueFalsePositive = getInfo().getMutableInput("tpfp", String.class);
-		mutableTrueFalsePositive.setValue(this, ""+(int)truePositive + " / " + (int)falsePositive + " pixels");
+		mutableTrueFalsePositive.setValue(this, "" + (int)truePositive + " / " + (int)falsePositive);
 		
 		final MutableModuleItem<String> mutableTrueFalseNegative = getInfo().getMutableInput("tnfn", String.class);
-		mutableTrueFalseNegative.setValue(this, ""+(int)trueNegative + " / " + (int)falseNegative + " pixels");
+		mutableTrueFalseNegative.setValue(this, "" + (int)trueNegative + " / " + (int)falseNegative);
 		
 //		final MutableModuleItem<String> mutableSensitivity = getInfo().getMutableInput("sens", String.class);
 //		mutableSensitivity.setValue(this, ""+sensitivity);
@@ -276,10 +276,10 @@ public class BV_ThresholdCheck extends DynamicCommand {
 //		mutableSpecificity.setValue(this, ""+specificity);
 				
 		final MutableModuleItem<String> mutableJaccard = getInfo().getMutableInput("jaccard", String.class);
-		mutableJaccard.setValue(this, "<html><b style=\"color: red;\">"+jaccardIndex + "</b></html>");
+		mutableJaccard.setValue(this, "<html><b style=\"color: black;\">"+jaccardIndex + "</b></html>");
 		
 		final MutableModuleItem<String> mutableDice = getInfo().getMutableInput("dice", String.class);
-		mutableDice.setValue(this, "<html><b style=\"color: red;\">"+diceCoeff + "</b></html>");
+		mutableDice.setValue(this, "<html><span style=\"color: black;\">"+diceCoeff + "</span></html>");
 		
 		for (int v = 0; v < bins; v++) {
 			
@@ -514,7 +514,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		System.out.println("recalc dice = " + ((2*jaccardIndex) / (jaccardIndex + 1)));
 		
 //TODO: calculation of at least the specificity seems to be still not correct (at least for stacks)
-		IJ.showStatus(thresholdMethod + "JaccardIndex=" + df.format(jaccardIndex) + " / DiceCoeff = " + df.format(diceCoeff));
+		IJ.showStatus(thresholdMethod + "--> JaccardIndex=" + df.format(jaccardIndex) + " / DiceCoeff = " + df.format(diceCoeff));
 		
 		return saturationIntensity;
 	}

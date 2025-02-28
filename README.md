@@ -87,8 +87,6 @@ It uses false color to indicate the following:
 
 The ground truth is in this case NOT the perfect, desired outcome but rather the next best estimation. It will also contain unspecific objects (or generally pixels) if the underlying image is not pre-processed by image filtering and/or background subtraction. It just serves as the quickest and direct way of comparing the extraction to an approximation of an acceptable outcome!
 
-The following example image which the segmentation result according to Jaccard and Dice indices in Fiji's main window are ok but indicate the slight over-segmentation (red pixels) with the chosen Threshold.
-
 ![Screenshot 2025-02-28 171523](https://github.com/user-attachments/assets/33de71db-523e-4042-9c8c-a987cd4e7168)
 
 The `Highlight ground truth` slider serves to highlight brighter image content and "add" it to the ground truth. While the `Threshold method` field is set to "None", objects of interest should in the best case appear completely in cyan. If any other threshold method is selected true positive (extracted) areas will appear `yellow`. In the latter case, parts highlighted still in `cyan` are not recognized by the current threshold even though being of interest (false negative), while parts shown in `red` are false positive ones compared to the specified ground truth.

@@ -58,7 +58,7 @@ public class BV_OverlapExtractorGUI implements Command {
 	@Parameter(label = "%-Volume range", description = "", min = "0", max = "100")
 	private String volume_range = "0.0-100.0";
 	
-	@Parameter(label = "Exclude primary on edges", description = "")
+	@Parameter(label = "Exclude objects on edges", description = "")
 	private Boolean exclude_edge_objects = false;
 	
 	@Parameter(label = "Show original primary statistics", description = "")

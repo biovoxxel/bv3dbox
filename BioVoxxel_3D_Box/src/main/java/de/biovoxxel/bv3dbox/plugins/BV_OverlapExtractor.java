@@ -185,6 +185,13 @@ public class BV_OverlapExtractor {
 			image_2_CCL = clij2.push(image_plus_2);
 		}
 		
+		if (exclude_edge_objects) {
+			ClearCLBuffer image_2_temp = clij2.create(image_2_CCL);
+			clij2.copy(image_2_CCL, image_2_temp);
+			clij2.excludeLabelsOnEdges(image_2_temp, image_2_CCL);
+			image_2_temp.close();
+		}
+		
 		
 		ResultsTable original_results = new ResultsTable();
 		clij2.statisticsOfLabelledPixels(image_1_CCL, image_1_CCL, original_results);

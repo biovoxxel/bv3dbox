@@ -203,7 +203,7 @@ public class BV_OverlapExtractor {
 		
 		ClearCLBuffer image_2_mask_on_image_1 = clij2.create(image_1_CCL);
 		clij2.binaryAnd(image_1_CCL, image_2_CCL, image_2_mask_on_image_1);
-			//BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, image_2_mask_on_image_1, false);
+		//BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, image_2_mask_on_image_1, false, LutNames.GLASBEY_LUT, null);
 		
 		ResultsTable comparison_1_and_2 = new ResultsTable();
 		clij2.statisticsOfLabelledPixels(image_2_mask_on_image_1, image_1_CCL, comparison_1_and_2);
@@ -226,15 +226,20 @@ public class BV_OverlapExtractor {
 		boolean[] kept_results = new boolean[max_primary_label_count];
 		//kept_results[0] = false;
 		double[] percent_volume = new double[max_primary_label_count];
-		percent_volume[0] = 0;
+		percent_volume[0] = 0.0;
 		
 		for (int c1 = 0; c1 < max_primary_label_count; c1++) {
 			
-			percent_volume[c1] = (100 / original_pixel_count[c1]) * comparison_1_2_overlap[c1];
+			percent_volume[c1] = (100.00 / original_pixel_count[c1]) * comparison_1_2_overlap[c1];
+			
+			if (percent_volume[c1] > 100.00) {
+				percent_volume[c1] = 100.00;
+			}
+			
 		
 			percent_volume_processor.putPixelValue(c1+1, 0, percent_volume[c1]);
-			
-			if (percent_volume[c1] > 0 && percent_volume[c1] >= minVolume && percent_volume[c1] <= maxVolume) {
+
+			if (percent_volume[c1] > 0.0 && percent_volume[c1] >= minVolume && percent_volume[c1] <= maxVolume) {
 				
 				flag_list_processor.putPixel(c1+1, 0, 0);	//keep label
 				kept_objects_count++;
@@ -245,6 +250,7 @@ public class BV_OverlapExtractor {
 				flag_list_processor.putPixel(c1+1, 0, 1);	//remove label
 				kept_results[c1] = false;
 			}
+			//System.out.println(c1+1 + " --> " + percent_volume[c1] + "% --> " + flag_list_processor.get(c1+1, 0));
 		}
 		
 				
@@ -259,11 +265,12 @@ public class BV_OverlapExtractor {
 		}
 		
 		if (show_extracted_objects) {
+			//flag_list_image.show();
 			ClearCLBuffer flag_list_vector = clij2.push(flag_list_image);
 			ClearCLBuffer kept_image_1_CCL = clij2.create(image_1_CCL);
 			kept_image_1_CCL.setName("extracted_" + image_plus_1.getTitle());
-			clij2.excludeLabels(flag_list_vector, image_1_CCL, kept_image_1_CCL);		
-			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, kept_image_1_CCL, true, LutNames.GEEN_FIRE_BLUE_LUT, image_plus_1.getCalibration());
+			clij2.excludeLabels(flag_list_vector, image_1_CCL, kept_image_1_CCL);
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, kept_image_1_CCL, true, LutNames.GLASBEY_LUT, image_plus_1.getCalibration());
 			flag_list_vector.close();
 			kept_image_1_CCL.close();
 			

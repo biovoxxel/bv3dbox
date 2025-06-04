@@ -58,14 +58,14 @@ public class BV_FlatFieldCorrectionGUI extends DynamicCommand {
 	@Parameter(label = "Flat-field image", required = true)
 	ImagePlus flatFieldImagePlus = null;
 	
-	@Parameter(label = "Dark-field image", required = false, initializer = "initializeOriginalImageChoices")
+	@Parameter(label = "Dark current image", required = false, initializer = "initializeOriginalImageChoices")
 	String darkFieldImageName = "";
 
 	
 	
 	@Override
 	public void run() {
-					
+		
 		BV_FlatFieldCorrection bvffcorr = new BV_FlatFieldCorrection();
 		
 		ImagePlus darkFieldImagePlus = WindowManager.getImage(darkFieldImageName);

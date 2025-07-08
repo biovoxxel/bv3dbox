@@ -32,7 +32,7 @@ public class BV_ConvolutedBackgroundSubtractionGUI extends DynamicCommand {
 	@Parameter(required = true, label = "Image", description = "", initializer = "setup")
 	ImagePlus currentImagePlus;
 	
-	@Parameter(required = true, label = "Filter", description = "", choices = {"Gaussian", "Median", "Mean", "Open"}, callback = "processImageOnTheFly")
+	@Parameter(required = true, label = "Filter", description = "", choices = {"TopHat (Open)", "Gaussian", "Median", "Mean"}, callback = "processImageOnTheFly")
 	String filterMethod = "Gaussian";
 	
 	@Parameter(required = true, label = "Radius", description = "", min = "0.5", stepSize = "0.5", callback = "processImageOnTheFly")

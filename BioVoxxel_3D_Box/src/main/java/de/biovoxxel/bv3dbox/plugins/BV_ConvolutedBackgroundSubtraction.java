@@ -70,6 +70,10 @@ public class BV_ConvolutedBackgroundSubtraction {
 		
 		ClearCLBuffer filteredImage = clij2.create(originalBuffer);
 		
+		if (filterMethod == "Open") {
+			filterMethod = "TopHat (Open)";
+		}
+		
 		switch (filterMethod) {
 		case "Gaussian":
 			clij2.gaussianBlur3D(originalBuffer, filteredImage, filterRadius, y_filter_radius, z_filter_radius);
@@ -98,7 +102,7 @@ public class BV_ConvolutedBackgroundSubtraction {
 			}
 			break;
 			
-		case "Open":
+		case "TopHat (Open)":
 			clij2.greyscaleOpeningSphere(originalBuffer, filteredImage, filterRadius, y_filter_radius, z_filter_radius);
 			break;
 

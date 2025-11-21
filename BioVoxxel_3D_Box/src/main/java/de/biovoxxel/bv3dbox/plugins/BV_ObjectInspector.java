@@ -24,6 +24,8 @@ import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.haesleinhuepf.clij2.CLIJ2;
 import net.haesleinhuepf.clij2.plugins.StatisticsOfLabelledPixels;
+import net.haesleinhuepf.clijx.CLIJx;
+import net.haesleinhuepf.clijx.morpholibj.MorphoLibJDistanceToLabelBorderMap;
 
 /*
  * BSD 3-Clause License
@@ -86,6 +88,7 @@ public class BV_ObjectInspector implements Cancelable {
 	private Boolean show_count_map = false;
 	
 	CLIJ2 clij2;
+	CLIJx clijx;
 	
 	ClearCLBuffer labels_1_gpu = null;
 	ClearCLBuffer labels_2_gpu = null;
@@ -208,6 +211,9 @@ public class BV_ObjectInspector implements Cancelable {
 		
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
+		
+		clijx = CLIJx.getInstance();
+		clijx.clear();
 		
 		log.debug("------------------------------------------------------");
 		log.debug("labels_1_ImagePlus = " + primary_ImagePlus);
@@ -581,7 +587,11 @@ public class BV_ObjectInspector implements Cancelable {
 		
 		ClearCLBuffer border_distance_map = clij2.create(finalLabels_1);
 		border_distance_map.setName("border_dist_" + finalLabels_1.getName());
-		clij2.distanceMap(finalLabels_1, border_distance_map);
+		
+		MorphoLibJDistanceToLabelBorderMap.morphoLibJRemoveLargestRegion(clij2, finalLabels_1, border_distance_map);
+		//BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, border_distance_map, true, LutNames.GRAY, null);
+		
+		//clij2.distanceMap(finalLabels_1, border_distance_map);	incorrect distance map, removed 1.24.6
 		log.debug("MaximumExtensionMap created");
 
 		

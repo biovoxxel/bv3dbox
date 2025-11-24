@@ -207,7 +207,9 @@ public class BV_ObjectInspector implements Cancelable {
 		
 	public void inspect() {
 		
-		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO));
+		int logLevel = prefs.getInt(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO);
+		
+		log.setLevel(logLevel);
 		
 		clij2 = CLIJ2.getInstance();
 		clij2.clear();
@@ -583,22 +585,22 @@ public class BV_ObjectInspector implements Cancelable {
 		ClearCLBuffer center_distance_map = clij2.create(finalLabels_1);
 		center_distance_map.setName("centroid_dist_" + finalLabels_1.getName());
 		clij2.euclideanDistanceFromLabelCentroidMap(finalLabels_1, center_distance_map);
-		BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, center_distance_map, true, LutNames.GRAY, null);
+		
+		if (logLevel == LogLevel.DEBUG) {
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, center_distance_map, true, LutNames.GRAY, null);			
+		}
+		
 		log.debug("EuclideanDistanceFromLabelCentroidMap created");
 		
 						
 		ClearCLBuffer border_distance_map = clij2.create(finalLabels_1);
-		MorphoLibJDistanceToLabelBorderMap.morphoLibJRemoveLargestRegion(clij2, finalLabels_1, border_distance_map);
 		border_distance_map.setName("border_dist_" + finalLabels_1.getName());
-		
-		
-		BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, border_distance_map, true, LutNames.GRAY, null);
-		
-		
-		
-		
-		//clij2.distanceMap(finalLabels_1, border_distance_map);	incorrect distance map, removed 1.24.6
-		log.debug("MaximumExtensionMap created");
+		//clij2.distanceMap(finalLabels_1, border_distance_map);	//inaccurate distance map, removed 1.24.6
+		MorphoLibJDistanceToLabelBorderMap.morphoLibJRemoveLargestRegion(clij2, finalLabels_1, border_distance_map);
+		if (logLevel == LogLevel.DEBUG) {
+			BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, border_distance_map, true, LutNames.GRAY, null);		
+		}
+		log.debug("MorphoLibJDistanceToLabelBorderMap created");
 
 		
 		double max_primary_label_count = clij2.maximumOfAllPixels(finalLabels_1);

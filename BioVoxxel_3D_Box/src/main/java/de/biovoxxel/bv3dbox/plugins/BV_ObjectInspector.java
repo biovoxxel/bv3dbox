@@ -583,13 +583,19 @@ public class BV_ObjectInspector implements Cancelable {
 		ClearCLBuffer center_distance_map = clij2.create(finalLabels_1);
 		center_distance_map.setName("centroid_dist_" + finalLabels_1.getName());
 		clij2.euclideanDistanceFromLabelCentroidMap(finalLabels_1, center_distance_map);
+		BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, center_distance_map, true, LutNames.GRAY, null);
 		log.debug("EuclideanDistanceFromLabelCentroidMap created");
 		
+						
 		ClearCLBuffer border_distance_map = clij2.create(finalLabels_1);
+		MorphoLibJDistanceToLabelBorderMap.morphoLibJRemoveLargestRegion(clij2, finalLabels_1, border_distance_map);
 		border_distance_map.setName("border_dist_" + finalLabels_1.getName());
 		
-		MorphoLibJDistanceToLabelBorderMap.morphoLibJRemoveLargestRegion(clij2, finalLabels_1, border_distance_map);
-		//BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, border_distance_map, true, LutNames.GRAY, null);
+		
+		BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, border_distance_map, true, LutNames.GRAY, null);
+		
+		
+		
 		
 		//clij2.distanceMap(finalLabels_1, border_distance_map);	incorrect distance map, removed 1.24.6
 		log.debug("MaximumExtensionMap created");
@@ -678,13 +684,13 @@ public class BV_ObjectInspector implements Cancelable {
 			final_secondary_results_table.setColumn("STD_DEV_EXTENSION", final_edge_analysis_table_2.getColumnAsVariables("STD_DEV_EXTENSION"));
 			
 			
-			final_secondary_results_table.setColumn("AVER_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name()));
-			final_secondary_results_table.setColumn("SHORT_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name()));
-			final_secondary_results_table.setColumn("LONG_BORDER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name()));
+			final_secondary_results_table.setColumn("AVER_CENTER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name()));
+			final_secondary_results_table.setColumn("SHORT_CENTER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name()));
+			final_secondary_results_table.setColumn("LONG_CENTER_DIST", center_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name()));
 			
-			final_secondary_results_table.setColumn("AVER_CENTER_DIST", border_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name()));
-			final_secondary_results_table.setColumn("SHORT_CENTER_DIST", border_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name()));
-			final_secondary_results_table.setColumn("LONG_CENTER_DIST", border_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name()));
+			final_secondary_results_table.setColumn("AVER_BORDER_DIST", border_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MEAN_INTENSITY.name()));
+			final_secondary_results_table.setColumn("SHORT_BORDER_DIST", border_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MINIMUM_INTENSITY.name()));
+			final_secondary_results_table.setColumn("LONG_BORDER_DIST", border_distance_table.getColumnAsVariables(StatisticsOfLabelledPixels.STATISTICS_ENTRY.MAXIMUM_INTENSITY.name()));
 			
 			center_distance_table = null;
 			border_distance_table = null;

@@ -214,6 +214,83 @@ Results tables are available for primary as well as secondary objects including 
 
 ![image](https://user-images.githubusercontent.com/10721817/151661661-fbc7ae90-b30b-4ffa-ac44-752a7ca37b48.png)
 
+#### Results table headings and their meaning:
+Headings specific to the primary results table
+
+* PRIM_OBJ_ID = the primary label ID (label intensity)
+* SEC_OBJECT_COUNT = number of secondary objects inside this particular primary object/label
+* VOLUME (pixel^3) = the 3D volume or 2D area of the primary lable (in scaled units)
+* PIXEL_COUNT = the 3D volume or 2D area of the primary lable  (in pixel units)
+* MEAN_INTENSITY = average pixel intensity of a single label in the original primary input image 
+* MAXIMUM_INTENSITY = highest pixel intensity of a single label in the original primary input image 
+* MINIMUM_INTENSITY = lowest pixel intensity of a single label in the original primary input image 
+* STANDARD_DEVIATION_INTENSITY = standard deviation of the pixel intensity of a single label in the original primary input image 
+* SUM_INTENSITY = total pixel intensity of all pixels inside a label in the original primary input image 
+* MASS_CENTER_X = x coordinate of the center of mass (intensity weighted object center) of a label in the primary image (in pixel units)
+* MASS_CENTER_Y = y coordinate of the center of mass (intensity weighted object center) of a label in the primary image (in pixel units)
+* MASS_CENTER_Z = z coordinate of the center of mass (intensity weighted object center) of a label in the primary image (in pixel units)
+* MAX_DISTANCE_TO_MASS_CENTER = maximum distance from the border of a label to its center of mass (in pixel units)
+* MEAN_DISTANCE_TO_MASS_CENTER = minimum distance from the border of a label to its center of mass (in pixel units)
+* MAX_MEAN_DISTANCE_TO_MASS_CENTER_RATIO = ratio between the max. and average distance from the label border to its center of mass (relative)
+* AREA_FRACTION_% = percentage of the primary label's 3D volume or 2D area that is filled/covered with secondary objects (relative)
+* CENTROID_X = x coordinate of the geometrical center of a label in the primary image (in pixel units)
+* CENTROID_Y = y coordinate of the geometrical center of a label in the primary image (in pixel units)
+* CENTROID_Z = z coordinate of the geometrical center of a label in the primary image (in pixel units)
+* MAX_DISTANCE_TO_CENTROID = maximum distance from the border of a label to its geometrical center (in pixel units)
+* MEAN_DISTANCE_TO_CENTROID = minimum distance from the border of a label to its geometrical center (in pixel units)
+* MAX_MEAN_DISTANCE_TO_CENTROID_RATIO = ratio between the max. and average distance from the label border to its geometrical center
+* MIN_MAX_EXTENSION_RATIO = ratio between the minimum and maximum distance of the label border to the geometrical center (in pixel units)
+* MEAN_MAX_EXTENSION_RATIO = ratio between the average and maximum distance of the label border to the geometrical center (in pixel units)
+* MIN_EXTENSION = shortest distance of a border voxel/pixel to the geometrical label center (in pixel units)
+* MAX_EXTENSION = longest distance of a border voxel/pixel to the geometrical label center (in pixel units)
+* MEAN_EXTENSION = average distance of a border voxel/pixel to the geometrical label center (in pixel units)
+* STD_DEV_EXTENSION = standard deviation of the border voxel/pixel to the geometrical label center distance (in pixel units)
+* BOUNDING_BOX_WIDTH (in pixel units)
+* BOUNDING_BOX_HEIGHT (in pixel units)
+* BOUNDING_BOX_DEPTH (in pixel units)
+* BOUNDING_BOX_EXTENT = a measure of how much of the bounding box is filled with the primary label
+
+
+
+* PRIMARY_LABEL = the ID of the final primary label (object) the secondary objects are contained inside
+* IDENTIFIER = the ID of the final secondary label (object)
+* VOLUME (pixel^3) = the 3D volume or 2D area of the secondary label (in scaled units)
+* PIXEL_COUNT = the 3D volume or 2D area of the secondary label (in pixel units)
+* MEAN_INTENSITY = average pixel intensity of a single label in the original secondary input image 
+* MAXIMUM_INTENSITY = highest pixel intensity of a single label in the original secondary input image 
+* MINIMUM_INTENSITY = lowest pixel intensity of a single label in the original secondary input image 
+* STANDARD_DEVIATION_INTENSITY = standard deviation of the pixel intensity of a single label in the original secondary input image 
+* SUM_INTENSITY = total pixel intensity of all pixels inside a label in the original secondary input image 
+* MASS_CENTER_X = x coordinate of the center of mass (intensity weighted object center) of a label in the secondary image (in pixel units)
+* MASS_CENTER_Y = y coordinate of the center of mass (intensity weighted object center) of a label in the secondary image (in pixel units)
+* MASS_CENTER_Z = z coordinate of the center of mass (intensity weighted object center) of a label in the secondary image (in pixel units)
+* MAX_DISTANCE_TO_MASS_CENTER = maximum distance from the border of a secondary label to its center of mass (in pixel units)
+* MEAN_DISTANCE_TO_MASS_CENTER = minimum distance from the border of a secondary label to its center of mass (in pixel units)
+* MAX_MEAN_DISTANCE_TO_MASS_CENTER_RATIO = ratio between the max. and average distance from the secondary label border to its center of mass (relative)
+* MIN_MAX_EXTENSION_RATIO = ratio between the minimum and maximum distance of the secondary label border to the geometrical center (in pixel units)
+* MEAN_MAX_EXTENSION_RATIO = ratio between the average and maximum distance of the secondary label border to the geometrical center (in pixel units)
+* MIN_EXTENSION = shortest distance of a border voxel/pixel to the geometrical secondary label center (in pixel units)
+* MAX_EXTENSION = longest distance of a border voxel/pixel to the geometrical secondary label center (in pixel units)
+* MEAN_EXTENSION = average distance of a border voxel/pixel to the geometrical secondary label center (in pixel units)
+* STD_DEV_EXTENSION = standard deviation of the border voxel/pixel to the geometrical secondary label center distance (in pixel units)
+* AVER_CENTER_DIST = average distance of the SECONDARY label to the PRIMARY label CENTER (in pixel units) 
+* SHORT_CENTER_DIST = shortest distance of the SECONDARY label to the PRIMARY label CENTER (in pixel units) 
+* LONG_CENTER_DIST = longest distance of the SECONDARY label to the PRIMARY label CENTER (in pixel units) 
+* AVER_BORDER_DIST = average distance of the SECONDARY label to the PRIMARY label BORDER (in pixel units) 
+* SHORT_BORDER_DIST = shortest distance of the SECONDARY label to the PRIMARY label BORDER (in pixel units) 
+* LONG_BORDER_DIST = longest distance of the SECONDARY label to the PRIMARY label BORDER (in pixel units) 
+* CENTROID_X = x coordinate of the geometrical center of a label in the secondary image (in pixel units)
+* CENTROID_Y = y coordinate of the geometrical center of a label in the secondary image (in pixel units)
+* CENTROID_Z = z coordinate of the geometrical center of a label in the secondary image (in pixel units)
+* MAX_DISTANCE_TO_CENTROID = maximum distance from the border of a secondarylabel to its geometrical center (in pixel units)
+* MEAN_DISTANCE_TO_CENTROID = minimum distance from the border of a secondarylabel to its geometrical center (in pixel units)
+* MAX_MEAN_DISTANCE_TO_CENTROID_RATIO = ratio between the max. and average distance from the secondary label border to its geometrical center
+* BOUNDING_BOX_WIDTH (in pixel units)
+* BOUNDING_BOX_HEIGHT (in pixel units)
+* BOUNDING_BOX_DEPTH (in pixel units)
+* BOUNDING_BOX_EXTENT = a measure of how much of the bounding box is filled with the primary label
+
+
 ---
 
 ### Overlap Extractor

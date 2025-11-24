@@ -160,7 +160,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	
 	
 	public void run() {
-	
+		
 		double thresholdValue = getThreshold();
 		applyThreshold(thresholdValue);			
 
@@ -301,9 +301,7 @@ public class BV_ThresholdCheck extends DynamicCommand {
 
 	
 	public void applyThreshold(double thresholdValue) {
-		
-		clij2.clear();
-		
+				
 		ClearCLBuffer outputImage = clij2.create(inputImage);
 		log.debug("outputImage = " + outputImage);
 		

@@ -215,7 +215,8 @@ Results tables are available for primary as well as secondary objects including 
 ![image](https://user-images.githubusercontent.com/10721817/151661661-fbc7ae90-b30b-4ffa-ac44-752a7ca37b48.png)
 
 #### Results table headings and their meaning:
-Headings specific to the primary results table
+
+**Headings in the primary results table**
 
 * PRIM_OBJ_ID = the primary label ID (label intensity)
 * SEC_OBJECT_COUNT = number of secondary objects inside this particular primary object/label
@@ -250,7 +251,7 @@ Headings specific to the primary results table
 * BOUNDING_BOX_DEPTH (in pixel units)
 * BOUNDING_BOX_EXTENT = a measure of how much of the bounding box is filled with the primary label
 
-
+**Headings in the secondary results table**
 
 * PRIMARY_LABEL = the ID of the final primary label (object) the secondary objects are contained inside
 * IDENTIFIER = the ID of the final secondary label (object)

@@ -21,16 +21,18 @@ import org.scijava.widget.NumberWidget;
 
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxSettings;
 import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities;
+import de.biovoxxel.bv3dbox.utilities.BV3DBoxUtilities.LutNames;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
+import ij.plugin.ContrastEnhancer;
+import ij.plugin.frame.Recorder;
 import ij.process.AutoThresholder;
 import ij.process.ImageProcessor;
 import ij.process.LUT;
 import ij.process.StackProcessor;
 import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij2.CLIJ2;
-import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
 
 /*
  * BSD 3-Clause License
@@ -72,7 +74,7 @@ import net.haesleinhuepf.clij2.plugins.AutoThresholderImageJ1;
  */
 @Plugin(type = Command.class, menuPath = "Plugins>BioVoxxel 3D Box>Segmentation>Threshold Check (2D/3D)")
 public class BV_ThresholdCheck extends DynamicCommand {
-
+	
 	@Parameter
 	PrefService prefs;
 	
@@ -100,13 +102,16 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	@Parameter(label = "Auto Threshold", initializer = "thresholdMethodList", callback = "thresholdCheck", persist = false)
 	private String thresholdMethod = "None";
 
+	@Parameter(persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+	private String stackMessage = "Convert image stacks to 8-bit before testing for consistent results in macros";
+	
 	@Parameter(label = "Stack slice", style = NumberWidget.SLIDER_STYLE, min = "1", callback = "slideSlices")
 	private Integer stackSlice;
 	
 //	@Parameter(label = "Binary output style", choices = {"0/255", "Labels", "0/1"}, style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE)
 //	private String outputImageStyle;
 	
-	@Parameter(label = "<html><b><span style=\"background: yellow;\">True</span> / <span style=\"background: red; color: white;\">False</span>&nbsp Positive</b></html>", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
+	@Parameter(label = "<html><b><span style=\"background: yellow;\">True</span> / <span style=\"background: #ff5500; color: white;\">False</span>&nbsp Positive</b></html>", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
 	private String tpfp = "";
 	
 	@Parameter(label = "<html><b><span style=\"background: blue; color: white;\">True</span> / <span style=\"background: #00ffff;\">False</span> Negative</b></html>", persist = false, required=false, visibility = ItemVisibility.MESSAGE)
@@ -128,7 +133,6 @@ public class BV_ThresholdCheck extends DynamicCommand {
 //	private Button createBinary = null;
 
 
-		
 	CLIJ2 clij2;
 	ClearCLBuffer inputImage;
 	int bins = 256;
@@ -149,10 +153,6 @@ public class BV_ThresholdCheck extends DynamicCommand {
 
 	private double falseNegative;
 
-//	private double sensitivity;
-//
-//	private double specificity;
-
 	private double jaccardIndex;
 
 	private double diceCoeff;
@@ -160,10 +160,9 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	
 	
 	public void run() {
-		
 		double thresholdValue = getThreshold();
+		System.out.println("Threshold value = " + thresholdValue);
 		applyThreshold(thresholdValue);			
-
 	}
 	
 //	public void createBinary() {
@@ -174,7 +173,6 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	
 	
 	public void thresholdCheck() {
-		
 		double thresholdValue = getThreshold();
 		applyThresholdLUT(thresholdValue);
 		
@@ -268,12 +266,6 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		
 		final MutableModuleItem<String> mutableTrueFalseNegative = getInfo().getMutableInput("tnfn", String.class);
 		mutableTrueFalseNegative.setValue(this, "" + (int)trueNegative + " / " + (int)falseNegative);
-		
-//		final MutableModuleItem<String> mutableSensitivity = getInfo().getMutableInput("sens", String.class);
-//		mutableSensitivity.setValue(this, ""+sensitivity);
-//		
-//		final MutableModuleItem<String> mutableSpecificity = getInfo().getMutableInput("spec", String.class);
-//		mutableSpecificity.setValue(this, ""+specificity);
 				
 		final MutableModuleItem<String> mutableJaccard = getInfo().getMutableInput("jaccard", String.class);
 		mutableJaccard.setValue(this, "<html><b style=\"color: black;\">"+jaccardIndex + "</b></html>");
@@ -324,7 +316,8 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		ImagePlus outputImagePlus = clij2.pullBinary(outputImage);
 		outputImagePlus.setTitle(outputImageName);
 		outputImagePlus.setCalibration(inputImagePlus.getCalibration());
-		outputImagePlus.show();				
+		outputImagePlus.show();	
+		
 		
 //TODO: in batch mode images are not correctly displayed
 //			if (Interpreter.isBatchMode()) {
@@ -358,6 +351,41 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		outputImage.close();
 		clij2.clear();
 		
+		String ignore_setting = "";
+		switch (histogramUsage) {
+		case "ignore black":
+			ignore_setting = " ignore_black";
+			break;
+		
+		case "ignore white":
+			ignore_setting = " ignore_white";
+			break;
+
+		case "ignore both":
+			ignore_setting = " ignore_black ignore_white";
+			break;
+
+		default:
+			break;
+		}
+		
+		String stack_settings = "";
+		if (inputImagePlus.hasImageStack()) {
+			stack_settings = " stack use_stack_histogram";
+		}
+		
+		if (Recorder.getInstance() != null) {
+			Recorder.record("//----------------------");
+			Recorder.record("//Use only this part in macros and delete the run(\"Threshold Check (2D/3D)\"...) command");
+			Recorder.record("setOption(\"ScaleConversions\", true)");
+			Recorder.record("run(\"Enhance Contrast...\", \"saturated=0.0 normalize process_all use\")");
+			Recorder.record("run(\"8-bit\")");
+			Recorder.record("run(\"Auto Threshold\", \"method=" + thresholdMethod + ignore_setting + " white" + stack_settings + "\")");
+			Recorder.record("//----------------------");
+		}
+		
+		Recorder.record = true;
+		
 	}
 	
 	
@@ -387,8 +415,6 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		extendedThresholdMethodArray[3] = "Huang2";
 		System.arraycopy(thresholdMethodArray, 2, extendedThresholdMethodArray, 4, thresholdMethodArray.length-2);
 		
-		System.out.println(extendedThresholdMethodArray);
-		
 		finalThresholdMethodList = Arrays.asList(extendedThresholdMethodArray);
 			
 		
@@ -407,7 +433,9 @@ public class BV_ThresholdCheck extends DynamicCommand {
 	
 	@SuppressWarnings("unused")
 	private void imageSetup() {
-				
+		
+		Recorder.record = false;
+		
 		log.setLevel(prefs.getInt(BV3DBoxSettings.class, "bv_3d_box_settings_debug_level", LogLevel.INFO));
 		
 		ImageProcessor inputImageProcessor = inputImagePlus.getProcessor();
@@ -415,12 +443,16 @@ public class BV_ThresholdCheck extends DynamicCommand {
 			cancel("RGB images are not supported by auto thresholding");
 		}
 				
+		
+		inputImagePlus.killRoi();
+		IJ.run(inputImagePlus, "Enhance Contrast...", "saturated=0.0 normalize process_all use");
 		originalLut = inputImagePlus.getProcessor().getLut();
 
 		clij2 = CLIJ2.getInstance();
-		clij2.clear();
+		clij2.clear();		
 		
 		inputImage = clij2.push(BV3DBoxUtilities.convertToGray8(inputImagePlus));
+//		BV3DBoxUtilities.pullAndDisplayImageFromGPU(clij2, inputImage, false, LutNames.GRAY, null);
 					
 		log.debug(inputImagePlus.getTitle() + " pushed to GPU");
 		
@@ -497,23 +529,12 @@ public class BV_ThresholdCheck extends DynamicCommand {
 		falseNegative = Math.max(saturatedPixelCount - foregroundPixelCount, 0);
 		log.debug("falseNegative =" + falseNegative);
 		
-//		sensitivity = truePositive / (truePositive + falseNegative);
-//		sensitivity = Math.max(sensitivity, 1.0);
-//		log.debug("Sensitivity = " + df.format(sensitivity));
-//		
-//		specificity = trueNegative / (trueNegative + falsePositive);
-//		specificity = Math.max(specificity, 1.0);
-//		log.debug("Specificity = " + df.format(specificity));
-		
 		jaccardIndex = truePositive / (truePositive + falsePositive + falseNegative);
 		log.debug("JaccardIndex = " + df.format(jaccardIndex));
 		
 		diceCoeff = (2 * truePositive) / (2 * truePositive + falsePositive + falseNegative);
 		log.debug("DiceCoeff = " + df.format(diceCoeff));
 		
-		System.out.println("recalc dice = " + ((2*jaccardIndex) / (jaccardIndex + 1)));
-		
-//TODO: calculation of at least the specificity seems to be still not correct (at least for stacks)
 		IJ.showStatus(thresholdMethod + "--> JaccardIndex=" + df.format(jaccardIndex) + " / DiceCoeff = " + df.format(diceCoeff));
 		
 		return saturationIntensity;

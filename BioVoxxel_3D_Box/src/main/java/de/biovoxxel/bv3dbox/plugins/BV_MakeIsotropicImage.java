@@ -34,7 +34,6 @@ public class BV_MakeIsotropicImage {
 		calibration[1] = (float) cal.pixelHeight;
 		calibration[2] = (float) cal.pixelDepth;
 		
-		
 		return makeIsotropic(clij2, input_image, calibration);
 		
 	}

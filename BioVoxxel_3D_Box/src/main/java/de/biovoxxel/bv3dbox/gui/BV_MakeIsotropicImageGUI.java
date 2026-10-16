@@ -46,12 +46,6 @@ public class BV_MakeIsotropicImageGUI implements Command {
 			cal.pixelWidth = cal.pixelHeight = cal.pixelDepth = pixelSize;
 			cal.setUnit(inputImageCalibration.getUnit());	
 			
-			
-			if (dimensions[4] > 1) {
-				JOptionPane.showMessageDialog(null, "Does not support time frames", "Wrong dimensionality", JOptionPane.WARNING_MESSAGE);
-				
-			}
-			
 			if (dimensions[2] > 1) {
 				
 				LUT[] luts = inputImagePlus.getLuts();
@@ -81,13 +75,7 @@ public class BV_MakeIsotropicImageGUI implements Command {
 				}
 				
 				isotropicImagePlus = RGBStackMerge.mergeChannels(channelImps, false);
-				
 								
-//				for (int ch = 0; ch < isotropicImagePlus.getNChannels(); ch++) {
-//					isotropicImagePlus.setC(ch);
-//					isotropicImagePlus.setL
-//				}
-				
 				isotropicImagePlus.setCalibration(cal);
 				
 				isotropicImagePlus.show();
@@ -97,16 +85,10 @@ public class BV_MakeIsotropicImageGUI implements Command {
 				BV_MakeIsotropicImage bvmii = new BV_MakeIsotropicImage(clij2, inputImagePlus);
 				ClearCLBuffer isotropic_image = bvmii.makeIsotropic(clij2, inputImagePlus);
 				
-//				double pixelSize = inputImagePlus.getCalibration().pixelWidth;
-				
 				isotropicImagePlus = BV3DBoxUtilities.pullImageFromGPU(clij2, isotropic_image, true, LutNames.GRAY);
 				isotropic_image.close();
 				
 				isotropicImagePlus.setTitle("iso_" + WindowManager.getUniqueName(inputImagePlus.getTitle()));
-				
-//				Calibration cal = new Calibration();
-//				cal.pixelWidth = cal.pixelHeight = cal.pixelDepth = pixelSize;
-//				cal.setUnit(inputImagePlus.getCalibration().getUnit());	
 				
 				isotropicImagePlus.setCalibration(cal);
 				
@@ -114,8 +96,6 @@ public class BV_MakeIsotropicImageGUI implements Command {
 				
 			}
 			
-			
-			//BV3DBoxUtilities.addImagePlusToBatchModeImages(isotropicImagePlus);	//not solving the issue that in batch mode macros the output image is not displayed
 						
 			clij2.clear();
 			

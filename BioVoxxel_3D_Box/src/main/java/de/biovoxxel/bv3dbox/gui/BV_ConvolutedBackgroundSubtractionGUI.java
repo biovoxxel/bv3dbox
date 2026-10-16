@@ -38,7 +38,7 @@ public class BV_ConvolutedBackgroundSubtractionGUI extends DynamicCommand {
 	@Parameter(required = true, label = "Radius", description = "", min = "0.5", stepSize = "0.5", callback = "processImageOnTheFly")
 	Float filterRadius = 1.0f;
 	
-	@Parameter(visibility = ItemVisibility.MESSAGE)
+	@Parameter(visibility = ItemVisibility.MESSAGE, required = false)
 	String message = "Median filters with radii > 20 are slow";
 	
 	@Parameter(label = "Force 2D filtering", callback = "processImageOnTheFly")
